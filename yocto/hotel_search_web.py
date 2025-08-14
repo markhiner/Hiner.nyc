@@ -32,6 +32,11 @@ default="2025-08-15", help="YYYY-15-DD")
 default="2025-08-16", help="YYYY-MM-DD")
     p.add_argument("--sort-by", default="3", help="SerpAPI sort_by code (e.g., 3=Price, 8=Relevance, etc.)")
     p.add_argument("--hotel-class", default="4,5", help="Hotel star classes (comma-separated)")
+    p.add_argument(
+        "--brands",
+        default="84,7,41,118,256,26,136,289,2,3",
+        help="Comma-separated brand IDs (optional filter)",
+    )
     p.add_argument("--min-rating", type=float, default=0.0, help="Minimum guest rating to include")
     p.add_argument("--out", default=str(DEFAULT_OUT), help="Output HTML file path")
     p.add_argument("--open-browser", action="store_true", help="Open the HTML in the default browser")
@@ -46,6 +51,7 @@ def fetch_hotels(
     api_key: str,
     sort_by: str,
     hotel_class: str,
+    brands: str
 ) -> Dict[str, Any]:
     url = "https://serpapi.com/search"
     params = {
@@ -57,6 +63,7 @@ def fetch_hotels(
         "sort_by": sort_by,
         "hotel_class": hotel_class,
         "api_key": api_key,
+        "brands": brands,
     }
     try:
         r = requests.get(url, params=params, timeout=25)
@@ -486,7 +493,8 @@ def main() -> None:
         check_out=args.check_out,
         api_key=args.api_key,
         sort_by=args.sort_by,
-        hotel_class=args.hotel_class
+        hotel_class=args.hotel_class,
+        brands=args.brands
     )
     props = data.get("properties") or []
 
