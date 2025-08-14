@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Park hyatt Hotels ??? 08/15/25</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%23f5c518' d='M32 6l8.3 16.8 18.5 2.7-13.4 9.6L49.4 57 32 49.4 15.4 57l3.2-18.5L5.2 25.5l18.5-2.7L32 6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+:root {
+  --bg:#0b0b0c; --card:#ffffff; --muted:#5b6168; --text:#0b0b0c;
+  --accent:#0b65d8; --dealGreen:#00c853; --dealYellow:#fbc02d;
+  --outline:#dfe3e6; --shadow:rgba(0,0,0,.12); --star:#f5c518;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:#e8eaed;font-family:"Poppins","Inter",-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.header{position:sticky;top:0;z-index:5;background:linear-gradient(180deg,rgba(11,11,12,.95),rgba(11,11,12,.6));backdrop-filter:blur(8px);padding:12px 16px;border-bottom:1px solid #222}
+.header h1{margin:0;font-size:18px;font-weight:600;letter-spacing:.2px;color:#fff;font-family:"Playfair Display",serif}
+.header .sub{font-size:12px;color:#9aa0a6;margin-top:2px}
+.wrap{max-width:860px;margin:0 auto;padding:12px}
+
+.card{ background:var(--card); color:var(--text); border:1px solid var(--outline);
+  border-radius:16px; overflow:hidden; margin:12px 0 18px; box-shadow:0 10px 30px var(--shadow); transition:transform .2s, box-shadow .2s; cursor:pointer }
+.card:hover{ transform:translateY(-4px); box-shadow:0 14px 40px var(--shadow) }
+
+.hero-wrap{ position:relative; background:#111; }
+.hero{ width:100%; height:260px; object-fit:cover; display:block; }
+.price-badge{
+  position:absolute; top:10px; left:10px; background:rgba(0,0,0,.75); color:#fff;
+  font-weight:700; font-size:16px; padding:6px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)
+}
+.deal-badge{
+  position:absolute; top:10px; right:10px; font-weight:700; font-size:13px;
+  padding:6px 10px; border-radius:10px; border:1px solid transparent;
+  background:rgba(0,0,0,.6); color:#fff;
+}
+.deal-green{ border-color:var(--dealGreen); color:var(--dealGreen) }
+.deal-yellow{ border-color:var(--dealYellow); color:var(--dealYellow) }
+
+.map{ position:absolute; bottom:12px; right:12px; width:160px; height:110px;
+  border:1px solid #d7dbe0; border-radius:10px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,.25) }
+
+.content{ padding:14px 14px 16px; }
+.title{ font-size:20px; margin:2px 0 6px; line-height:1.25; color:var(--text); font-family:"Playfair Display",serif }
+.title a{ color:inherit; text-decoration:none }
+.title a:active{ opacity:.6 }
+
+.desc{ color:var(--muted); font-size:14px; line-height:1.45; margin:6px 0 8px }
+
+.meta-row{ display:flex; gap:14px; align-items:center; margin:8px 0 10px; flex-wrap:wrap }
+.stars{ display:flex; gap:2px }
+.star{ width:18px; height:18px; color:#c7ccd1 }
+.star-filled{ fill:var(--star) }
+.star-outline{ fill:none; color:#9aa0a6 }
+
+.rating-badge{ display:inline-flex; align-items:center; gap:6px;
+  border:1px solid var(--outline); border-radius:10px; padding:4px 8px;
+  font-size:13px; color:var(--text); background:#fff }
+.rating-box{ background:#111; color:#fff; font-weight:700; padding:2px 6px; border-radius:6px; font-size:13px }
+
+.amenities{ display:flex; flex-wrap:wrap; gap:12px; margin:6px 0 10px }
+.amenity-wrap{ display:inline-flex }
+.amenity{ width:24px; height:24px; fill:#4b5563; opacity:.95 }
+
+.thumbs{ display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; -webkit-overflow-scrolling:touch }
+.thumb{ display:block; width:120px; height:80px; object-fit:cover; background:#111; border-radius:10px; border:1px solid #dfe3e6 }
+.thumb-btn{ appearance:none; border:0; padding:0; background:transparent; cursor:pointer }
+.thumb-btn:focus{ outline:2px solid #6aa0ff; outline-offset:2px }
+.active-thumb{ outline:2px solid var(--accent) }
+
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .4s ease;z-index:50;}
+.modal-overlay.show{opacity:1;pointer-events:all;}
+.modal{background:var(--card);color:var(--text);border-radius:20px;max-width:600px;width:90%;max-height:80%;overflow-y:auto;position:relative;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.4);transform:translateY(40px);transition:transform .4s ease;}
+.modal-overlay.show .modal{transform:translateY(0);}
+.modal-close{position:absolute;top:12px;right:16px;font-size:28px;background:none;border:none;color:var(--text);cursor:pointer;}
+.modal-body{font-size:15px;line-height:1.5;color:var(--text);}
+.modal-body ul{padding-left:20px;}
+.modal-title{margin:0 0 12px;font-size:24px;font-family:"Playfair Display",serif;}
+.modal-json{font-family:monospace;background:#f5f5f7;padding:12px;border-radius:10px;overflow-x:auto;}
+
+@media (max-width:480px){
+  .hero{ height:220px }
+  .map{ width:140px; height:100px }
+}
+</style>
+</head><body>
+<div class="header"><h1>Park hyatt Hotels ??? 08/15/25</h1><div class="sub">2025-08-15 ??? 2025-08-16</div></div>
+<div class="wrap">
+
+<section class="card" id="card_0">
+  <div class="hero-wrap">
+    <img src='https://i.giatamedia.com/m.php?m=AQABAAAAla4KAIR7XwQFABMZ54rdqOWvbVfUcOPphko' class='hero' alt='Hotel image' id='hero_0'>
+    <div class='price-badge'>$806</div>
+    
+    <div id="map_0" class="map"></div>
+  </div>
+  <div class="content">
+    <h2 class="title"><a href="https://www.hyatt.com/en-US/hotel/california/park-hyatt-aviara-resort/sanpa?src=corp_lclb_google_seo_sanpa&utm_source=google&utm_medium=organic&utm_campaign=lmr" target="_blank" rel="noopener">Park Hyatt Aviara Resort, Golf Club & Spa</a></h2>
+    <p class='desc'>Refined golf resort with 4 restaurants, a cocktail lounge & 2 outdoor pools, plus a spa & tennis.</p>
+    <div class="meta-row">
+      <div class='stars' title='5-star hotel'>
+<svg viewBox="0 0 24 24" class="star star-filled" aria-hidden="true">
+  <path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 18l-6.2 3.3 1.2-6.8-5-4.9 6.9-1z"/>
+</svg>
+
+<svg viewBox="0 0 24 24" class="star star-filled" aria-hidden="true">
+  <path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 18l-6.2 3.3 1.2-6.8-5-4.9 6.9-1z"/>
+</svg>
+
+<svg viewBox="0 0 24 24" class="star star-filled" aria-hidden="true">
+  <path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 18l-6.2 3.3 1.2-6.8-5-4.9 6.9-1z"/>
+</svg>
+
+<svg viewBox="0 0 24 24" class="star star-filled" aria-hidden="true">
+  <path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 18l-6.2 3.3 1.2-6.8-5-4.9 6.9-1z"/>
+</svg>
+
+<svg viewBox="0 0 24 24" class="star star-filled" aria-hidden="true">
+  <path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 18l-6.2 3.3 1.2-6.8-5-4.9 6.9-1z"/>
+</svg>
+</div>
+      <span class='rating-badge'><span>Guest Rating</span><span class='rating-box'>4.7</span></span>
+    </div>
+    <div class="amenities"><span class='amenity-wrap' title='Pool'>
+<svg viewBox="0 0 24 24" class="amenity" aria-hidden="true">
+  <path d="M2 17c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1 2-1 4-1v2c-2 0-2 1-4 1s-2-1-4-1-2 1-4 1-2-1-4-1v-2zM8 6a3 3 0 016 0v5h-2V6a1 1 0 10-2 0v5H8V6z"/>
+</svg>
+</span><span class='amenity-wrap' title='Pet friendly'>
+<svg viewBox="0 0 24 24" class="amenity" aria-hidden="true">
+  <path d="M12 13c-2.8 0-8 1.4-8 4.2S9.2 20 12 20s8-.6 8-2.8S14.8 13 12 13zM6.5 9A1.5 2 0 108 9a1.5 2 0 00-1.5-2zM10.5 7A1.5 2 0 1012 7a1.5 2 0 00-1.5-2zM13.5 7A1.5 2 0 1015 7a1.5 2 0 00-1.5-2zM17.5 9A1.5 2 0 1019 9a1.5 2 0 00-1.5-2z"/>
+</svg>
+</span><span class='amenity-wrap' title='Spa'>
+<svg viewBox="0 0 24 24" class="amenity" aria-hidden="true">
+  <path d="M12 3C9 6 8 9 8 12s1 6 4 9c3-3 4-6 4-9s-1-6-4-9zm0 6a3 3 0 110 6 3 3 0 010-6z"/>
+</svg>
+</span><span class='amenity-wrap' title='Restaurant'>
+<svg viewBox="0 0 24 24" class="amenity" aria-hidden="true">
+  <path d="M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z"/>
+</svg>
+</span><span class='amenity-wrap' title='Room service'>
+<svg viewBox="0 0 24 24" class="amenity" aria-hidden="true">
+  <path d="M12 5a7 7 0 00-7 7h14a7 7 0 00-7-7zm-9 9v2h18v-2H3z"/>
+</svg>
+</span><span class='amenity-wrap' title='Bar'>
+<svg viewBox="0 0 24 24" class="amenity" aria-hidden="true">
+  <path d="M3 3h18l-6 8v7h-6v-7L3 3z"/>
+</svg>
+</span></div>
+    <div class='thumbs'><button class="thumb-btn" data-card="0" data-full="https://i.giatamedia.com/m.php?m=AQABAAAAla4KAIR7XwQFABMZ54rdqOWvbVfUcOPphko" data-thumb-idx="0">  <img src="https://lh3.googleusercontent.com/gps-proxy/ALd4DhF3zqCYKiT3ZPEXzIFzWmSayCest711Ja8bH8QkSESdRbL3m2Y4b27CP95AkrRp_g1bKOJ7JmTmniA7vl_TTv8gakkENOGSkE-tCzCdubmhDIjFwhkprA4zqqwBfMaqEoFLRINlLolRDWoN6f1MfnBMeFAYkGE6bj_N7d_UWzs9DXRJSTW3_Voy=s287-w287-h192-n-k-no-v1" class="thumb" loading="lazy" alt="Thumbnail 1"></button><button class="thumb-btn" data-card="0" data-full="https://lh5.googleusercontent.com/p/CIHM0ogKEICAgIDxsIqfdQ=s10000" data-thumb-idx="1">  <img src="https://lh3.googleusercontent.com/gps-cs-s/AC9h4noGWLUNZ2tYtrsm3YpYROQGHS0ZaH6DllKifh13o0tg1wcTGwo6nQeLr-9EkboWKF60ADv0vpce_mmbCL2EKbyLNYMVh39cIEZagww04EsBJJl5B7VGi77UVzN25pvps1cBBpA=s287-w287-h192-n-k-no-v1" class="thumb" loading="lazy" alt="Thumbnail 2"></button><button class="thumb-btn" data-card="0" data-full="https://lh5.googleusercontent.com/p/AF1QipOO2nY8fO2SiYxnLQvlMb8wYZNJ3K4TIIY5ZNxm=s10000" data-thumb-idx="2">  <img src="https://lh3.googleusercontent.com/p/AF1QipOO2nY8fO2SiYxnLQvlMb8wYZNJ3K4TIIY5ZNxm=s287-w287-h192-n-k-no-v1" class="thumb" loading="lazy" alt="Thumbnail 3"></button><button class="thumb-btn" data-card="0" data-full="https://lh5.googleusercontent.com/p/CIABIhDQLPAB1bmuHcRXyNTc0Dj-=s10000" data-thumb-idx="3">  <img src="https://lh3.googleusercontent.com/gps-cs-s/AC9h4nrcgLUjHj6kJeyRKZ9mOZBOM-oOUx1jjyPw67krSH3oRcuKaQ5JnPtrzE69T79N4FkF-ykaCTGAlHhEXvlXNG-9-djhQuA2024kuOgpcsd_tqnseiurn1Phz9-cARzn5Qm7mKqrFI2RWPw=s287-w287-h192-n-k-no-v1" class="thumb" loading="lazy" alt="Thumbnail 4"></button><button class="thumb-btn" data-card="0" data-full="https://lh5.googleusercontent.com/p/AF1QipME0WQCzjGvhj6AB97oXW9bhmFqgecukJmUL4Qw=s10000" data-thumb-idx="4">  <img src="https://lh3.googleusercontent.com/p/AF1QipME0WQCzjGvhj6AB97oXW9bhmFqgecukJmUL4Qw=s287-w287-h192-n-k-no-v1" class="thumb" loading="lazy" alt="Thumbnail 5"></button><button class="thumb-btn" data-card="0" data-full="https://www.iceportal.com/data/2813-49747-f75002185_XXLejpg/United-States-of-America/California/CARLSBAD/PARK-HYATT-AVIARA-RESORT/Photo/PARK-HYATT-AVIARA-RESORT-CARLSBAD-Undefined-Golf.jpg" data-thumb-idx="5">  <img src="https://lh3.googleusercontent.com/gps-proxy/ALd4DhEUPVaNk1Z4jVU-eHihSKitOKkZgCfQjuTlfajhSvdmtn1XMR_uxy_lmo3N4kIFObvBRiopQ6F35gLjjrdlVM1XcbJug53GQfX6uzX-WcwxonK8OIyNNMV26CyeUTdn_tBxBuGYW72Wzm_ovFJcwNkSrSbzM8qXSo7BPetZNUsUCqr6UtJ6Cj79=s287-w287-h192-n-k-no-v1" class="thumb" loading="lazy" alt="Thumbnail 6"></button><button class="thumb-btn" data-card="0" data-full="https://lh5.googleusercontent.com/p/http://media.staticontent.com/media/pictures/3f1f965b-95ce-4949-a0b0-feae77a5e690=s10000" data-thumb-idx="6">  <img src="https://lh3.googleusercontent.com/gps-proxy/ALd4DhEAsrKopcIJS994pbGpzwQY-VhQk9ChHFBydk8cT_yTReYE4-DLjhy5zxoo_lm1c1zkYtXUcAHxz0-hH7pibaQPLxiAlD7fq06cxSA9Sl8j18FNHm7vHeTkQPSBGWJ7wdRZZ4oqL-byV1ZyxV4GOSRQlvso20wa_VvQM8oCL6nHdPUDkjNz3h5nFA=s287-w287-h192-n-k-no-v1" class="thumb" loading="lazy" alt="Thumbnail 7"></button><button class="thumb-btn" data-card="0" data-full="https://lh5.googleusercontent.com/p/AF1QipOsaMoKTExG24f7iBEaoMBcDIfVWKFWYT9TNND9=s10000" data-thumb-idx="7">  <img src="https://lh3.googleusercontent.com/p/AF1QipOsaMoKTExG24f7iBEaoMBcDIfVWKFWYT9TNND9=s287-w287-h192-n-k-no-v1" class="thumb" loading="lazy" alt="Thumbnail 8"></button></div>
+  </div>
+</section>
+
+</div>
+
+<div id="modal-overlay" class="modal-overlay">
+  <div class="modal">
+    <button class="modal-close" aria-label="Close">&times;</button>
+    <div class="modal-body"></div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const hotels = [{"id": "map_0", "name": "Park Hyatt Aviara Resort, Golf Club & Spa", "lat": 33.0994829, "lng": -117.28575009999999}];
+  const details = [{"type": "hotel", "name": "Park Hyatt Aviara Resort, Golf Club & Spa", "description": "Refined golf resort with 4 restaurants, a cocktail lounge & 2 outdoor pools, plus a spa & tennis.", "link": "https://www.hyatt.com/en-US/hotel/california/park-hyatt-aviara-resort/sanpa?src=corp_lclb_google_seo_sanpa&utm_source=google&utm_medium=organic&utm_campaign=lmr", "property_token": "ChYIytLLkZm-pqorGgovbS8wMnBtMzM4EAE", "serpapi_property_details_link": "https://serpapi.com/search.json?adults=2&check_in_date=2025-08-15&check_out_date=2025-08-16&children=0&currency=USD&engine=google_hotels&gl=us&hl=en&hotel_class=4%2C5&property_token=ChYIytLLkZm-pqorGgovbS8wMnBtMzM4EAE&q=park+hyatt&sort_by=3", "address": "Carlsbad, CA", "phone": "(760) 448-1234", "phone_link": "tel:+17604481234", "gps_coordinates": {"latitude": 33.0994829, "longitude": -117.28575009999999}, "check_in_time": "4:00\u202fPM", "check_out_time": "11:00\u202fAM", "rate_per_night": {"lowest": "$806", "extracted_lowest": 806, "before_taxes_fees": "$720", "extracted_before_taxes_fees": 720}, "total_rate": {"lowest": "$806", "extracted_lowest": 806, "before_taxes_fees": "$720", "extracted_before_taxes_fees": 720}, "nearby_places": [{"name": "The Flower Fields", "transportations": [{"type": "Taxi", "duration": "9 min"}]}, {"name": "San Diego International Airport", "transportations": [{"type": "Taxi", "duration": "36 min"}, {"type": "Public transport", "duration": "2 hr 8 min"}]}, {"name": "Pacific Point", "transportations": [{"type": "Walking", "duration": "1 min"}]}], "hotel_class": "5-star hotel", "extracted_hotel_class": 5, "images": [{"thumbnail": "https://lh3.googleusercontent.com/gps-proxy/ALd4DhF3zqCYKiT3ZPEXzIFzWmSayCest711Ja8bH8QkSESdRbL3m2Y4b27CP95AkrRp_g1bKOJ7JmTmniA7vl_TTv8gakkENOGSkE-tCzCdubmhDIjFwhkprA4zqqwBfMaqEoFLRINlLolRDWoN6f1MfnBMeFAYkGE6bj_N7d_UWzs9DXRJSTW3_Voy=s287-w287-h192-n-k-no-v1", "original_image": "https://i.giatamedia.com/m.php?m=AQABAAAAla4KAIR7XwQFABMZ54rdqOWvbVfUcOPphko"}, {"thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AC9h4noGWLUNZ2tYtrsm3YpYROQGHS0ZaH6DllKifh13o0tg1wcTGwo6nQeLr-9EkboWKF60ADv0vpce_mmbCL2EKbyLNYMVh39cIEZagww04EsBJJl5B7VGi77UVzN25pvps1cBBpA=s287-w287-h192-n-k-no-v1", "original_image": "https://lh5.googleusercontent.com/p/CIHM0ogKEICAgIDxsIqfdQ=s10000"}, {"thumbnail": "https://lh3.googleusercontent.com/p/AF1QipOO2nY8fO2SiYxnLQvlMb8wYZNJ3K4TIIY5ZNxm=s287-w287-h192-n-k-no-v1", "original_image": "https://lh5.googleusercontent.com/p/AF1QipOO2nY8fO2SiYxnLQvlMb8wYZNJ3K4TIIY5ZNxm=s10000"}, {"thumbnail": "https://lh3.googleusercontent.com/gps-cs-s/AC9h4nrcgLUjHj6kJeyRKZ9mOZBOM-oOUx1jjyPw67krSH3oRcuKaQ5JnPtrzE69T79N4FkF-ykaCTGAlHhEXvlXNG-9-djhQuA2024kuOgpcsd_tqnseiurn1Phz9-cARzn5Qm7mKqrFI2RWPw=s287-w287-h192-n-k-no-v1", "original_image": "https://lh5.googleusercontent.com/p/CIABIhDQLPAB1bmuHcRXyNTc0Dj-=s10000"}, {"thumbnail": "https://lh3.googleusercontent.com/p/AF1QipME0WQCzjGvhj6AB97oXW9bhmFqgecukJmUL4Qw=s287-w287-h192-n-k-no-v1", "original_image": "https://lh5.googleusercontent.com/p/AF1QipME0WQCzjGvhj6AB97oXW9bhmFqgecukJmUL4Qw=s10000"}, {"thumbnail": "https://lh3.googleusercontent.com/gps-proxy/ALd4DhEUPVaNk1Z4jVU-eHihSKitOKkZgCfQjuTlfajhSvdmtn1XMR_uxy_lmo3N4kIFObvBRiopQ6F35gLjjrdlVM1XcbJug53GQfX6uzX-WcwxonK8OIyNNMV26CyeUTdn_tBxBuGYW72Wzm_ovFJcwNkSrSbzM8qXSo7BPetZNUsUCqr6UtJ6Cj79=s287-w287-h192-n-k-no-v1", "original_image": "https://www.iceportal.com/data/2813-49747-f75002185_XXLejpg/United-States-of-America/California/CARLSBAD/PARK-HYATT-AVIARA-RESORT/Photo/PARK-HYATT-AVIARA-RESORT-CARLSBAD-Undefined-Golf.jpg"}, {"thumbnail": "https://lh3.googleusercontent.com/gps-proxy/ALd4DhEAsrKopcIJS994pbGpzwQY-VhQk9ChHFBydk8cT_yTReYE4-DLjhy5zxoo_lm1c1zkYtXUcAHxz0-hH7pibaQPLxiAlD7fq06cxSA9Sl8j18FNHm7vHeTkQPSBGWJ7wdRZZ4oqL-byV1ZyxV4GOSRQlvso20wa_VvQM8oCL6nHdPUDkjNz3h5nFA=s287-w287-h192-n-k-no-v1", "original_image": "https://lh5.googleusercontent.com/p/http://media.staticontent.com/media/pictures/3f1f965b-95ce-4949-a0b0-feae77a5e690=s10000"}, {"thumbnail": "https://lh3.googleusercontent.com/p/AF1QipOsaMoKTExG24f7iBEaoMBcDIfVWKFWYT9TNND9=s287-w287-h192-n-k-no-v1", "original_image": "https://lh5.googleusercontent.com/p/AF1QipOsaMoKTExG24f7iBEaoMBcDIfVWKFWYT9TNND9=s10000"}, {"thumbnail": "https://lh3.googleusercontent.com/p/AF1QipOrw6MelU9FgVZPiyGO1XU6alv0DZ0NlIcCTxr9=s287-w287-h192-n-k-no-v1", "original_image": "https://lh5.googleusercontent.com/p/AF1QipOrw6MelU9FgVZPiyGO1XU6alv0DZ0NlIcCTxr9=s10000"}], "overall_rating": 4.7, "reviews": 1772, "ratings": [{"stars": 5, "count": 1448}, {"stars": 4, "count": 224}, {"stars": 3, "count": 34}, {"stars": 2, "count": 30}, {"stars": 1, "count": 36}], "location_rating": 3.7, "reviews_breakdown": [{"name": "Wellness", "description": "Wellness", "total_mentioned": 60, "positive": 50, "negative": 6, "neutral": 4}, {"name": "Spa", "description": "Spa", "total_mentioned": 42, "positive": 36, "negative": 4, "neutral": 2}, {"name": "Fitness", "description": "Fitness", "total_mentioned": 233, "positive": 196, "negative": 21, "neutral": 16}, {"name": "Service", "description": "Service", "total_mentioned": 488, "positive": 435, "negative": 34, "neutral": 19}, {"name": "Couples", "description": "Couple friendly", "total_mentioned": 38, "positive": 25, "negative": 4, "neutral": 9}, {"name": "Property", "description": "Property", "total_mentioned": 465, "positive": 420, "negative": 23, "neutral": 22}], "amenities": ["Breakfast ($)", "Free Wi-Fi", "Parking ($)", "Pool", "Air conditioning", "Pet-friendly", "Fitness centre", "Spa", "Bar", "Restaurant", "Room service", "Golf", "Full-service laundry", "Accessible", "Business centre", "Smoke-free property"]}];
+  hotels.forEach(h => {
+    const el = document.getElementById(h.id);
+    if (!el) return;
+    const map = L.map(el, { zoomControl: false, attributionControl: false, dragging: true, tap: true }).setView([h.lat, h.lng], 14);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(map);
+    const icon = L.icon({
+      iconUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="%23ff3b30"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5c-1.4 0-2.5-1.1-2.5-2.5S10.6 6.5 12 6.5s2.5 1.1 2.5 2.5S13.4 11.5 12 11.5z"/></svg>',
+      iconSize: [28, 28], iconAnchor: [14, 28]
+    });
+    L.marker([h.lat, h.lng], { icon: icon }).addTo(map);
+    setTimeout(() => map.invalidateSize(), 200);
+  });
+
+<<<<<<< ours
+  // thumbnail ??? hero swap (no new tab)
+=======
+  const modal = document.getElementById('modal-overlay');
+  const modalBody = modal.querySelector('.modal-body');
+  const close = () => modal.classList.remove('show');
+  modal.querySelector('.modal-close').addEventListener('click', close);
+  modal.addEventListener('click', e => { if (e.target === modal) close(); });
+
+  const escapeHtml = str => str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',''':'&#39;'}[c]));
+  const buildDetails = d => {
+    let html = `<h2 class="modal-title">${d.name || ''}</h2>`;
+    if (d.check_in_time) html += `<p><strong>Check-in:</strong> ${d.check_in_time}</p>`;
+    if (d.check_out_time) html += `<p><strong>Check-out:</strong> ${d.check_out_time}</p>`;
+    const nearby = d.nearby_attractions || d.nearby_places;
+    if (Array.isArray(nearby) && nearby.length) {
+      html += '<h3>Nearby Attractions</h3><ul>';
+      nearby.forEach(n => { const name = n.name || n; html += `<li>${name}</li>`; });
+      html += '</ul>';
+    }
+    html += `<pre class="modal-json">${escapeHtml(JSON.stringify(d, null, 2))}</pre>`;
+    return html;
+  };
+
+  document.querySelectorAll('.card').forEach((card, idx) => {
+    card.addEventListener('click', e => {
+      if (e.target.closest('a') || e.target.closest('.thumb-btn')) return;
+      const d = details[idx] || {};
+      modalBody.innerHTML = buildDetails(d);
+      modal.classList.add('show');
+    });
+  });
+
+  // thumbnail → hero swap (no new tab)
+>>>>>>> theirs
+  document.querySelectorAll('.thumb-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const cardIdx = btn.dataset.card;
+      const full = btn.dataset.full;
+      const hero = document.getElementById('hero_' + cardIdx);
+      if (hero && full) {
+        hero.src = full;
+      }
+      const card = document.getElementById('card_' + cardIdx);
+      if (card) {
+        card.querySelectorAll('.thumb-btn').forEach(b => b.classList.remove('active-thumb'));
+        btn.classList.add('active-thumb');
+      }
+    });
+  });
+});
+</script>
+</body></html>
