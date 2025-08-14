@@ -1,14 +1,27 @@
-<!doctype html> <html lang="en"> <head> <meta 
-charset="utf-8"> <title>Hiner.nyc</title> <style> 
-html, body {
-  margin: 0; padding: 0; background-color: black; 
-  height: 100%;
-} body {
-  display: flex; justify-content: center; 
-  align-items: center;
-} img {
-  display: block; max-width: 100%; height: auto; 
-  aspect-ratio: 4 / 3; object-fit: contain;
-} </style> </head> <body> <img src="colorbars.png" 
-alt="Hiner.nyc Colorbars"> </body>
+<!doctype html> <html lang="en"> <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, 
+initial-scale=1" />
+  <title>Hiner.nyc</title> <style>
+    html, body {
+      height: 100%; margin: 0; background: #000;
+    } /* Full-viewport stage */ .stage {
+      position: fixed; inset: 0; display: flex;
+      align-items: center;   /* center vertically 
+when letterboxed */
+      justify-content: center; background: #000;
+      overflow-y: auto;      /* allow vertical scroll 
+if the 4:3 image is taller than the viewport */
+      overflow-x: hidden;  /* never scroll sideways 
+*/
+    } img {
+      display: block;  /* remove inline-gap 
+whitespace */
+      width: 100%;  /* span full browser width */
+      height: auto;          /* preserve 4:3 aspect 
+ratio from the source image */
+    }
+  </style> </head> <body> <div class="stage">
+    <img src="colorbars.png" alt="">
+  </div> </body>
 </html>
