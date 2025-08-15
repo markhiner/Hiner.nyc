@@ -1,222 +1,154 @@
 <!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hotels · Denver · 2025-08-29 → 2025-08-31</title>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hotels — atlanta — 2025-08-29 → 2025-08-31</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-  body{margin:0;background:#0b0b0b;color:#eee;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
-  .wrap{max-width:960px;margin:32px auto;padding:0 16px}
-  .card{background:#161616;border:1px solid #2a2a2a;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.35);padding:18px}
-  a{color:#7cb1ff;text-decoration:none}
-  table{width:100%;border-collapse:collapse}
-  tr+tr td{border-top:1px solid #2a2a2a}
+:root{--bg:#0b0b0c;--card:#111316;--text:#e8eaed;--muted:#9aa0a6;--line:#232629;--accent:#82aaff;}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:16px}
+.header{position:sticky;top:0;background:rgba(11,11,12,.8);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:10px 16px;z-index:5}
+.header h1{margin:0;font-size:18px;font-weight:600}
+.header .sub{font-size:12px;color:var(--muted)}
+.card{border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:14px 0;background:var(--card);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.hero-wrap{position:relative;background:#0d0f12}
+.hero{display:block;width:100%;height:260px;object-fit:cover}
+.deal{position:absolute;bottom:10px;left:10px;background:#0b65d8;color:white;padding:6px 10px;border-radius:10px;font-size:12px}
+.body{padding:14px}
+.title{display:flex;flex-direction:column;gap:6px}
+.title a{color:#fff;text-decoration:none;font-weight:600;font-size:18px}
+.meta{color:var(--muted);font-size:13px}
+.desc{margin:10px 0 6px 0;color:#cfd3d7;font-size:14px;line-height:1.35}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.thumb{border:0;background:none;padding:0;cursor:pointer;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.thumb img{display:block;width:88px;height:64px;object-fit:cover}
+.amenities{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 12px 0}
+.amen{width:18px;height:18px;fill:#aab2bd;vertical-align:-3px;margin-right:6px}
+.amen-wrap{display:inline-flex;align-items:center;gap:6px;color:#cbd2d8;background:#0f1216;border:1px solid var(--line);padding:6px 8px;border-radius:999px;font-size:12px}
+.map{height:180px;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:10px}
+.empty{color:var(--muted)}
+.footer{color:#b9c1c7;font-size:12px;margin:18px 0;text-align:center}
+.leaflet-tile{filter:grayscale(.1) brightness(.9)}
 </style>
 </head>
 <body>
+<div class="header"><h1>Hotels — atlanta</h1><div class="sub">2025-08-29 → 2025-08-31</div></div>
 <div class="wrap">
-  <div class="card">
-    <h1 style="margin:6px 0 14px 0;font-size:22px">Hotels for <span style="opacity:.9">Denver</span></h1>
-    <div style="opacity:.8;margin-bottom:10px">Dates: 2025-08-29 → 2025-08-31 · Generated 2025-08-15 18:40</div>
-    <table>
-        <tr>
-          <td style="vertical-align:top;padding:12px 10px;"><img src="https://lh3.googleusercontent.com/p/AF1QipPIDDUfueMryijjb4MC-zde8wEi4oRBM2sCmbCH=s287-w287-h192-n-k-no-v1" alt="" style="width:120px;height:auto;border-radius:10px;border:1px solid #2a2a2a;"></td>
-          <td style="vertical-align:top;padding:12px 10px;">
-            <div style="font-weight:600">DoubleTree by Hilton Hotel Denver Tech Center</div>
-            <div style="opacity:.8;font-size:14px;margin:4px 0"></div>
-            <div style="font-size:14px">Rating: 4.1 · Class: 4-star hotel · From: $102</div>
-            <div style="margin-top:6px"><a href="https://www.hilton.com/en/hotels/denewdt-doubletree-denver-tech-center/?SEO_id=GMB-AMER-DT-DENEWDT&amp;y_source=1_MTM3MjY0Ny03MTUtbG9jYXRpb24ud2Vic2l0ZQ%3D%3D" target="_blank" rel="noopener">View</a></div>
-          </td>
-        </tr>
+
+        <article class="card">
+          <div class="hero-wrap">
+            <img src='https://lh5.googleusercontent.com/p/AF1QipNKWnJLE2Xxepp3gpdXU_S2G8iMnUxoNlCLPTtD=s10000' alt='' id='hero-0' class='hero'>
+            <div class='deal'>45% less than usual</div>
+          </div>
+          <div class="body">
+            <header class="title">
+              <a href="https://www.fourseasons.com/atlanta/?utm_source=google&amp;utm_medium=organicsearch&amp;utm_campaign=tor-atl-hre-mid-seo-na&amp;utm_content=na-na&amp;utm_term=na" target="_blank" rel="noopener">Four Seasons Hotel Atlanta</a>
+              <div class="meta">Class 5-star hotel · Rating 4.7 · From $$693</div>
+            </header>
+            <p class="desc">Posh rooms &amp; suites in a ritzy luxury hotel with an indoor saltwater pool, upscale dining &amp; a spa.</p>
+            <div class="thumbs" id="thumbs-0"><button class='thumb' data-hero='hero-0' data-src='https://lh5.googleusercontent.com/p/AF1QipNKWnJLE2Xxepp3gpdXU_S2G8iMnUxoNlCLPTtD=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNKWnJLE2Xxepp3gpdXU_S2G8iMnUxoNlCLPTtD=s10000' alt=''></button><button class='thumb' data-hero='hero-0' data-src='https://lh5.googleusercontent.com/p/AF1QipO8rytsuR4Dr4wXmM_hip1T5zLS_92VOw5gtol3=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipO8rytsuR4Dr4wXmM_hip1T5zLS_92VOw5gtol3=s10000' alt=''></button><button class='thumb' data-hero='hero-0' data-src='https://lh5.googleusercontent.com/p/AF1QipNcgvNUjMohUWKhlN2DVkVRx5xoRdPp8baacX_L=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNcgvNUjMohUWKhlN2DVkVRx5xoRdPp8baacX_L=s10000' alt=''></button><button class='thumb' data-hero='hero-0' data-src='https://lh5.googleusercontent.com/p/AF1QipOZbn7RW85gRW7usNSjZgsDLfRzvC-axJUMAUIQ=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOZbn7RW85gRW7usNSjZgsDLfRzvC-axJUMAUIQ=s10000' alt=''></button><button class='thumb' data-hero='hero-0' data-src='https://lh5.googleusercontent.com/p/AF1QipNTKMX9dsaqdCgwKO1DeFHXE0dtR84i5BfwegY5=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNTKMX9dsaqdCgwKO1DeFHXE0dtR84i5BfwegY5=s10000' alt=''></button><button class='thumb' data-hero='hero-0' data-src='https://lh5.googleusercontent.com/p/AF1QipOnW0CN_LEeOXKweuF0Gh7UqeFTFWSXFr6IMLpL=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOnW0CN_LEeOXKweuF0Gh7UqeFTFWSXFr6IMLpL=s10000' alt=''></button><button class='thumb' data-hero='hero-0' data-src='https://lh5.googleusercontent.com/p/AF1QipOaovOsu0got-VXIzTLuAX9xxHbEffQb_gz3XKX=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOaovOsu0got-VXIzTLuAX9xxHbEffQb_gz3XKX=s10000' alt=''></button><button class='thumb' data-hero='hero-0' data-src='https://lh5.googleusercontent.com/p/AF1QipPOfYLlVTOthy5QzFZlx8tkJyxe-NG6Aexn3xnl=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPOfYLlVTOthy5QzFZlx8tkJyxe-NG6Aexn3xnl=s10000' alt=''></button></div>
+            <div class="amenities"><span class='amen-wrap' title='Wi-Fi'><svg viewBox='0 0 24 24' class='amen'><path d='M12 18a2 2 0 11-.001 3.999A2 2 0 0112 18zm-8.485-5.657l1.414 1.414A9 9 0 0112 12a9 9 0 016.364 2.757l1.414-1.414A11 11 0 0012 10a11 11 0 00-8.485 2.343zM3.515 8.343l1.414 1.414A13 13 0 0112 6a13 13 0 019.071 3.757l1.414-1.414A15 15 0 0012 4a15 15 0 00-8.485 4.343z'/></svg><span>Wi-Fi</span></span><span class='amen-wrap' title='Parking'><svg viewBox='0 0 24 24' class='amen'><path d='M6 3h7a5 5 0 010 10H9v8H6V3zm3 3v4h4a2 2 0 100-4H9z'/></svg><span>Parking</span></span><span class='amen-wrap' title='Pool'><svg viewBox='0 0 24 24' class='amen'><path d='M2 18c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1v2c-2 0-2-1-4-1s-2 1-4 1-2-1-4-1-2 1-4 1v-2zM8 6a4 4 0 118 0v10h-2V6a2 2 0 10-4 0v10H8V6z'/></svg><span>Pool</span></span><span class='amen-wrap' title='Pet-friendly'><svg viewBox='0 0 24 24' class='amen'><path d='M7 11a2 2 0 11.001-3.999A2 2 0 017 11zm10 0a2 2 0 11.001-3.999A2 2 0 0117 11zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z'/></svg><span>Pet-friendly</span></span><span class='amen-wrap' title='Gym'><svg viewBox='0 0 24 24' class='amen'><path d='M3 10h3v4H3v-4zm15 0h3v4h-3v-4zM8 9h8v6H8V9z'/></svg><span>Gym</span></span><span class='amen-wrap' title='Spa'><svg viewBox='0 0 24 24' class='amen'><path d='M12 3C9 6 8 9 8 12s1 6 4 9c3-3 4-6 4-9s-1-6-4-9zm0 6a3 3 0 110 6 3 3 0 010-6z'/></svg><span>Spa</span></span><span class='amen-wrap' title='Restaurant'><svg viewBox='0 0 24 24' class='amen'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z'/></svg><span>Restaurant</span></span><span class='amen-wrap' title='Room service'><svg viewBox='0 0 24 24' class='amen'><path d='M12 5c3 0 6 2.2 7 5h3v2H2V10h3c1-2.8 4-5 7-5zm-9 9h18v2H3v-2z'/></svg><span>Room service</span></span></div>
+            <div id='map-0' class='map'></div>
+          </div>
+        </article>
         
 
-        <tr>
-          <td style="vertical-align:top;padding:12px 10px;"><img src="https://lh3.googleusercontent.com/p/AF1QipOvMYjPkOAaRhof8gkG-t6o1tftRAj3eGiTS8IZ=s287-w287-h192-n-k-no-v1" alt="" style="width:120px;height:auto;border-radius:10px;border:1px solid #2a2a2a;"></td>
-          <td style="vertical-align:top;padding:12px 10px;">
-            <div style="font-weight:600">Hilton Garden Inn Denver Downtown</div>
-            <div style="opacity:.8;font-size:14px;margin:4px 0">Relaxed quarters in a contemporary hotel featuring a fitness center &amp; a restaurant.</div>
-            <div style="font-size:14px">Rating: 3.9 · Class: 3-star hotel · From: $124</div>
-            <div style="margin-top:6px"><a href="https://www.hilton.com/en/hotels/denddgi-hilton-garden-inn-denver-downtown/?SEO_id=GMB-AMER-GI-DENDDGI&amp;y_source=1_MjA4MjM0Ny03MTUtbG9jYXRpb24ud2Vic2l0ZQ%3D%3D" target="_blank" rel="noopener">View</a></div>
-          </td>
-        </tr>
+        <article class="card">
+          <div class="hero-wrap">
+            <img src='https://lh5.googleusercontent.com/p/AF1QipPHqC-tuj6WrNQEDkAH9u-fZ6qrkR1TaKlTikfO=s10000' alt='' id='hero-1' class='hero'>
+            
+          </div>
+          <div class="body">
+            <header class="title">
+              <a href="https://www.marriott.com/en-us/hotels/atlxr-the-st-regis-atlanta/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener">The St. Regis Atlanta</a>
+              <div class="meta">Class 5-star hotel · Rating 4.6 · From $$1,052</div>
+            </header>
+            <p class="desc">Sophisticated rooms with marble bathrooms, plus a chic pool area, a restaurant &amp; a full-service spa.</p>
+            <div class="thumbs" id="thumbs-1"><button class='thumb' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/AF1QipPHqC-tuj6WrNQEDkAH9u-fZ6qrkR1TaKlTikfO=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPHqC-tuj6WrNQEDkAH9u-fZ6qrkR1TaKlTikfO=s10000' alt=''></button><button class='thumb' data-hero='hero-1' data-src='https://d2hyz2bfif3cr8.cloudfront.net/imageRepo/7/0/167/676/479/atlxr-pool-pizza-9619-hor-clsc_O.jpg'><img src='https://d2hyz2bfif3cr8.cloudfront.net/imageRepo/7/0/167/676/479/atlxr-pool-pizza-9619-hor-clsc_O.jpg' alt=''></button><button class='thumb' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/AF1QipN43_wimoKZSep_IYsJwAiVcuRCgaPP1CeXzRh0=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipN43_wimoKZSep_IYsJwAiVcuRCgaPP1CeXzRh0=s10000' alt=''></button><button class='thumb' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/CIABIhCbqzCbfFtbM-RVvdHZg2un=s10000'><img src='https://lh5.googleusercontent.com/p/CIABIhCbqzCbfFtbM-RVvdHZg2un=s10000' alt=''></button><button class='thumb' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/AF1QipMcH5oWM6fjn4jKoGjKDtDyfGVahjSX-ND6dG6D=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipMcH5oWM6fjn4jKoGjKDtDyfGVahjSX-ND6dG6D=s10000' alt=''></button><button class='thumb' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/AF1QipOeNX8wTD8Osw4LzPv-hNHl0fIK-V6l6FhdCu3C=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOeNX8wTD8Osw4LzPv-hNHl0fIK-V6l6FhdCu3C=s10000' alt=''></button><button class='thumb' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/AF1QipO-BQVBa4EcdiL3gmPUCC5UBiseE_crqju8R0um=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipO-BQVBa4EcdiL3gmPUCC5UBiseE_crqju8R0um=s10000' alt=''></button><button class='thumb' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/AF1QipPtH96mf9RWw8hWag8cfy31liNIY7QSU3YEW4sS=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPtH96mf9RWw8hWag8cfy31liNIY7QSU3YEW4sS=s10000' alt=''></button></div>
+            <div class="amenities"><span class='amen-wrap' title='Wi-Fi'><svg viewBox='0 0 24 24' class='amen'><path d='M12 18a2 2 0 11-.001 3.999A2 2 0 0112 18zm-8.485-5.657l1.414 1.414A9 9 0 0112 12a9 9 0 016.364 2.757l1.414-1.414A11 11 0 0012 10a11 11 0 00-8.485 2.343zM3.515 8.343l1.414 1.414A13 13 0 0112 6a13 13 0 019.071 3.757l1.414-1.414A15 15 0 0012 4a15 15 0 00-8.485 4.343z'/></svg><span>Wi-Fi</span></span><span class='amen-wrap' title='Parking'><svg viewBox='0 0 24 24' class='amen'><path d='M6 3h7a5 5 0 010 10H9v8H6V3zm3 3v4h4a2 2 0 100-4H9z'/></svg><span>Parking</span></span><span class='amen-wrap' title='Pool'><svg viewBox='0 0 24 24' class='amen'><path d='M2 18c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1v2c-2 0-2-1-4-1s-2 1-4 1-2-1-4-1-2 1-4 1v-2zM8 6a4 4 0 118 0v10h-2V6a2 2 0 10-4 0v10H8V6z'/></svg><span>Pool</span></span><span class='amen-wrap' title='Pet-friendly'><svg viewBox='0 0 24 24' class='amen'><path d='M7 11a2 2 0 11.001-3.999A2 2 0 017 11zm10 0a2 2 0 11.001-3.999A2 2 0 0117 11zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z'/></svg><span>Pet-friendly</span></span><span class='amen-wrap' title='Gym'><svg viewBox='0 0 24 24' class='amen'><path d='M3 10h3v4H3v-4zm15 0h3v4h-3v-4zM8 9h8v6H8V9z'/></svg><span>Gym</span></span><span class='amen-wrap' title='Spa'><svg viewBox='0 0 24 24' class='amen'><path d='M12 3C9 6 8 9 8 12s1 6 4 9c3-3 4-6 4-9s-1-6-4-9zm0 6a3 3 0 110 6 3 3 0 010-6z'/></svg><span>Spa</span></span><span class='amen-wrap' title='Bar'><svg viewBox='0 0 24 24' class='amen'><path d='M3 3h18l-6 8v7h-6v-7L3 3z'/></svg><span>Bar</span></span><span class='amen-wrap' title='Restaurant'><svg viewBox='0 0 24 24' class='amen'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z'/></svg><span>Restaurant</span></span></div>
+            <div id='map-1' class='map'></div>
+          </div>
+        </article>
         
 
-        <tr>
-          <td style="vertical-align:top;padding:12px 10px;"><img src="https://lh3.googleusercontent.com/p/AF1QipO_zMPuOYs40OAkPLv9n6-pDs5HvLInePTggw7J=s287-w287-h192-n-k-no-v1" alt="" style="width:120px;height:auto;border-radius:10px;border:1px solid #2a2a2a;"></td>
-          <td style="vertical-align:top;padding:12px 10px;">
-            <div style="font-weight:600">Embassy Suites by Hilton Denver Central Park</div>
-            <div style="opacity:.8;font-size:14px;margin:4px 0">Contemporary all-suite hotel with a restaurant/bar &amp; an indoor pool, plus a free airport shuttle.</div>
-            <div style="font-size:14px">Rating: 4.2 · Class: 3-star hotel · From: $125</div>
-            <div style="margin-top:6px"><a href="https://www.hilton.com/en/hotels/denares-embassy-suites-denver-central-park/?SEO_id=GMB-AMER-ES-DENARES&amp;y_source=1_MTEwOTk0NC03MTUtbG9jYXRpb24ud2Vic2l0ZQ%3D%3D" target="_blank" rel="noopener">View</a></div>
-          </td>
-        </tr>
+        <article class="card">
+          <div class="hero-wrap">
+            <img src='https://photos.hotelbeds.com/giata/original/29/298270/298270a_hb_ba_002.jpg' alt='' id='hero-2' class='hero'>
+            <div class='deal'>28% less than usual</div>
+          </div>
+          <div class="body">
+            <header class="title">
+              <a href="https://www.hilton.com/en/hotels/atlwawa-waldorf-astoria-atlanta-buckhead/?SEO_id=GMB-AMER-WA-ATLWAWA&amp;y_source=1_MTE1MTY4ODYtNzE1LWxvY2F0aW9uLndlYnNpdGU%3D" target="_blank" rel="noopener">Waldorf Astoria Atlanta Buckhead</a>
+              <div class="meta">Class 5-star hotel · Rating 4.6 · From $$643</div>
+            </header>
+            <p class="desc">Luxurious rooms in a posh hotel, plus an indoor pool, a spa &amp; gardens.</p>
+            <div class="thumbs" id="thumbs-2"><button class='thumb' data-hero='hero-2' data-src='https://photos.hotelbeds.com/giata/original/29/298270/298270a_hb_ba_002.jpg'><img src='https://photos.hotelbeds.com/giata/original/29/298270/298270a_hb_ba_002.jpg' alt=''></button><button class='thumb' data-hero='hero-2' data-src='https://lh5.googleusercontent.com/p/AF1QipN2gTUdAg9EJInCJmxfzhQh4nGWlq-AO-Yymz7t=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipN2gTUdAg9EJInCJmxfzhQh4nGWlq-AO-Yymz7t=s10000' alt=''></button><button class='thumb' data-hero='hero-2' data-src='https://dynamic-media-cdn.tripadvisor.com/media/photo-o/16/de/9e/bd/waldorf-astoria-atlanta.jpg?w=1600&amp;h=1200&amp;s=1'><img src='https://dynamic-media-cdn.tripadvisor.com/media/photo-o/16/de/9e/bd/waldorf-astoria-atlanta.jpg?w=1600&amp;h=1200&amp;s=1' alt=''></button><button class='thumb' data-hero='hero-2' data-src='https://lh5.googleusercontent.com/p/AF1QipPc5zLBgfeVfBel73l12-DRQPLrhUAfpn8pDLcy=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPc5zLBgfeVfBel73l12-DRQPLrhUAfpn8pDLcy=s10000' alt=''></button><button class='thumb' data-hero='hero-2' data-src='https://lh5.googleusercontent.com/p/AF1QipOitGd57a1bIL3SmlHQFKWsI8oto1MHxY5fMnek=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOitGd57a1bIL3SmlHQFKWsI8oto1MHxY5fMnek=s10000' alt=''></button><button class='thumb' data-hero='hero-2' data-src='https://lh5.googleusercontent.com/p/AF1QipM62PqCfA6ySiVCpvMvUuGmC-3aqmhh3wEhoYRj=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipM62PqCfA6ySiVCpvMvUuGmC-3aqmhh3wEhoYRj=s10000' alt=''></button><button class='thumb' data-hero='hero-2' data-src='https://lh5.googleusercontent.com/p/AF1QipNYqfI0QnmECis-K7IAa50KxPN0VX08dORblvgl=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNYqfI0QnmECis-K7IAa50KxPN0VX08dORblvgl=s10000' alt=''></button><button class='thumb' data-hero='hero-2' data-src='https://lh5.googleusercontent.com/p/AF1QipOsYqnG3LSwbLqtNKxJMIQywfpoknj5YbgR0x1L=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOsYqnG3LSwbLqtNKxJMIQywfpoknj5YbgR0x1L=s10000' alt=''></button></div>
+            <div class="amenities"><span class='amen-wrap' title='Wi-Fi'><svg viewBox='0 0 24 24' class='amen'><path d='M12 18a2 2 0 11-.001 3.999A2 2 0 0112 18zm-8.485-5.657l1.414 1.414A9 9 0 0112 12a9 9 0 016.364 2.757l1.414-1.414A11 11 0 0012 10a11 11 0 00-8.485 2.343zM3.515 8.343l1.414 1.414A13 13 0 0112 6a13 13 0 019.071 3.757l1.414-1.414A15 15 0 0012 4a15 15 0 00-8.485 4.343z'/></svg><span>Wi-Fi</span></span><span class='amen-wrap' title='Parking'><svg viewBox='0 0 24 24' class='amen'><path d='M6 3h7a5 5 0 010 10H9v8H6V3zm3 3v4h4a2 2 0 100-4H9z'/></svg><span>Parking</span></span><span class='amen-wrap' title='Pool'><svg viewBox='0 0 24 24' class='amen'><path d='M2 18c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1v2c-2 0-2-1-4-1s-2 1-4 1-2-1-4-1-2 1-4 1v-2zM8 6a4 4 0 118 0v10h-2V6a2 2 0 10-4 0v10H8V6z'/></svg><span>Pool</span></span><span class='amen-wrap' title='Pet-friendly'><svg viewBox='0 0 24 24' class='amen'><path d='M7 11a2 2 0 11.001-3.999A2 2 0 017 11zm10 0a2 2 0 11.001-3.999A2 2 0 0117 11zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z'/></svg><span>Pet-friendly</span></span><span class='amen-wrap' title='Gym'><svg viewBox='0 0 24 24' class='amen'><path d='M3 10h3v4H3v-4zm15 0h3v4h-3v-4zM8 9h8v6H8V9z'/></svg><span>Gym</span></span><span class='amen-wrap' title='Spa'><svg viewBox='0 0 24 24' class='amen'><path d='M12 3C9 6 8 9 8 12s1 6 4 9c3-3 4-6 4-9s-1-6-4-9zm0 6a3 3 0 110 6 3 3 0 010-6z'/></svg><span>Spa</span></span><span class='amen-wrap' title='Bar'><svg viewBox='0 0 24 24' class='amen'><path d='M3 3h18l-6 8v7h-6v-7L3 3z'/></svg><span>Bar</span></span><span class='amen-wrap' title='Restaurant'><svg viewBox='0 0 24 24' class='amen'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z'/></svg><span>Restaurant</span></span></div>
+            <div id='map-2' class='map'></div>
+          </div>
+        </article>
         
 
-        <tr>
-          <td style="vertical-align:top;padding:12px 10px;"><img src="https://lh3.googleusercontent.com/p/AF1QipPrD9hSGZOvqb_ccCJXRPA9Cr4yt_qS9yJikkNN=s287-w287-h192-n-k-no-v1" alt="" style="width:120px;height:auto;border-radius:10px;border:1px solid #2a2a2a;"></td>
-          <td style="vertical-align:top;padding:12px 10px;">
-            <div style="font-weight:600">Hyatt Regency Denver at Colorado Convention Center</div>
-            <div style="opacity:.8;font-size:14px;margin:4px 0">Contemporary, property offering dining &amp; a top-floor bar, plus an indoor pool &amp; a spa.</div>
-            <div style="font-size:14px">Rating: 4.5 · Class: 4-star hotel · From: $199</div>
-            <div style="margin-top:6px"><a href="https://www.hyatt.com/hyatt-regency/en-US/dencc-hyatt-regency-denver-at-colorado-convention-center?src=corp_lclb_google_seo_dencc&amp;utm_source=google&amp;utm_medium=organic&amp;utm_campaign=lmr" target="_blank" rel="noopener">View</a></div>
-          </td>
-        </tr>
+        <article class="card">
+          <div class="hero-wrap">
+            <img src='https://photos.hotelbeds.com/giata/original/13/134981/134981a_hb_a_029.jpg' alt='' id='hero-3' class='hero'>
+            
+          </div>
+          <div class="body">
+            <header class="title">
+              <a href="https://www.ritzcarlton.com/en/hotels/atlrz-the-ritz-carlton-atlanta/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener">The Ritz-Carlton, Atlanta</a>
+              <div class="meta">Class 5-star hotel · Rating 4.4 · From $$1,219</div>
+            </header>
+            <p class="desc">Sophisticated downtown property with a restaurant &amp; a lounge, plus a fitness center &amp; meeting space.</p>
+            <div class="thumbs" id="thumbs-3"><button class='thumb' data-hero='hero-3' data-src='https://photos.hotelbeds.com/giata/original/13/134981/134981a_hb_a_029.jpg'><img src='https://photos.hotelbeds.com/giata/original/13/134981/134981a_hb_a_029.jpg' alt=''></button><button class='thumb' data-hero='hero-3' data-src='https://photos.hotelbeds.com/giata/original/13/134981/134981a_hb_l_005.jpg'><img src='https://photos.hotelbeds.com/giata/original/13/134981/134981a_hb_l_005.jpg' alt=''></button><button class='thumb' data-hero='hero-3' data-src='https://lh5.googleusercontent.com/p/AF1QipNV8pJXjNw9KxcSgysEzqHZEW4HZlaclq07AbLZ=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNV8pJXjNw9KxcSgysEzqHZEW4HZlaclq07AbLZ=s10000' alt=''></button><button class='thumb' data-hero='hero-3' data-src='https://lh5.googleusercontent.com/p/AF1QipMZVdbEqqVKnkXioMdpkzDnFWsfaX6nlDxPDEP6=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipMZVdbEqqVKnkXioMdpkzDnFWsfaX6nlDxPDEP6=s10000' alt=''></button><button class='thumb' data-hero='hero-3' data-src='https://lh5.googleusercontent.com/p/CIHM0ogKEICAgIDU9LSPlQE=s10000'><img src='https://lh5.googleusercontent.com/p/CIHM0ogKEICAgIDU9LSPlQE=s10000' alt=''></button><button class='thumb' data-hero='hero-3' data-src='https://lh5.googleusercontent.com/p/AF1QipNn5Of7ViTrIF76wv6tcEBGyJzxA8O0lZmdA09I=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNn5Of7ViTrIF76wv6tcEBGyJzxA8O0lZmdA09I=s10000' alt=''></button><button class='thumb' data-hero='hero-3' data-src='https://lh5.googleusercontent.com/p/AF1QipNRXXXdjPhvEeYe0dm98DnwDN7adY9p8p7UOtGj=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNRXXXdjPhvEeYe0dm98DnwDN7adY9p8p7UOtGj=s10000' alt=''></button><button class='thumb' data-hero='hero-3' data-src='https://lh5.googleusercontent.com/p/AF1QipPAgHswBhK-zET9dMQVATLtu4cqk1lo_bay2lv9=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPAgHswBhK-zET9dMQVATLtu4cqk1lo_bay2lv9=s10000' alt=''></button></div>
+            <div class="amenities"><span class='amen-wrap' title='Wi-Fi'><svg viewBox='0 0 24 24' class='amen'><path d='M12 18a2 2 0 11-.001 3.999A2 2 0 0112 18zm-8.485-5.657l1.414 1.414A9 9 0 0112 12a9 9 0 016.364 2.757l1.414-1.414A11 11 0 0012 10a11 11 0 00-8.485 2.343zM3.515 8.343l1.414 1.414A13 13 0 0112 6a13 13 0 019.071 3.757l1.414-1.414A15 15 0 0012 4a15 15 0 00-8.485 4.343z'/></svg><span>Wi-Fi</span></span><span class='amen-wrap' title='Parking'><svg viewBox='0 0 24 24' class='amen'><path d='M6 3h7a5 5 0 010 10H9v8H6V3zm3 3v4h4a2 2 0 100-4H9z'/></svg><span>Parking</span></span><span class='amen-wrap' title='Pet-friendly'><svg viewBox='0 0 24 24' class='amen'><path d='M7 11a2 2 0 11.001-3.999A2 2 0 017 11zm10 0a2 2 0 11.001-3.999A2 2 0 0117 11zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z'/></svg><span>Pet-friendly</span></span><span class='amen-wrap' title='Gym'><svg viewBox='0 0 24 24' class='amen'><path d='M3 10h3v4H3v-4zm15 0h3v4h-3v-4zM8 9h8v6H8V9z'/></svg><span>Gym</span></span><span class='amen-wrap' title='Bar'><svg viewBox='0 0 24 24' class='amen'><path d='M3 3h18l-6 8v7h-6v-7L3 3z'/></svg><span>Bar</span></span><span class='amen-wrap' title='Restaurant'><svg viewBox='0 0 24 24' class='amen'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z'/></svg><span>Restaurant</span></span><span class='amen-wrap' title='Room service'><svg viewBox='0 0 24 24' class='amen'><path d='M12 5c3 0 6 2.2 7 5h3v2H2V10h3c1-2.8 4-5 7-5zm-9 9h18v2H3v-2z'/></svg><span>Room service</span></span></div>
+            <div id='map-3' class='map'></div>
+          </div>
+        </article>
         
 
-        <tr>
-          <td style="vertical-align:top;padding:12px 10px;"><img src="https://lh3.googleusercontent.com/gps-cs-s/AC9h4nqAyejoorHfXt18luSEM9nd0nsiqbtLoQovHg6BszYaG2WdPpcE2PhY4YoNRc_beoW6L_DDjqCQ5WerXtpk6unag7kyktbJOK9qJFoUGcPGULKcOGrggaNpqc1HMGxdpPFUuYg=s287-w287-h192-n-k-no-v1" alt="" style="width:120px;height:auto;border-radius:10px;border:1px solid #2a2a2a;"></td>
-          <td style="vertical-align:top;padding:12px 10px;">
-            <div style="font-weight:600">The Art Hotel Denver, Curio Collection by Hilton</div>
-            <div style="opacity:.8;font-size:14px;margin:4px 0">Sophisticated hotel with a contemporary restaurant &amp; a cocktail lounge, plus modern artwork.</div>
-            <div style="font-size:14px">Rating: 4.2 · Class: 4-star hotel · From: $168</div>
-            <div style="margin-top:6px"><a href="https://www.hilton.com/en/hotels/denrtqq-the-art-hotel-denver/?SEO_id=GMB-AMER-QQ-DENRTQQ&amp;y_source=1_MTgyMDQ1MTEtNzE1LWxvY2F0aW9uLndlYnNpdGU%3D" target="_blank" rel="noopener">View</a></div>
-          </td>
-        </tr>
+        <article class="card">
+          <div class="hero-wrap">
+            <img src='https://lh5.googleusercontent.com/p/AF1QipOMCo5r4U7AKzGOian77Tw6bo3XJOnz_Y-nvrlB=s10000' alt='' id='hero-4' class='hero'>
+            <div class='deal'>45% less than usual</div>
+          </div>
+          <div class="body">
+            <header class="title">
+              <a href="https://www.ihg.com/intercontinental/hotels/us/en/atlanta/atlbh/hoteldetail?cm_mmc=GoogleMaps-_-IC-_-US-_-ATLBH" target="_blank" rel="noopener">InterContinental Buckhead Atlanta by IHG</a>
+              <div class="meta">Class 5-star hotel · Rating 4.4 · From $$393</div>
+            </header>
+            <p class="desc">Contemporary property with a polished Southern restaurant, a spa &amp; a seasonal outdoor pool.</p>
+            <div class="thumbs" id="thumbs-4"><button class='thumb' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/AF1QipOMCo5r4U7AKzGOian77Tw6bo3XJOnz_Y-nvrlB=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOMCo5r4U7AKzGOian77Tw6bo3XJOnz_Y-nvrlB=s10000' alt=''></button><button class='thumb' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/AF1QipO3tVJKyePw3uLu801KKTpbW50Q4KXU5w-SHToA=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipO3tVJKyePw3uLu801KKTpbW50Q4KXU5w-SHToA=s10000' alt=''></button><button class='thumb' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/AF1QipMU7iERATXDpZrEJL1q3Bv5Vs0O9q3rTazdGoxv=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipMU7iERATXDpZrEJL1q3Bv5Vs0O9q3rTazdGoxv=s10000' alt=''></button><button class='thumb' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/AF1QipN_Yv5Hw68o1EDPGz6ADeUejwI1vO-y5BCN-qqt=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipN_Yv5Hw68o1EDPGz6ADeUejwI1vO-y5BCN-qqt=s10000' alt=''></button><button class='thumb' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/AF1QipNZWMeEMADaScn4Gxh2NYKdlEvjI1C_XI6YMfRn=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNZWMeEMADaScn4Gxh2NYKdlEvjI1C_XI6YMfRn=s10000' alt=''></button><button class='thumb' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/AF1QipO1Szg7Xt5b_NZ6D23D9VbLEuzW2qAEF9lQqNGE=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipO1Szg7Xt5b_NZ6D23D9VbLEuzW2qAEF9lQqNGE=s10000' alt=''></button><button class='thumb' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/AF1QipOR3QuTFYzyl53Ocy0U0PBwh5ZF78vTDqmvohI4=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOR3QuTFYzyl53Ocy0U0PBwh5ZF78vTDqmvohI4=s10000' alt=''></button><button class='thumb' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/AF1QipPfhILe7ZgZV-DQ6tfqP8T78CCQDs5ZnO7hrGbF=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPfhILe7ZgZV-DQ6tfqP8T78CCQDs5ZnO7hrGbF=s10000' alt=''></button></div>
+            <div class="amenities"><span class='amen-wrap' title='Wi-Fi'><svg viewBox='0 0 24 24' class='amen'><path d='M12 18a2 2 0 11-.001 3.999A2 2 0 0112 18zm-8.485-5.657l1.414 1.414A9 9 0 0112 12a9 9 0 016.364 2.757l1.414-1.414A11 11 0 0012 10a11 11 0 00-8.485 2.343zM3.515 8.343l1.414 1.414A13 13 0 0112 6a13 13 0 019.071 3.757l1.414-1.414A15 15 0 0012 4a15 15 0 00-8.485 4.343z'/></svg><span>Wi-Fi</span></span><span class='amen-wrap' title='Parking'><svg viewBox='0 0 24 24' class='amen'><path d='M6 3h7a5 5 0 010 10H9v8H6V3zm3 3v4h4a2 2 0 100-4H9z'/></svg><span>Parking</span></span><span class='amen-wrap' title='Pool'><svg viewBox='0 0 24 24' class='amen'><path d='M2 18c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1v2c-2 0-2-1-4-1s-2 1-4 1-2-1-4-1-2 1-4 1v-2zM8 6a4 4 0 118 0v10h-2V6a2 2 0 10-4 0v10H8V6z'/></svg><span>Pool</span></span><span class='amen-wrap' title='Pet-friendly'><svg viewBox='0 0 24 24' class='amen'><path d='M7 11a2 2 0 11.001-3.999A2 2 0 017 11zm10 0a2 2 0 11.001-3.999A2 2 0 0117 11zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z'/></svg><span>Pet-friendly</span></span><span class='amen-wrap' title='Gym'><svg viewBox='0 0 24 24' class='amen'><path d='M3 10h3v4H3v-4zm15 0h3v4h-3v-4zM8 9h8v6H8V9z'/></svg><span>Gym</span></span><span class='amen-wrap' title='Spa'><svg viewBox='0 0 24 24' class='amen'><path d='M12 3C9 6 8 9 8 12s1 6 4 9c3-3 4-6 4-9s-1-6-4-9zm0 6a3 3 0 110 6 3 3 0 010-6z'/></svg><span>Spa</span></span><span class='amen-wrap' title='Bar'><svg viewBox='0 0 24 24' class='amen'><path d='M3 3h18l-6 8v7h-6v-7L3 3z'/></svg><span>Bar</span></span><span class='amen-wrap' title='Restaurant'><svg viewBox='0 0 24 24' class='amen'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z'/></svg><span>Restaurant</span></span></div>
+            <div id='map-4' class='map'></div>
+          </div>
+        </article>
         
-
-        <tr>
-          <td style="vertical-align:top;padding:12px 10px;"><img src="https://lh3.googleusercontent.com/proxy/HKC6OdhgWi2s6bVNbJyF9dOz46i7jBrZH8wuf7gRxnbATSNX8FH-4bsuwIeXAawmY8rz5-E_xdRQPeyVDvTuM_5gxz0JGjJRtXGU_n3KR5oXBkWeJS0uYkuniX_P9zHZ_NaHIFrX23eBRXioMP5rlYmONKBptdY=s287-w287-h192-n-k-no-v1" alt="" style="width:120px;height:auto;border-radius:10px;border:1px solid #2a2a2a;"></td>
-          <td style="vertical-align:top;padding:12px 10px;">
-            <div style="font-weight:600">The Source Hotel</div>
-            <div style="opacity:.8;font-size:14px;margin:4px 0">Laid-back rooms in a modern hotel offering an airy bar/restaurant &amp; a rooftop terrace with a pool.</div>
-            <div style="font-size:14px">Rating: 4.3 · Class: 4-star hotel · From: $223</div>
-            <div style="margin-top:6px"><a href="https://www.thesourcehotel.com/?utm_source=google-gbp&amp;utm_medium=organic&amp;utm_campaign=gbp" target="_blank" rel="noopener">View</a></div>
-          </td>
-        </tr>
-        
-
-        <tr>
-          <td style="vertical-align:top;padding:12px 10px;"><img src="https://lh3.googleusercontent.com/p/AF1QipNG2O_lOA1JghzFcQjakghZuJMWVyIFI0RE--oh=s287-w287-h192-n-k-no-v1" alt="" style="width:120px;height:auto;border-radius:10px;border:1px solid #2a2a2a;"></td>
-          <td style="vertical-align:top;padding:12px 10px;">
-            <div style="font-weight:600">Holiday Inn Denver East by IHG</div>
-            <div style="opacity:.8;font-size:14px;margin:4px 0">Casual hotel offering a 24-hour gym, 2 hot tubs &amp; a restaurant, plus an outdoor pool &amp; free Wi-Fi.</div>
-            <div style="font-size:14px">Rating: 3.7 · Class: 3-star hotel · From: $100</div>
-            <div style="margin-top:6px"><a href="https://www.ihg.com/holidayinn/hotels/us/en/denver/denst/hoteldetail?cm_mmc=GoogleMaps-_-HI-_-US-_-DENST" target="_blank" rel="noopener">View</a></div>
-          </td>
-        </tr>
-        
-
-        <tr>
-          <td style="vertical-align:top;padding:12px 10px;"><img src="https://lh3.googleusercontent.com/p/AF1QipOPgHPJ82ZZER3CsV89okmS-k2qpdgGIkF-Iwhb=s287-w287-h192-n-k-no-v1" alt="" style="width:120px;height:auto;border-radius:10px;border:1px solid #2a2a2a;"></td>
-          <td style="vertical-align:top;padding:12px 10px;">
-            <div style="font-weight:600">the Curtis Denver - a DoubleTree by Hilton Hotel</div>
-            <div style="opacity:.8;font-size:14px;margin:4px 0">Modern lodging offering stylish rooms with pop-culture themes, plus a restaurant &amp; a martini bar.</div>
-            <div style="font-size:14px">Rating: 4.2 · Class: 4-star hotel · From: $141</div>
-            <div style="margin-top:6px"><a href="https://www.hilton.com/en/hotels/denchdt-the-curtis-denver/?SEO_id=GMB-AMER-DT-DENCHDT&amp;y_source=1_MTM3MjY0OC03MTUtbG9jYXRpb24ud2Vic2l0ZQ%3D%3D" target="_blank" rel="noopener">View</a></div>
-          </td>
-        </tr>
-        
-
-        <tr>
-          <td style="vertical-align:top;padding:12px 10px;"><img src="https://lh3.googleusercontent.com/p/AF1QipOITjA7M5IBmCz4Up-k1O_5XjuGm1kf9zCG-f4T=s287-w287-h192-n-k-no-v1" alt="" style="width:120px;height:auto;border-radius:10px;border:1px solid #2a2a2a;"></td>
-          <td style="vertical-align:top;padding:12px 10px;">
-            <div style="font-weight:600">Courtyard Denver Central Park</div>
-            <div style="opacity:.8;font-size:14px;margin:4px 0">Straightforward hotel with contemporary rooms &amp; an indoor pool, plus a business center &amp; free WiFi.</div>
-            <div style="font-size:14px">Rating: 3.9 · Class: 3-star hotel · From: $111</div>
-            <div style="margin-top:6px"><a href="https://www.marriott.com/en-us/hotels/denca-courtyard-denver-central-park/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener">View</a></div>
-          </td>
-        </tr>
-        
-
-        <tr>
-          <td style="vertical-align:top;padding:12px 10px;"><img src="https://lh6.googleusercontent.com/proxy/y8OU-yRh6zSl_WWAypg3RJlMwj0qXk5NF1D8gliEzDPlRZADJxLqefblmseZk_P1ktivOp1E6PX4TjqfPVMjcaqvFOD0BNT8AbVe7UMuitExsECzsPhvU8DaPFPy6qWT0dAQ5pcTXREDWaSMBSQfaY6RDRJrPg=s287-w287-h192-n-k-no-v1" alt="" style="width:120px;height:auto;border-radius:10px;border:1px solid #2a2a2a;"></td>
-          <td style="vertical-align:top;padding:12px 10px;">
-            <div style="font-weight:600">Renaissance Denver Downtown City Center Hotel</div>
-            <div style="opacity:.8;font-size:14px;margin:4px 0">Polished rooms &amp; suites in an elegant hotel offering upscale dining, a casual cafe &amp; a gym.</div>
-            <div style="font-size:14px">Rating: 4.4 · Class: 4-star hotel · From: $164</div>
-            <div style="margin-top:6px"><a href="https://www.marriott.com/en-us/hotels/dendr-renaissance-denver-downtown-city-center-hotel/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener">View</a></div>
-          </td>
-        </tr>
-        
-
-        <tr>
-          <td style="vertical-align:top;padding:12px 10px;"><img src="https://lh3.googleusercontent.com/p/AF1QipPtTp751NnOPXkfkIpUHdcQLNnQnJ17C9EXA28r=s287-w287-h192-n-k-no-v1" alt="" style="width:120px;height:auto;border-radius:10px;border:1px solid #2a2a2a;"></td>
-          <td style="vertical-align:top;padding:12px 10px;">
-            <div style="font-weight:600">Catbird Hotel</div>
-            <div style="opacity:.8;font-size:14px;margin:4px 0">Chic studios in an upscale apartment hotel with a rooftop restaurant/bar &amp; a gym.</div>
-            <div style="font-size:14px">Rating: 4.3 · Class: 4-star hotel · From: $180</div>
-            <div style="margin-top:6px"><a href="https://www.catbirdhotel.com/" target="_blank" rel="noopener">View</a></div>
-          </td>
-        </tr>
-        
-
-        <tr>
-          <td style="vertical-align:top;padding:12px 10px;"><img src="https://lh3.googleusercontent.com/gps-cs-s/AC9h4npVMU9FTaKLdH7HpIgHEhOVSmAVIf0Yxdxj0HUl20wfOVOP9N4iSPqJi8mgN4pDKl-ubitaerNptulqoe07weZHdVvAAjSRFrPgd-49C8pkggRS4IvukU3RpzkKFvF48W52Wjny=s287-w287-h192-n-k-no-v1" alt="" style="width:120px;height:auto;border-radius:10px;border:1px solid #2a2a2a;"></td>
-          <td style="vertical-align:top;padding:12px 10px;">
-            <div style="font-weight:600">Sheraton Denver Downtown Hotel</div>
-            <div style="opacity:.8;font-size:14px;margin:4px 0">Polished hotel with 2 restaurants &amp; a cocktail lounge, plus an outdoor pool &amp; an exercise room.</div>
-            <div style="font-size:14px">Rating: 4.2 · Class: 4-star hotel · From: $218</div>
-            <div style="margin-top:6px"><a href="https://www.marriott.com/en-us/hotels/dends-sheraton-denver-downtown-hotel/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener">View</a></div>
-          </td>
-        </tr>
-        
-
-        <tr>
-          <td style="vertical-align:top;padding:12px 10px;"><img src="https://lh3.googleusercontent.com/p/AF1QipM5zIe584IMLmSfKebtbhkFKWQGh9N5XxBNw4SL=s287-w287-h192-n-k-no-v1" alt="" style="width:120px;height:auto;border-radius:10px;border:1px solid #2a2a2a;"></td>
-          <td style="vertical-align:top;padding:12px 10px;">
-            <div style="font-weight:600">Courtyard Denver Cherry Creek</div>
-            <div style="opacity:.8;font-size:14px;margin:4px 0">Warm quarters in a relaxed hotel with mountain views, plus a restaurant, a pool &amp; a ballroom.</div>
-            <div style="font-size:14px">Rating: 4.1 · Class: 3-star hotel · From: $142</div>
-            <div style="margin-top:6px"><a href="https://www.marriott.com/en-us/hotels/dench-courtyard-denver-cherry-creek/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener">View</a></div>
-          </td>
-        </tr>
-        
-
-        <tr>
-          <td style="vertical-align:top;padding:12px 10px;"><img src="https://lh3.googleusercontent.com/p/AF1QipPFguWhsdDAIrPeNlrW_JhnbN2ubiPEu-8zeebp=s287-w287-h192-n-k-no-v1" alt="" style="width:120px;height:auto;border-radius:10px;border:1px solid #2a2a2a;"></td>
-          <td style="vertical-align:top;padding:12px 10px;">
-            <div style="font-weight:600">Warwick Denver</div>
-            <div style="opacity:.8;font-size:14px;margin:4px 0">Elegant rooms &amp; suites with balconies, plus a rooftop pool &amp; a contemporary American restaurant.</div>
-            <div style="font-size:14px">Rating: 3.8 · Class: 4-star hotel · From: $167</div>
-            <div style="margin-top:6px"><a href="https://www.warwickhotels.com/warwick-denver?utm_source=google&amp;utm_medium=local&amp;utm_campaign=seo" target="_blank" rel="noopener">View</a></div>
-          </td>
-        </tr>
-        
-
-        <tr>
-          <td style="vertical-align:top;padding:12px 10px;"><img src="https://lh6.googleusercontent.com/proxy/NFS0OlS0ysSiQK-XL7ltoPd9_OdD-mMi2eyVOhvLHhoCvQVw6IvPKkBKz0XHyCQaJDzFQ91yFn2Br0gOmoXdf8IiFh--x5AB1NYlGuzGfQD-h8Lb9byoeQZDdjbqxch_e-Y5Kyr3OyE3A890bpCOIzn2hOeazA=s287-w287-h192-n-k-no-v1" alt="" style="width:120px;height:auto;border-radius:10px;border:1px solid #2a2a2a;"></td>
-          <td style="vertical-align:top;padding:12px 10px;">
-            <div style="font-weight:600">Renaissance Denver Hotel &amp; Conference Center</div>
-            <div style="opacity:.8;font-size:14px;margin:4px 0">Polished hotel offering refined rooms &amp; suites, plus 2 pools, a regional restaurant &amp; a lounge.</div>
-            <div style="font-size:14px">Rating: 4.1 · Class: 4-star hotel · From: $137</div>
-            <div style="margin-top:6px"><a href="https://www.marriott.com/en-us/hotels/densa-renaissance-denver-hotel-and-conference-center/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener">View</a></div>
-          </td>
-        </tr>
-        
-
-        <tr>
-          <td style="vertical-align:top;padding:12px 10px;"><img src="https://lh3.googleusercontent.com/p/AF1QipNe6hwt5CJcbuv4_qCadee5kmijbCXne9nElU-J=s287-w287-h192-n-k-no-v1" alt="" style="width:120px;height:auto;border-radius:10px;border:1px solid #2a2a2a;"></td>
-          <td style="vertical-align:top;padding:12px 10px;">
-            <div style="font-weight:600">DoubleTree by Hilton Denver International Airport</div>
-            <div style="opacity:.8;font-size:14px;margin:4px 0">Relaxed hotel with a free airport shuttle, a restaurant &amp; a coffee shop, plus meeting rooms.</div>
-            <div style="font-size:14px">Rating: 4.2 · Class: 3-star hotel · From: $122</div>
-            <div style="margin-top:6px"><a href="https://www.hilton.com/en/hotels/denaadt-doubletree-denver-international-airport/?SEO_id=GMB-AMER-DT-DENAADT&amp;y_source=1_MTc0NzQ5ODctNzE1LWxvY2F0aW9uLndlYnNpdGU%3D" target="_blank" rel="noopener">View</a></div>
-          </td>
-        </tr>
-        
-
-        <tr>
-          <td style="vertical-align:top;padding:12px 10px;"><img src="https://lh3.googleusercontent.com/proxy/adnZONTjDKG7N5R6aQLYdFZ0jtwif7bAy3SWF53hb24FqkyuZi6W0Wwz_VZvEAybfsuH9oKiNmHG2TGLrbVzlAoyP8v11hK1rrFYK-fEfev4UK1DQ-s_VygBSPWuLpRxKssf1I4e_SeBndcdKwCk4sysniKs0Q=s287-w287-h192-n-k-no-v1" alt="" style="width:120px;height:auto;border-radius:10px;border:1px solid #2a2a2a;"></td>
-          <td style="vertical-align:top;padding:12px 10px;">
-            <div style="font-weight:600">Sonesta Denver Downtown</div>
-            <div style="opacity:.8;font-size:14px;margin:4px 0">Modern high-rise lodging with an American restaurant &amp; a lounge/bar, plus a seasonal outdoor pool.</div>
-            <div style="font-size:14px">Rating: 3.9 · Class: 4-star hotel · From: $160</div>
-            <div style="margin-top:6px"><a href="https://www.sonesta.com/sonesta-hotels-resorts/co/denver/sonesta-denver-downtown?utm_source=google&amp;utm_medium=organic&amp;utm_campaign=gmb" target="_blank" rel="noopener">View</a></div>
-          </td>
-        </tr>
-        
-
-        <tr>
-          <td style="vertical-align:top;padding:12px 10px;"><img src="https://lh3.googleusercontent.com/p/AF1QipPEFpjASvw4gS4iVjVFh2nyu7bVaLhdUczgCEQr=s287-w287-h192-n-k-no-v1" alt="" style="width:120px;height:auto;border-radius:10px;border:1px solid #2a2a2a;"></td>
-          <td style="vertical-align:top;padding:12px 10px;">
-            <div style="font-weight:600">DoubleTree by Hilton Hotel Denver</div>
-            <div style="opacity:.8;font-size:14px;margin:4px 0">Traditional suburban hotel with free WiFi, plus on-site dining &amp; 2 bars.</div>
-            <div style="font-size:14px">Rating: 4 · Class: 4-star hotel · From: $135</div>
-            <div style="margin-top:6px"><a href="https://www.hilton.com/en/hotels/rldv-dt-doubletree-denver/?SEO_id=GMB-AMER-DT-RLDVDT&amp;y_source=1_MTM3Mjc2OS03MTUtbG9jYXRpb24ud2Vic2l0ZQ%3D%3D" target="_blank" rel="noopener">View</a></div>
-          </td>
-        </tr>
-        </table>
-    <div style="opacity:.7;margin-top:14px;font-size:13px">
-      Published to <a href="https://hiner.nyc/yocto/results/" rel="noopener">https://hiner.nyc/yocto/results/</a>
-    </div>
-  </div>
+<div class="footer">Published to <a href="https://hiner.nyc/yocto/results/" style="color:#82aaff">https://hiner.nyc/yocto/results/</a></div>
 </div>
-</body></html>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// thumbnail -> hero swapper
+document.querySelectorAll('.thumb').forEach(btn => {
+  btn.addEventListener('click', e => {
+    e.preventDefault();
+    const heroId = btn.getAttribute('data-hero');
+    const src = btn.getAttribute('data-src');
+    const hero = document.getElementById(heroId);
+    if (hero && src) hero.src = src;
+  });
+});
+// maps
+const entries = [{"id": "map-0", "lat": 33.7864557, "lon": -84.3853231, "name": "Four Seasons Hotel Atlanta"}, {"id": "map-1", "lat": 33.839996, "lon": -84.38250599999999, "name": "The St. Regis Atlanta"}, {"id": "map-2", "lat": 33.8490989, "lon": -84.36628929999999, "name": "Waldorf Astoria Atlanta Buckhead"}, {"id": "map-3", "lat": 33.7585793, "lon": -84.3870657, "name": "The Ritz-Carlton, Atlanta"}, {"id": "map-4", "lat": 33.845580999999996, "lon": -84.36785499999999, "name": "InterContinental Buckhead Atlanta by IHG"}];
+entries.forEach(it => {
+  const el = document.getElementById(it.id);
+  if (!el) return;
+  const m = L.map(it.id, { zoomControl: false, attributionControl: false }).setView([it.lat, it.lon], 14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(m);
+  L.marker([it.lat, it.lon]).addTo(m).bindPopup(it.name);
+});
+</script>
+</body>
+</html>
