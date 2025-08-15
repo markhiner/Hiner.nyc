@@ -47,24 +47,23 @@
 
 <script>
   const PASS_HASH = "4739ee3bd29e4f415da8ba9298a087e0fdc9c61378420ba8fbbab298bd74c4df";
+  function sha256Hex(text){ return sha256(text); }
 
-  function sha256Hex(text) { return sha256(text); }
+  const gate=document.getElementById('gate');
+  const form=document.getElementById('form');
+  const title=document.getElementById('gate-title');
 
-  const gate = document.getElementById('gate');
-  const form = document.getElementById('form');
-  const title = document.getElementById('gate-title');
-
-  document.getElementById('go').addEventListener('click', async () => {
-    const entered = document.getElementById('pw').value;
-    const digest = sha256Hex(entered);
-    if (digest === PASS_HASH) {
+  document.getElementById('go').addEventListener('click', async ()=>{
+    const entered=document.getElementById('pw').value;
+    const digest=sha256Hex(entered);
+    if(digest===PASS_HASH){
       gate.classList.add('hidden');
       form.classList.remove('hidden');
-      title.textContent = 'Hotel finder';
-      const d = new Date(); d.setDate(d.getDate() + 14);
-      document.getElementById('when').value = d.toISOString().slice(0, 10);
+      title.textContent='Hotel finder';
+      const d=new Date(); d.setDate(d.getDate()+14);
+      document.getElementById('when').value=d.toISOString().slice(0,10);
       document.getElementById('where').focus();
-    } else {
+    }else{
       alert('Wrong password');
     }
   });
