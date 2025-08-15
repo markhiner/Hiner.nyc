@@ -1,81 +1,78 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex">
-<title>Yocto Hotels</title>
-<style>
-body {font-family: sans-serif; display:flex; justify-content:center; 
-align-items:center; height:100vh; margin:0; background:#f5f5f5;}
-#login, #form {display:flex; flex-direction:column; gap:1rem; width:90%; 
-max-width:400px;}
-input, button {font-size:1.2rem; padding:0.5rem;}
-label {display:flex; justify-content:space-between; align-items:center;}
-</style>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>yocto</title>
+  <style>
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#0b0b0b;color:#eee;display:flex;min-height:100vh;align-items:center;justify-content:center}
+    .card{background:#161616;border:1px solid #2a2a2a;border-radius:16px;padding:24px;max-width:520px;width:92vw;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    h1{margin:0 0 16px 0;font-size:20px}
+    label{display:block;margin:14px 0 6px 0}
+    input,button{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #2a2a2a;background:#0f0f0f;color:#f0f0f0;font-size:15px}
+    button{cursor:pointer}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .hidden{display:none}
+    .muted{opacity:.7;font-size:12px;margin-top:6px}
+  </style>
 </head>
 <body>
-<div id="login">
-  <input type="password" id="pass" placeholder="Password">
-  <button id="login-btn">Enter</button>
-</div>
-<div id="form" style="display:none;">
-  <input type="text" id="where" placeholder="Where?">
-  <input type="text" id="when" placeholder="When?" readonly>
-  <input type="date" id="when-picker" style="display:none;">
-  <label>Nights
-    <input type="number" id="nights" min="1" value="1">
-  </label>
-  <button id="search">Search</button>
-</div>
+  <div class="card">
+    <h1 id="gate-title">Enter password</h1>
+    <div id="gate">
+      <input id="pw" type="password" placeholder="Password" autocomplete="current-password">
+      <div class="muted">This only gates the UI; the backend is strictly protected.</div>
+      <button id="go">Unlock</button>
+    </div>
+
+    <form id="form" class="hidden" method="GET" action="https://dbed878a7728.ngrok-free.app/run" autocomplete="on">
+      <label for="where">Where</label>
+      <input id="where" name="where" type="text" placeholder="e.g., Las Vegas" required>
+
+      <div class="row">
+        <div>
+          <label for="when">When (check-in)</label>
+          <input id="when" name="when" type="date" required>
+        </div>
+        <div>
+          <label for="nights">Nights</label>
+          <input id="nights" name="nights" type="number" min="1" value="2" required>
+        </div>
+      </div>
+
+      <div class="muted">Results will render from your secure backend and also publish to /yocto/results/.</div>
+      <button type="submit" style="margin-top:14px">Search</button>
+    </form>
+  </div>
+
 <script>
-const PASSWORD = "yocto"; // change to secure password
-const loginBtn = document.getElementById('login-btn');
-loginBtn.addEventListener('click', () => {
-  if (document.getElementById('pass').value === PASSWORD) {
-    document.getElementById('login').style.display='none';
-    document.getElementById('form').style.display='flex';
+  // SHA-256(password) = set this to your hash
+  const PASS_HASH = "4739ee3bd29e4f415da8ba9298a087e0fdc9c61378420ba8fbbab298bd74c4df"; // e.g., echo -n 'yourpass' | shasum -a 256
+
+  async function sha256Hex(text){
+    const enc = new TextEncoder().encode(text);
+    const buf = await crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
   }
-});
 
-const whenField = document.getElementById('when');
-const picker = document.getElementById('when-picker');
-function formatDate(d){
-  return d.toLocaleDateString('en-US',{weekday:'short', month:'short', 
-day:'2-digit'});
-}
-function tomorrowISO(){
-  const d = new Date();
-  d.setDate(d.getDate()+1);
-  return d.toISOString().split('T')[0];
-}
-picker.value = tomorrowISO();
-whenField.value = formatDate(new Date(picker.value));
-whenField.addEventListener('click', () => picker.showPicker && 
-picker.showPicker());
-picker.addEventListener('change', () => {
-  whenField.value = formatDate(new Date(picker.value));
-});
-
-document.getElementById('search').addEventListener('click', () => {
-  const where = document.getElementById('where').value.trim();
-  const checkIn = picker.value;
-  const nights = parseInt(document.getElementById('nights').value,10) || 
-1;
-  const ci = new Date(checkIn);
-  const co = new Date(ci);
-  co.setDate(ci.getDate()+nights);
-  const data = {
-    where,
-    check_in: checkIn,
-    check_out: co.toISOString().split('T')[0]
-  };
-  fetch('run_search', {method:'POST', 
-headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)})
-    .then(res => res.ok ? res.json() : Promise.reject(res))
-    .then(() => window.location.href='results.html')
-    .catch(err => alert('Error initiating search'));
-});
+  const gate = document.getElementById('gate');
+  const form = document.getElementById('form');
+  const title = document.getElementById('gate-title');
+  document.getElementById('go').addEventListener('click', async ()=>{
+    const entered = document.getElementById('pw').value;
+    const digest = await sha256Hex(entered);
+    if(digest === PASS_HASH){
+      gate.classList.add('hidden');
+      form.classList.remove('hidden');
+      title.textContent = 'Hotel finder';
+      // default date = today+14
+      const d = new Date(); d.setDate(d.getDate()+14);
+      document.getElementById('when').value = d.toISOString().slice(0,10);
+      document.getElementById('where').focus();
+    }else{
+      alert('Wrong password');
+    }
+  });
 </script>
 </body>
 </html>

@@ -2,3 +2,4 @@ AuthType Basic
 AuthName "Restricted"
 AuthUserFile ~/scripts/.htpasswd
 Require valid-user
+973f3e5072af5b98a1bda79c09464841026303b79680c37d20d97f6540e53c72"),
