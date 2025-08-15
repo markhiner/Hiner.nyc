@@ -48,11 +48,13 @@
   // SHA-256(password) = set this to your hash
   const PASS_HASH = "4739ee3bd29e4f415da8ba9298a087e0fdc9c61378420ba8fbbab298bd74c4df"; // e.g., echo -n 'yourpass' | shasum -a 256
 
-  async function sha256Hex(text){
-    const enc = new TextEncoder().encode(text);
-    const buf = await crypto.subtle.digest('SHA-256', enc);
-    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  }
+async function sha256Hex(text){
+  const buffer = new TextEncoder().encode(text);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer); 
+  const hashArray = Array.from(new Uint8Array(hashBuffer)); 
+  const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+  return hashHex;
+}
 
   const gate = document.getElementById('gate');
   const form = document.getElementById('form');
