@@ -25,7 +25,7 @@
       <button id="go">Unlock</button>
     </div>
 
-    <form id="form" class="hidden" method="GET" action="https://2d74e6fe0374.ngrok-free.app/run" autocomplete="on">
+    <form id="form" class="hidden" method="GET" action="https://https://2d74e6fe0374.ngrok-free.app/run" autocomplete="on">
       <label for="where">Where</label>
       <input id="where" name="where" type="text" placeholder="e.g., Las Vegas" required>
 
@@ -48,9 +48,7 @@
 <script>
   const PASS_HASH = "4739ee3bd29e4f415da8ba9298a087e0fdc9c61378420ba8fbbab298bd74c4df";
 
-  function sha256Hex(text) {
-    return sha256(text);
-  }
+  function sha256Hex(text) { return sha256(text); }
 
   const gate = document.getElementById('gate');
   const form = document.getElementById('form');
@@ -59,7 +57,6 @@
   document.getElementById('go').addEventListener('click', async () => {
     const entered = document.getElementById('pw').value;
     const digest = sha256Hex(entered);
-
     if (digest === PASS_HASH) {
       gate.classList.add('hidden');
       form.classList.remove('hidden');
