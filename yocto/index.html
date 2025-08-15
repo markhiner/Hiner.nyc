@@ -73,6 +73,35 @@
       alert('Wrong password');
     }
   });
+
+  // Bypass ngrok warning page by adding a custom header
+  const formElement = document.getElementById('form');
+  formElement.addEventListener('submit', (event) => {
+    event.preventDefault();  // Prevent the default form submission
+
+    // Get form data
+    const formData = new FormData(formElement);
+    const queryParams = new URLSearchParams();
+    formData.forEach((value, key) => queryParams.append(key, value));
+
+    // Send the request with the bypass header
+    fetch('https://dbed878a7728.ngrok-free.app/run?' + queryParams.toString(), {
+      method: 'GET',
+      headers: {
+        'ngrok-skip-browser-warning': 'true'  // Custom header to bypass the warning page
+      }
+    })
+    .then(response => response.text())  // Handle response text
+    .then(data => {
+      // You can handle the response here and display results
+      // For now, just log the result
+      console.log(data);
+      window.location.href = "/yocto/results/"; // Redirect to results page
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+  });
 </script>
 </body>
 </html>
