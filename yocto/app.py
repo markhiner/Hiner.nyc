@@ -165,4 +165,5 @@ def run():
 
 if __name__ == "__main__":
     # Bind to 127.0.0.1; expose via tunnel
-    app.run(host="127.0.0.1", port=5000, debug=False)
+    app.run(host="127.0.0.1", port=int(os.environ.get("PORT", "5050")), debug=False)
+
