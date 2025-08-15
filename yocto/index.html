@@ -14,21 +14,41 @@
     button{cursor:pointer}
     .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     .hidden{display:none}
-    .muted{opacity:.7;font-size:12px;margin-top:6px}
+    .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+    .key{border:1px solid #2a2a2a;background:#0f0f0f;border-radius:12px;padding:16px;font-size:18px;text-align:center;user-select:none}
+    .key:active{transform:scale(.98)}
+    .wide{grid-column:1/-1}
+    .dots{display:flex;gap:8px;justify-content:center;margin:8px 0 4px 0;min-height:18px}
+    .dot{width:10px;height:10px;border-radius:50%;background:#e5e7eb}
+    .muted{opacity:.7;font-size:12px;margin-top:6px;text-align:center}
   </style>
 </head>
 <body>
   <div class="card">
-    <h1 id="gate-title">Enter password</h1>
+    <h1 id="gate-title">Enter code</h1>
     <div id="gate">
-      <input id="pw" type="password" placeholder="Password" autocomplete="current-password">
-      <button id="go">Unlock</button>
+      <div class="dots" id="dots"></div>
+      <div class="pad">
+        <div class="key" data-k="1">1</div>
+        <div class="key" data-k="2">2</div>
+        <div class="key" data-k="3">3</div>
+        <div class="key" data-k="4">4</div>
+        <div class="key" data-k="5">5</div>
+        <div class="key" data-k="6">6</div>
+        <div class="key" data-k="7">7</div>
+        <div class="key" data-k="8">8</div>
+        <div class="key" data-k="9">9</div>
+        <div class="key" data-k="C">C</div>
+        <div class="key" data-k="0">0</div>
+        <div class="key" data-k="B">⌫</div>
+        <button id="go" class="wide">Unlock</button>
+      </div>
+      <div class="muted">Use digits only. Unlock checks a SHA-256 of your code.</div>
     </div>
 
     <form id="form" class="hidden" method="GET" action="https://80182cc56ad5.ngrok-free.app/run" autocomplete="on">
       <label for="where">Where</label>
       <input id="where" name="where" type="text" placeholder="e.g., Las Vegas" required>
-
       <div class="row">
         <div>
           <label for="when">When (check-in)</label>
@@ -39,23 +59,49 @@
           <input id="nights" name="nights" type="number" min="1" value="2" required>
         </div>
       </div>
-
-      <div class="muted">Results render here from the backend. A copy is also published to /yocto/results/.</div>
       <button type="submit" style="margin-top:14px">Search</button>
     </form>
   </div>
 
 <script>
   const PASS_HASH = "4739ee3bd29e4f415da8ba9298a087e0fdc9c61378420ba8fbbab298bd74c4df";
-  function sha256Hex(text){ return sha256(text); }
 
   const gate = document.getElementById('gate');
   const form = document.getElementById('form');
   const title = document.getElementById('gate-title');
+  const dots = document.getElementById('dots');
+  const goBtn = document.getElementById('go');
 
-  document.getElementById('go').addEventListener('click', ()=>{
-    const entered = document.getElementById('pw').value;
-    const digest  = sha256Hex(entered);
+  let buf = "";
+
+  function renderDots(){
+    dots.innerHTML = "";
+    for(let i=0;i<buf.length;i++){
+      const d = document.createElement('div');
+      d.className = 'dot';
+      dots.appendChild(d);
+    }
+  }
+
+  function handleKey(k){
+    if(k === 'C'){ buf = ""; renderDots(); return; }
+    if(k === 'B'){ buf = buf.slice(0,-1); renderDots(); return; }
+    if(/^\d$/.test(k)){ if(buf.length<32){ buf += k; renderDots(); } return; }
+  }
+
+  document.querySelectorAll('.key').forEach(el=>{
+    el.addEventListener('click', ()=> handleKey(el.getAttribute('data-k')));
+  });
+
+  document.addEventListener('keydown', (e)=>{
+    if(e.key>='0' && e.key<='9'){ handleKey(e.key); }
+    else if(e.key==='Backspace'){ handleKey('B'); }
+    else if(e.key.toLowerCase()==='c' && (e.metaKey||e.ctrlKey)){ handleKey('C'); }
+    else if(e.key==='Enter'){ goBtn.click(); }
+  });
+
+  goBtn.addEventListener('click', ()=>{
+    const digest = sha256(buf);
     if(digest === PASS_HASH){
       gate.classList.add('hidden');
       form.classList.remove('hidden');
@@ -64,7 +110,7 @@
       document.getElementById('when').value = d.toISOString().slice(0,10);
       document.getElementById('where').focus();
     }else{
-      alert('Wrong password');
+      buf = ""; renderDots(); alert('Wrong code');
     }
   });
 </script>
