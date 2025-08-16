@@ -14,7 +14,6 @@
     html{-webkit-text-size-adjust:100%}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#0b0b0b;color:#eee;display:flex;min-height:100vh;align-items:center;justify-content:center}
     .card{background:#161616;border:1px solid #2a2a2a;border-radius:16px;padding:24px;max-width:520px;width:92vw;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-    label{display:block;margin:14px 0 6px 0}
     input,button{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #2a2a2a;background:#0f0f0f;color:#f0f0f0;font-size:17px;-webkit-appearance:none;appearance:none}
     button{cursor:pointer}
     .hidden{display:none}
@@ -34,13 +33,36 @@
     .ok-icon{width:30px;height:30px;display:block}
     .ok-icon path{stroke:#fff;stroke-width:1.25;fill:none;stroke-linecap:square;stroke-linejoin:miter}
 
+    /* Search form */
+    .field{margin-top:14px}
+    .field input::placeholder{color:#c9cdd2}
+    .row{display:grid;grid-template-columns:1fr;gap:12px}
+
     /* Nights stepper */
-    .nights-wrap{display:grid;grid-template-columns:72px 1fr 72px;gap:12px;align-items:center}
+    .nights-wrap{display:grid;grid-template-columns:72px 1fr 72px;gap:12px;align-items:center;margin-top:12px}
     .nbtn{width:72px;height:64px;font-size:28px;border-radius:12px;border:1px solid #2a2a2a;background:#0f0f0f;color:#f0f0f0;line-height:1;-webkit-appearance:none}
     .nbtn:active{transform:scale(.98)}
-    .nights-wrap input{text-align:center;font-size:22px;height:64px}
+    .nvalue{display:flex;align-items:center;justify-content:center;gap:10px;height:64px;border:1px solid #2a2a2a;background:#0f0f0f;border-radius:12px}
+    .nvalue input{width:72px;text-align:center;font-size:22px;height:100%;border:none;background:transparent;color:#f0f0f0;outline:none}
+    .nlabel{font-size:16px;color:#cfd3d7}
     input[type=number]{-moz-appearance:textfield}
     input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+    /* Search button in Encode Sans SC 100 */
+    .search-btn{
+      font-family:"Encode Sans SC",sans-serif;
+      font-weight:100;
+      font-optical-sizing:auto;
+      font-variation-settings:"wdth" 100;
+      font-size:20px;
+      padding:14px 16px;
+      border-radius:12px;
+      background:#0f0f0f;
+      border:1px solid #2a2a2a;
+      color:#fff;
+      margin-top:14px;
+    }
+    .search-btn:active{transform:scale(.99)}
   </style>
 </head>
 <body>
@@ -60,28 +82,30 @@
         <button class="key" data-k="X" type="button">X</button>
         <button class="key" data-k="0" type="button">0</button>
         <button class="key" data-k="OK" type="button" aria-label="Submit code">
-          <svg class="ok-icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M5 12 L10 17 L19 6"></path>
-          </svg>
+          <svg class="ok-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12 L10 17 L19 6"></path></svg>
         </button>
       </div>
     </div>
 
     <form id="form" class="hidden" method="GET" action="https://64777c03a81b.ngrok-free.app/run" autocomplete="on">
-      <label for="where">Where</label>
-      <input id="where" name="where" type="text" placeholder="e.g., Las Vegas" required>
+      <div class="field">
+        <input id="where" name="where" type="text" placeholder="Where to?" required>
+      </div>
 
-      <label for="when">When (check-in)</label>
-      <input id="when" name="when" type="date" required>
+      <div class="field row">
+        <input id="when" name="when" type="date" required>
+      </div>
 
-      <label for="nights">Nights</label>
       <div class="nights-wrap">
         <button type="button" class="nbtn" id="nights-dec" aria-label="Decrease nights">−</button>
-        <input id="nights" name="nights" type="number" min="1" value="1" required inputmode="numeric" pattern="[0-9]*">
+        <div class="nvalue">
+          <input id="nights" name="nights" type="number" min="1" value="1" required inputmode="numeric" pattern="[0-9]*">
+          <span class="nlabel" id="nlabel">night</span>
+        </div>
         <button type="button" class="nbtn" id="nights-inc" aria-label="Increase nights">+</button>
       </div>
 
-      <button type="submit" style="margin-top:14px">Search</button>
+      <button type="submit" class="search-btn">Search</button>
     </form>
   </div>
 
@@ -92,11 +116,18 @@
   const form = document.getElementById('form');
   const dots = document.getElementById('dots');
   const whenInput = document.getElementById('when');
+  const whereInput = document.getElementById('where');
   const nightsInput = document.getElementById('nights');
   const decBtn = document.getElementById('nights-dec');
   const incBtn = document.getElementById('nights-inc');
+  const nlabel = document.getElementById('nlabel');
 
-  function setNights(v){ const n=Math.max(1,parseInt(v||'1',10)); nightsInput.value=n; }
+  // Nights helpers
+  function setNights(v){
+    const n = Math.max(1, parseInt(v||'1',10));
+    nightsInput.value = n;
+    nlabel.textContent = n === 1 ? 'night' : 'nights';
+  }
   function stepNights(delta){ setNights((parseInt(nightsInput.value||'1',10))+delta); }
 
   function pressRepeat(btn, delta){
@@ -107,8 +138,12 @@
   }
   pressRepeat(decBtn,-1);
   pressRepeat(incBtn, 1);
-  document.addEventListener('keydown',(e)=>{ if(e.key==='ArrowUp') stepNights(1); if(e.key==='ArrowDown') stepNights(-1); });
+  nightsInput.addEventListener('input', ()=> setNights(nightsInput.value));
 
+  // Auto-collapse date picker after selection
+  whenInput.addEventListener('change', ()=> { whenInput.blur(); });
+
+  // Keypad
   let buf = "";
   function renderDots(){ dots.innerHTML=""; for(let i=0;i<buf.length;i++){ const d=document.createElement('div'); d.className='dot'; dots.appendChild(d); } }
   function handleKey(k){
@@ -128,11 +163,11 @@
     if(digest === PASS_HASH){
       gate.classList.add('hidden');
       form.classList.remove('hidden');
-      const d=new Date(); d.setDate(d.getDate()+1);
-      whenInput.value=d.toISOString().slice(0,10);
+      const d = new Date(); d.setDate(d.getDate()+1);
+      whenInput.value = d.toISOString().slice(0,10);
       setNights(1);
-      document.getElementById('where').focus();
-      setTimeout(()=>{ if(whenInput.showPicker) whenInput.showPicker(); },0);
+      whereInput.focus();
+      setTimeout(()=>{ if(whenInput.showPicker) whenInput.showPicker(); },0); // optional: user taps date then calendar closes on change
     }else{
       buf=""; renderDots(); alert('Wrong code');
     }
