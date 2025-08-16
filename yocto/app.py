@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import os, subprocess, html, json
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+import os, subprocess, html, json, re
+from datetime import datetime, timedelta, date
+from typing import Any, Dict, List, Optional, Tuple
 
 import requests
 from flask import Flask, request, Response, abort
 
-# ---------- Configuration via environment ----------
-SERPAPI_KEY = os.environ.get("SERPAPI_KEY")          # REQUIRED
-REPO_DIR     = os.environ.get("REPO_DIR")            # REQUIRED: local path to your hiner.nyc repo
-BASIC_USER   = os.environ.get("BASIC_AUTH_USER")     # REQUIRED
-BASIC_PASS   = os.environ.get("BASIC_AUTH_PASS")     # REQUIRED
-SITE_BASE    = os.environ.get("SITE_BASE", "https://hiner.nyc")  # optional
+# ==== CONFIG (env) ====
+SERPAPI_KEY = os.environ.get("SERPAPI_KEY")
+REPO_DIR    = os.environ.get("REPO_DIR")
+BASIC_USER  = os.environ.get("BASIC_AUTH_USER")
+BASIC_PASS  = os.environ.get("BASIC_AUTH_PASS")
+SITE_BASE   = os.environ.get("SITE_BASE", "https://hiner.nyc")
 
-# Hard-wired query params (as asked)
+# Hard-wired query params
 BRANDS_PARAM = "84,7,41,118,256,26,136,289,2,3"
 HOTEL_CLASS  = "4,5"
 SORT_BY      = "8"
@@ -24,23 +24,22 @@ if not (SERPAPI_KEY and REPO_DIR and BASIC_USER and BASIC_PASS):
     raise SystemExit("Missing env vars: SERPAPI_KEY, REPO_DIR, BASIC_AUTH_USER, BASIC_AUTH_PASS are required")
 
 RESULTS_FILE = os.path.join(REPO_DIR, "yocto", "results", "index.html")
+LOGO_DIR     = os.path.join(REPO_DIR, "yocto", "logos")
+LOGO_URLBASE = "/yocto/logos"
 
 app = Flask(__name__)
 
-# ---------- Basic Auth ----------
-def check_auth(auth) -> bool:
-    return bool(auth and auth.username == BASIC_USER and auth.password == BASIC_PASS)
-
-def require_auth():
-    return Response("Auth required", 401, {"WWW-Authenticate": 'Basic realm="yocto"'})
+# ==== BASIC AUTH ====
+def _ok_auth(a) -> bool:
+    return bool(a and a.username == BASIC_USER and a.password == BASIC_PASS)
 
 @app.before_request
-def enforce_auth():
-    auth = request.authorization
-    if not check_auth(auth):
-        return require_auth()
+def _auth():
+    a = request.authorization
+    if not _ok_auth(a):
+        return Response("Auth required", 401, {"WWW-Authenticate": 'Basic realm="yocto"'})
 
-# ---------- SerpAPI ----------
+# ==== SERPAPI ====
 def serpapi_hotels(q: str, check_in: str, check_out: str) -> Dict[str, Any]:
     url = "https://serpapi.com/search.json"
     params = {
@@ -51,9 +50,9 @@ def serpapi_hotels(q: str, check_in: str, check_out: str) -> Dict[str, Any]:
         "currency": "USD",
         "check_in_date": check_in,
         "check_out_date": check_out,
-        "brands": BRANDS_PARAM,      # hard-wired
-        "hotel_class": HOTEL_CLASS,  # hard-wired
-        "sort_by": SORT_BY,          # hard-wired
+        "brands": BRANDS_PARAM,
+        "hotel_class": HOTEL_CLASS,
+        "sort_by": SORT_BY,
         "adults": "2",
         "api_key": SERPAPI_KEY,
     }
@@ -61,123 +60,275 @@ def serpapi_hotels(q: str, check_in: str, check_out: str) -> Dict[str, Any]:
     r.raise_for_status()
     return r.json()
 
-# ---------- HTML Rendering ----------
-LEAFLET_CSS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-LEAFLET_JS  = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-
-AMENITY_ICONS = {
-    "wifi": ('Wi-Fi', "<svg viewBox='0 0 24 24' class='amen'><path d='M12 18a2 2 0 11-.001 3.999A2 2 0 0112 18zm-8.485-5.657l1.414 1.414A9 9 0 0112 12a9 9 0 016.364 2.757l1.414-1.414A11 11 0 0012 10a11 11 0 00-8.485 2.343zM3.515 8.343l1.414 1.414A13 13 0 0112 6a13 13 0 019.071 3.757l1.414-1.414A15 15 0 0012 4a15 15 0 00-8.485 4.343z'/></svg>"),
-    "pool": ('Pool', "<svg viewBox='0 0 24 24' class='amen'><path d='M2 18c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1v2c-2 0-2-1-4-1s-2 1-4 1-2-1-4-1-2 1-4 1v-2zM8 6a4 4 0 118 0v10h-2V6a2 2 0 10-4 0v10H8V6z'/></svg>"),
-    "parking": ('Parking', "<svg viewBox='0 0 24 24' class='amen'><path d='M6 3h7a5 5 0 010 10H9v8H6V3zm3 3v4h4a2 2 0 100-4H9z'/></svg>"),
-    "gym": ('Gym', "<svg viewBox='0 0 24 24' class='amen'><path d='M3 10h3v4H3v-4zm15 0h3v4h-3v-4zM8 9h8v6H8V9z'/></svg>"),
-    "spa": ('Spa', "<svg viewBox='0 0 24 24' class='amen'><path d='M12 3C9 6 8 9 8 12s1 6 4 9c3-3 4-6 4-9s-1-6-4-9zm0 6a3 3 0 110 6 3 3 0 010-6z'/></svg>"),
-    "bar": ('Bar', "<svg viewBox='0 0 24 24' class='amen'><path d='M3 3h18l-6 8v7h-6v-7L3 3z'/></svg>"),
-    "restaurant": ('Restaurant', "<svg viewBox='0 0 24 24' class='amen'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z'/></svg>"),
-    "room service": ('Room service', "<svg viewBox='0 0 24 24' class='amen'><path d='M12 5c3 0 6 2.2 7 5h3v2H2V10h3c1-2.8 4-5 7-5zm-9 9h18v2H3v-2z'/></svg>"),
-    "pet": ('Pet-friendly', "<svg viewBox='0 0 24 24' class='amen'><path d='M7 11a2 2 0 11.001-3.999A2 2 0 017 11zm10 0a2 2 0 11.001-3.999A2 2 0 0117 11zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z'/></svg>"),
-}
-
-def norm_amenity_name(s: str) -> str:
-    t = s.strip().lower()
-    if "wifi" in t or "wi-fi" in t: return "wifi"
-    if "pool" in t: return "pool"
-    if "parking" in t: return "parking"
-    if "gym" in t or "fitness" in t: return "gym"
-    if "spa" in t: return "spa"
-    if "bar" in t: return "bar"
-    if "restaurant" in t or "dining" in t: return "restaurant"
-    if "room service" in t: return "room service"
-    if "pet" in t or "dog" in t or "cat" in t: return "pet"
-    return ""
-
+# ==== UTIL ====
 def esc(s: Any) -> str:
     return html.escape(str(s)) if s is not None else ""
 
+def parse_date(s: str) -> date:
+    return datetime.strptime(s, "%Y-%m-%d").date()
+
+def titlecase_city(s: str) -> str:
+    # Title Case, but respect some all-caps tokens
+    tokens = re.split(r"(\s|-)", s.strip().lower())
+    out = []
+    for t in tokens:
+        if t.strip() in ("dc","nyc","la","usa"): out.append(t.upper())
+        elif t in (" ","-"): out.append(t)
+        else: out.append(t.capitalize())
+    return "".join(out)
+
+def format_dates(ci: date, co: date) -> str:
+    # If years differ, full weekday + year on checkout, no year on checkin.
+    if ci.year != co.year:
+        a = ci.strftime("%A, %b %-d")
+        b = co.strftime("%A, %b %-d, %Y")
+        return f"{a} - {b}"
+    # otherwise: Eee, Mmm Dd - Eee, Mmm Dd (no year)
+    # Use locale-independent narrow weekday? We'll stick to 3-letter English
+    return f"{ci.strftime('%a, %b %-d')} - {co.strftime('%a, %b %-d')}"
+
 def extract_price(p: Dict[str, Any]) -> Optional[str]:
     v = (p.get("rate_per_night") or {}).get("lowest")
-    return f"${v}" if v not in (None, "", "None") else None
+    if v in (None, "", "None"): return None
+    try: return f"${int(float(v))}"
+    except: return f"${v}"
 
-def extract_deal(p: Dict[str, Any]) -> Optional[str]:
-    desc = p.get("deal") or p.get("deal_description")
-    if not desc: return None
-    return str(desc)
+def get_class_rating(p: Dict[str, Any]) -> int:
+    v = p.get("hotel_class")
+    try:
+        n = int(round(float(v)))
+        return max(0, min(5, n))
+    except:
+        return 0
 
-def pick_images(p: Dict[str, Any]) -> (str, List[str]):
+# ==== LOGOS ====
+LOGO_URLBASE = "/yocto/logos"  # served by GitHub Pages
+FALLBACK_LOGO = "fallback.png"
+
+def _norm(s: str) -> str:
+    s = s.lower().strip()
+    s = re.sub(r"&", " and ", s)
+    return re.sub(r"[^a-z0-9]+", "", s)
+
+BRAND_LOGOS = {
+    # Hilton
+    "conrad":                "conrad.png",
+    "embassysuites":         "embassy_suites.png",
+    # Hyatt
+    "grandhyatt":            "grand_hyatt.png",
+    "hyattregency":          "hyatt_regency.png",
+    "parkhyatt":             "park_hyatt.png",
+    "thompson":              "thompson.png",
+    # Marriott
+    "jwmarriott":            "jw_marriott.png",
+    "renaissance":           "renaissance.png",
+    "residenceinn":          "residence_inn.png",
+    "stregis":               "st_regis.png",
+    "ritzcarlton":           "ritz_carlton.png",
+    "westin":                "westin.png",
+    "edition":               "edition.png",
+    # IHG
+    "intercontinental":      "intercontinental.png",
+    "kimpton":               "kimpton.png",
+    # MOHG
+    "mandarinoriental":      "mandarin_oriental.png",
+    # Four Seasons
+    "fourseasons":           "four_seasons.png",
+    # Hilton luxury standalone
+    "waldorfastoria":        "waldorf_astoria.png",
+    # W Hotels
+    "whotels":               "w_hotels.png",
+}
+
+ALIAS = {
+    "st.regis": "stregis",
+    "saintregis": "stregis",
+    "ritz-carlton": "ritzcarlton",
+    "ritz": "ritzcarlton",
+    "residenceinnbymarriott": "residenceinn",
+    "residenceinnmarriott": "residenceinn",
+    "four seasons": "fourseasons",
+    "inter-continental": "intercontinental",
+}
+
+def _alias_or_self(tok: str) -> str:
+    return ALIAS.get(tok, tok)
+
+def logo_for_property(p: Dict[str, Any]) -> str:
+    """
+    Priority:
+      1) Names starting with 'W ' => W Hotels (avoid Westin)
+      2) brand/chain/type/subtype direct/substring matches
+      3) hotel name fuzzy substring
+      4) fallback.png
+    """
+    name = str(p.get("name") or "")
+    if name.strip().lower().startswith("w "):
+        return f"{LOGO_URLBASE}/{BRAND_LOGOS['whotels']}"
+
+    candidates = [c for c in (p.get("brand"), p.get("chain"), p.get("type"), p.get("subtype")) if c] + [name]
+
+    for cand in candidates:
+        tok = _alias_or_self(_norm(str(cand)))
+        if tok in BRAND_LOGOS:
+            return f"{LOGO_URLBASE}/{BRAND_LOGOS[tok]}"
+        for key, fname in BRAND_LOGOS.items():
+            if key in tok:
+                return f"{LOGO_URLBASE}/{fname}"
+        for raw, alias_key in ALIAS.items():
+            if raw in tok and alias_key in BRAND_LOGOS:
+                return f"{LOGO_URLBASE}/{BRAND_LOGOS[alias_key]}"
+
+    return f"{LOGO_URLBASE}/{FALLBACK_LOGO}"
+
+
+# ==== AMENITIES (FILTER + ICONS + LABELS) ====
+# minimal, angular icons (black strokes; filled where appropriate)
+AMENITY_SVGS = {
+    "Olly OK":       "<svg class='amen' viewBox='0 0 24 24'><path d='M7 11a2 2 0 110-4 2 2 0 010 4zm10 0a2 2 0 110-4 2 2 0 010 4zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z' fill='none' stroke='#000' stroke-width='1.5'/></svg>",
+    "Spa":           "<svg class='amen' viewBox='0 0 24 24'><path d='M12 3c-3 3-4 6-4 9s1 6 4 9c3-3 4-6 4-9s-1-6-4-9z' fill='none' stroke='#000' stroke-width='1.5'/></svg>",
+    "Restaurant":    "<svg class='amen' viewBox='0 0 24 24'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z' fill='none' stroke='#000' stroke-width='1.5'/></svg>",
+    "In-Room Dining":"<svg class='amen' viewBox='0 0 24 24'><path d='M12 5c3 0 6 2 7 5h3v2H2V10h3c1-3 4-5 7-5zM3 18h18' fill='none' stroke='#000' stroke-width='1.5'/></svg>",
+    "Bar":           "<svg class='amen' viewBox='0 0 24 24'><path d='M3 3h18l-6 8v7H9v-7L3 3z' fill='none' stroke='#000' stroke-width='1.5'/></svg>",
+    "Pool":          "<svg class='amen' viewBox='0 0 24 24'><path d='M3 18c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1' fill='none' stroke='#000' stroke-width='1.5'/></svg>",
+    "Hot tub":       "<svg class='amen' viewBox='0 0 24 24'><circle cx='12' cy='12' r='5' fill='none' stroke='#000' stroke-width='1.5'/><path d='M3 18c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1' fill='none' stroke='#000' stroke-width='1.5'/></svg>",
+    "Beach":         "<svg class='amen' viewBox='0 0 24 24'><path d='M3 18h18M5 18c2-6 8-6 10 0' fill='none' stroke='#000' stroke-width='1.5'/><path d='M12 6c3 0 5 2 5 4' fill='none' stroke='#000' stroke-width='1.5'/></svg>",
+    "Casino":        "<svg class='amen' viewBox='0 0 24 24'><rect x='4' y='4' width='16' height='16' rx='3' ry='3' fill='none' stroke='#000' stroke-width='1.5'/><circle cx='9' cy='9' r='1.5'/><circle cx='15' cy='9' r='1.5'/><circle cx='9' cy='15' r='1.5'/><circle cx='15' cy='15' r='1.5'/></svg>",
+}
+
+def pick_amenities(raw: Any) -> List[str]:
+    """Return ordered list of labels to show."""
+    labels: List[str] = []
+    if not isinstance(raw, list): return labels
+    seen = set()
+    def add(label: str):
+        if label not in seen:
+            labels.append(label); seen.add(label)
+
+    for a in raw:
+        s = str(a).lower()
+        if "pet" in s or "dog" in s or "cat" in s: add("Olly OK")
+        if "spa" in s and "tub" not in s: add("Spa")
+        if "restaurant" in s or "dining" in s: add("Restaurant")
+        if "room service" in s: add("In-Room Dining")
+        if "bar" in s or "lounge" in s: add("Bar")
+        if "pool" in s: add("Pool")
+        if "hot tub" in s or "whirlpool" in s or "jacuzzi" in s: add("Hot tub")
+        if "beach" in s: add("Beach")
+        if "casino" in s: add("Casino")
+
+    # Keep a sane max
+    return labels[:8]
+
+# ==== STARS ====
+STAR_SVG = """<svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="{fill}" stroke="#000" stroke-width="1.2"/>
+</svg>"""
+
+def stars_html(n: int) -> str:
+    n = max(0, min(5, int(n)))
+    parts = []
+    for i in range(5):
+        fill = "#FFD54A" if i < n else "none"
+        parts.append(STAR_SVG.format(fill=fill))
+    return "".join(parts)
+
+# ==== RENDER ====
+LEAFLET_CSS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+LEAFLET_JS  = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+GOOGLE_FONTS = (
+    # Sansation for the header (as requested)
+    '<link href="https://fonts.googleapis.com/css2?family=Sansation:wght@400;700&display=swap" rel="stylesheet">'
+)
+
+def pick_images(p: Dict[str, Any]) -> List[str]:
     imgs = p.get("images") or []
-    if not isinstance(imgs, list): return ("", [])
-    urls = []
-    for im in imgs:
-        u = im.get("original_image") or im.get("thumbnail") or im.get("image")
-        if u: urls.append(u)
-    if not urls: return ("", [])
-    return (urls[0], urls[:8])
+    out = []
+    if isinstance(imgs, list):
+        for im in imgs:
+            u = im.get("original_image") or im.get("thumbnail") or im.get("image")
+            if u: out.append(u)
+    return out
 
-def render_html(q: str, ci: str, co: str, data: Dict[str, Any]) -> str:
+def render_html(q: str, ci_s: str, co_s: str, data: Dict[str, Any]) -> str:
+    ci = parse_date(ci_s); co = parse_date(co_s)
+    city_title = titlecase_city(q)
+    subtitle = format_dates(ci, co)
+
     props = data.get("properties") or []
-    city_disp = esc(q)
-    date_disp = f"{ci} → {co}"
+
     cards = []
-
     for idx, p in enumerate(props):
-        name = esc(p.get("name"))
-        desc = esc(p.get("description") or "")
-        rating = esc(p.get("overall_rating") or "—")
-        klass = esc(p.get("hotel_class") or "—")
-        price = esc(extract_price(p) or "—")
-        link  = esc(p.get("link") or "#")
-        lat = (p.get("gps_coordinates") or {}).get("latitude")
-        lon = (p.get("gps_coordinates") or {}).get("longitude")
+        name = esc(p.get("name") or "")
+        gps  = p.get("gps_coordinates") or {}
+        lat  = gps.get("latitude"); lon = gps.get("longitude")
         latlon_ok = isinstance(lat, (int, float)) and isinstance(lon, (int, float))
+        price = esc(extract_price(p) or "—")
+        rating_class = get_class_rating(p)
+        stars = stars_html(rating_class)
 
-        hero, thumbs = pick_images(p)
-        hero_html = f"<img src='{esc(hero)}' alt='' class='hero'>" if hero else ""
+        # Images
+        logo_url = esc(logo_for_property(p))
+        photos = pick_images(p)
+        # 3x3 grid: first tile is logo, next up to 8 from photos
+        thumb_urls = [logo_url] + [esc(u) for u in photos[:8]]
 
-        # amenity icons (subset)
-        amen_list = p.get("amenities") or []
-        chosen = []
-        if isinstance(amen_list, list):
-            seen = set()
-            for a in amen_list:
-                key = norm_amenity_name(str(a))
-                if key and key not in seen and key in AMENITY_ICONS:
-                    seen.add(key)
-                    label, svg = AMENITY_ICONS[key]
-                    chosen.append(f"<span class='amen-wrap' title='{esc(label)}'>{svg}<span>{esc(label)}</span></span>")
-        amen_html = "".join(chosen[:8])
+        # hero (use first hotel photo if present)
+        hero_url = esc(photos[0] if photos else "")
 
-        deal = extract_deal(p)
-        deal_html = f"<div class='deal'>{esc(deal)}</div>" if deal else ""
+        # Amenities (filtered + relabeled)
+        amen_labels = pick_amenities(p.get("amenities") or [])
+        amen_html = "".join(f"<span class='am'>{AMENITY_SVGS[l]}<span>{esc(l)}</span></span>" for l in amen_labels)
 
-        tbtns = []
-        for u in thumbs:
-            tbtns.append(f"<button class='thumb' data-hero='hero-{idx}' data-src='{esc(u)}'><img src='{esc(u)}' alt=''></button>")
-        thumbs_html = "".join(tbtns)
+        # Links
+        link = esc(p.get("link") or "#")
 
-        map_div = f"<div id='map-{idx}' class='map'></div>" if latlon_ok else ""
+        # map container id
+        map_id = f"map-{idx}"
+
+        # thumbs grid
+        tiles = []
+        for j, u in enumerate(thumb_urls):
+            if j == 0:
+                tiles.append(f"<div class='tile logo'><img src='{u}' alt='brand logo'></div>")
+            else:
+                tiles.append(f"<button class='tile' data-hero='hero-{idx}' data-src='{u}'><img src='{u}' alt=''></button>")
+        while len(tiles) < 9:
+            tiles.append("<div class='tile empty'></div>")
+        grid_html = "".join(tiles[:9])
+
+        hero_html = f"<img id='hero-{idx}' class='hero' src='{hero_url}' alt=''>" if hero_url else ""
 
         card = f"""
-        <article class="card">
-          <div class="hero-wrap">
-            {hero_html}
-            {deal_html}
-          </div>
-          <div class="body">
-            <header class="title">
-              <a href="{link}" target="_blank" rel="noopener">{name}</a>
-              <div class="meta">Class {klass} · Rating {rating} · From {price}</div>
-            </header>
-            <p class="desc">{desc}</p>
-            <div class="thumbs" id="thumbs-{idx}">{thumbs_html}</div>
-            <div class="amenities">{amen_html}</div>
-            {map_div}
-          </div>
-        </article>
-        """.replace("class='hero'", f"id='hero-{idx}' class='hero'")
+<article class="card">
+  <header class="hd">
+    <a href="{link}" target="_blank" rel="noopener" class="hn">{name}</a>
+    <div class="meta">
+      <div class="stars">{stars}</div>
+      <div class="price">{price}</div>
+    </div>
+  </header>
+
+  {hero_html}
+
+  <div class="media">
+    <div class="thumb-grid" id="thumbs-{idx}">
+      {grid_html}
+    </div>
+    <div class="map-wrap">
+      {"<div id='%s' class='map'></div>" % map_id if latlon_ok else ""}
+    </div>
+  </div>
+
+  <div class="amen-row">{amen_html}</div>
+</article>
+"""
         cards.append(card)
 
     body_cards = "\n".join(cards) if cards else "<p class='empty'>No results.</p>"
 
-    # Map init payload
+    # Map payload
     map_entries = []
     for idx, p in enumerate(props):
         gps = p.get("gps_coordinates") or {}
@@ -192,49 +343,74 @@ def render_html(q: str, ci: str, co: str, data: Dict[str, Any]) -> str:
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Hotels — {city_disp} — {date_disp}</title>
+<title>{esc(city_title)} Hotels — {esc(subtitle)}</title>
 <link rel="stylesheet" href="{LEAFLET_CSS}">
+{GOOGLE_FONTS}
 <style>
-html{{-webkit-text-size-adjust:100%}}
-:root{{--bg:#0b0b0c;--card:#111316;--text:#e8eaed;--muted:#9aa0a6;--line:#232629;--accent:#82aaff;}}
-*{{box-sizing:border-box}} body{{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}}
+:root{{
+  --bg:#0b0b0c; --text:#0b0b0c; --muted:#4b5563; --line:#e5e7eb;
+  --card:#ffffff; --accent:#111;
+  --tile: 86px; --gap:8px;
+}}
+*{{box-sizing:border-box}}
+body{{margin:0;background:var(--bg);color:#111;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}}
+.header{{position:sticky;top:0;background:#fff;border-bottom:1px solid #eee;padding:12px 16px;z-index:5}}
+.header h1{{margin:0;font-family:'Sansation',sans-serif;font-weight:700;letter-spacing:.2px}}
+.header .sub{{margin-top:4px;color:#555;font-family:'Sansation',sans-serif}}
+
 .wrap{{max-width:980px;margin:0 auto;padding:16px}}
-.header{{position:sticky;top:0;background:rgba(11,11,12,.8);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:10px 16px;z-index:5}}
-.header h1{{margin:0;font-size:18px;font-weight:600}}
-.header .sub{{font-size:12px;color:var(--muted)}}
-.card{{border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:14px 0;background:var(--card);box-shadow:0 10px 30px rgba(0,0,0,.25)}}
-.hero-wrap{{position:relative;background:#0d0f12}}
+.card{{background:var(--card);color:#111;border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:14px 0;box-shadow:0 10px 30px rgba(0,0,0,.08)}}
+.hd{{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 14px 8px 14px;gap:10px}}
+.hn{{color:#111;text-decoration:none;font-weight:700;font-size:18px}}
+.meta{{display:flex;gap:12px;align-items:center}}
+.stars{{display:flex;gap:2px}}
+.star{{width:18px;height:18px;display:block}}
+.price{{color:#111;font-weight:600}}
 .hero{{display:block;width:100%;height:260px;object-fit:cover}}
-.deal{{position:absolute;bottom:10px;left:10px;background:#0b65d8;color:white;padding:6px 10px;border-radius:10px;font-size:12px}}
-.body{{padding:14px}}
-.title{{display:flex;flex-direction:column;gap:6px}}
-.title a{{color:#fff;text-decoration:none;font-weight:600;font-size:18px}}
-.meta{{color:var(--muted);font-size:13px}}
-.desc{{margin:10px 0 6px 0;color:#cfd3d7;font-size:14px;line-height:1.35}}
-.thumbs{{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}}
-.thumb{{border:0;background:none;padding:0;cursor:pointer;border-radius:10px;overflow:hidden;border:1px solid var(--line)}}
-.thumb img{{display:block;width:88px;height:64px;object-fit:cover}}
-.amenities{{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 12px 0}}
-.amen{{width:18px;height:18px;fill:#aab2bd;vertical-align:-3px;margin-right:6px}}
-.amen-wrap{{display:inline-flex;align-items:center;gap:6px;color:#cbd2d8;background:#0f1216;border:1px solid var(--line);padding:6px 8px;border-radius:999px;font-size:12px}}
-.map{{height:180px;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:10px}}
-.empty{{color:var(--muted)}}
-.footer{{color:#b9c1c7;font-size:12px;margin:18px 0;text-align:center}}
-.leaflet-tile{{filter:grayscale(.1) brightness(.9)}}
+
+.media{{display:grid;grid-template-columns:auto auto;gap:12px;padding:12px 14px}}
+.thumb-grid{{--size: calc(var(--tile)*3 + var(--gap)*2); width:var(--size)}}
+.thumb-grid{{display:grid;grid-template-columns:repeat(3,var(--tile));grid-auto-rows:var(--tile);gap:var(--gap)}}
+.tile{{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:8px;background:#f6f7f9;padding:0}}
+.tile img{{display:block;width:100%;height:100%;object-fit:cover}}
+.tile.empty{{background:#fafafa}}
+.tile.logo{{background:#fff;display:flex;align-items:center;justify-content:center}}
+.tile.logo img{{object-fit:contain;padding:12%}}
+.map-wrap{{width:calc(var(--tile)*3 + var(--gap)*2)}}
+.map{{width:100%;height:calc(var(--tile)*3 + var(--gap)*2);border:1px solid var(--line);border-radius:8px;overflow:hidden}}
+
+.amen-row{{display:flex;flex-wrap:wrap;gap:10px;padding:0 14px 14px 14px}}
+.amen{{width:18px;height:18px}}
+.am{{display:inline-flex;align-items:center;gap:6px;background:#f6f7f9;border:1px solid var(--line);color:#111;padding:6px 8px;border-radius:999px;font-size:12px}}
+
+.empty{{color:#666;background:#fff;padding:20px;border-radius:12px;border:1px solid #eee}}
+
+@media (max-width: 740px){{
+  .media{{grid-template-columns:1fr}}
+  .thumb-grid, .map-wrap{{width:100%}}
+  .thumb-grid{{--tile: calc((100% - 2*var(--gap))/3)}}
+  .map{{height: calc((var(--tile)*3 + var(--gap)*2))}}
+}}
+.leaflet-container .leaflet-tile{{filter:grayscale(.05) brightness(.98)}}
 </style>
 </head>
 <body>
-<div class="header"><h1>Hotels — {city_disp}</h1><div class="sub">{date_disp}</div></div>
+<div class="header">
+  <h1>{esc(city_title)} Hotels</h1>
+  <div class="sub">{esc(subtitle)}</div>
+</div>
+
 <div class="wrap">
 {body_cards}
-<div class="footer">Published to <a href="{SITE_BASE}/yocto/results/" style="color:#82aaff">{SITE_BASE}/yocto/results/</a></div>
+<div style="text-align:center;color:#555;font-size:12px;margin:18px 0;">
+  Published to <a href="{SITE_BASE}/yocto/results/" style="color:#111">{SITE_BASE}/yocto/results/</a>
 </div>
+</div>
+
 <script src="{LEAFLET_JS}"></script>
 <script>
-// thumbnail -> hero swapper
-document.querySelectorAll('.thumb').forEach(btn => {{
+// thumbnail -> hero swap
+document.querySelectorAll('.tile[data-src]').forEach(btn => {{
   btn.addEventListener('click', e => {{
     e.preventDefault();
     const heroId = btn.getAttribute('data-hero');
@@ -243,6 +419,7 @@ document.querySelectorAll('.thumb').forEach(btn => {{
     if (hero && src) hero.src = src;
   }});
 }});
+
 // maps
 const entries = {maps_json};
 entries.forEach(it => {{
@@ -254,34 +431,29 @@ entries.forEach(it => {{
 }});
 </script>
 </body>
-</html>"""
+</html>
+"""
 
-# ---------- IO / Git ----------
+# ==== IO / GIT ====
 def write_file(path: str, content: str):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         f.write(content)
-
-def git(*args):
-    return subprocess.run(["git", *args], cwd=REPO_DIR, check=True, capture_output=True, text=True)
 
 def try_git_commit_push() -> Optional[str]:
     try:
         subprocess.run(["git","add","yocto/results/index.html"], cwd=REPO_DIR, check=True)
         subprocess.run(["git","commit","-m", f"yocto results {datetime.now().isoformat(timespec='seconds')}"],
                        cwd=REPO_DIR, check=False)
-        out = git("push","origin","HEAD").stdout
-        return out
+        subprocess.run(["git","push","origin","HEAD"], cwd=REPO_DIR, check=True)
+        return None
     except subprocess.CalledProcessError as e:
-        return f"git error: {e.stderr or e.stdout}"
+        return e.stderr or e.stdout or "git error"
 
-# ---------- Routes ----------
+# ==== ROUTES ====
 @app.get("/health")
 def health():
     return {"status":"ok"}
-
-def parse_date(s: str):
-    return datetime.strptime(s, "%Y-%m-%d").date()
 
 @app.get("/run")
 def run():
@@ -291,6 +463,7 @@ def run():
 
     if not where or not when:
         abort(400, "Missing 'where' or 'when'")
+
     try:
         nights = max(1, int(nights_str))
         ci = parse_date(when)
@@ -299,6 +472,7 @@ def run():
         abort(400, "Invalid 'when' (YYYY-MM-DD) or 'nights'")
 
     ci_s, co_s = ci.isoformat(), co.isoformat()
+
     data = serpapi_hotels(where, ci_s, co_s)
     html_out = render_html(where, ci_s, co_s, data)
 
@@ -308,6 +482,5 @@ def run():
     return Response(html_out, mimetype="text/html")
 
 if __name__ == "__main__":
-    # pin to IPv4 loopback; allow PORT override
     port = int(os.environ.get("PORT", "5050"))
     app.run(host="127.0.0.1", port=port, debug=False)
