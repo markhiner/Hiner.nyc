@@ -195,6 +195,7 @@ def render_html(q: str, ci: str, co: str, data: Dict[str, Any]) -> str:
 <title>Hotels — {city_disp} — {date_disp}</title>
 <link rel="stylesheet" href="{LEAFLET_CSS}">
 <style>
+html{{-webkit-text-size-adjust:100%}}
 :root{{--bg:#0b0b0c;--card:#111316;--text:#e8eaed;--muted:#9aa0a6;--line:#232629;--accent:#82aaff;}}
 *{{box-sizing:border-box}} body{{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}}
 .wrap{{max-width:980px;margin:0 auto;padding:16px}}
