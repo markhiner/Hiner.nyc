@@ -14,16 +14,14 @@
     html{-webkit-text-size-adjust:100%}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#0b0b0b;color:#eee;display:flex;min-height:100vh;align-items:center;justify-content:center}
     .card{background:#161616;border:1px solid #2a2a2a;border-radius:16px;padding:24px;max-width:520px;width:92vw;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-    h1{margin:0 0 16px 0;font-size:20px}
     label{display:block;margin:14px 0 6px 0}
     input,button{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #2a2a2a;background:#0f0f0f;color:#f0f0f0;font-size:17px;-webkit-appearance:none;appearance:none}
     button{cursor:pointer}
     .hidden{display:none}
 
-    /* PIN pad: black slab, white ultra-light numerals, no visible borders */
-    .dots{display:flex;gap:8px;justify-content:center;margin:8px 0 8px 0;min-height:18px}
+    .dots{display:flex;gap:8px;justify-content:center;margin:4px 0 8px;min-height:18px}
     .dot{width:10px;height:10px;border-radius:50%;background:#e5e7eb}
-    .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px;background:#000;padding:16px;border-radius:16px}
+    .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px;background:#000;padding:16px;border-radius:16px}
     .key{
       display:flex;align-items:center;justify-content:center;
       height:68px;border:none;background:transparent;color:#fff;
@@ -32,11 +30,7 @@
       user-select:none;-webkit-tap-highlight-color:transparent;outline:none;
     }
     .key:active{transform:scale(.98)}
-    .wide{grid-column:1/-1;border:1px solid #2a2a2a;background:#0f0f0f;border-radius:12px;font-size:18px;padding:14px}
 
-    .muted{opacity:.7;font-size:12px;margin-top:6px;text-align:center}
-
-    /* Nights stepper */
     .nights-wrap{display:grid;grid-template-columns:72px 1fr 72px;gap:12px;align-items:center}
     .nbtn{width:72px;height:64px;font-size:28px;border-radius:12px;border:1px solid #2a2a2a;background:#0f0f0f;color:#f0f0f0;line-height:1;-webkit-appearance:none}
     .nbtn:active{transform:scale(.98)}
@@ -59,12 +53,10 @@
         <button class="key" data-k="7" type="button">7</button>
         <button class="key" data-k="8" type="button">8</button>
         <button class="key" data-k="9" type="button">9</button>
-        <button class="key" data-k="C" type="button">C</button>
+        <button class="key" data-k="X" type="button">X</button>
         <button class="key" data-k="0" type="button">0</button>
-        <button class="key" data-k="B" type="button">⌫</button>
-        <button id="go" class="wide" type="button">Unlock</button>
+        <button class="key" data-k="OK" type="button">✓</button>
       </div>
-      <div class="muted">Digits only.</div>
     </div>
 
     <form id="form" class="hidden" method="GET" action="https://64777c03a81b.ngrok-free.app/run" autocomplete="on">
@@ -90,9 +82,6 @@
 
   const gate = document.getElementById('gate');
   const form = document.getElementById('form');
-  const title = document.getElementById('gate-title');
-  const dots = document.getElementById('dots');
-  const goBtn = document.getElementById('go');
   const whenInput = document.getElementById('when');
   const nightsInput = document.getElementById('nights');
   const decBtn = document.getElementById('nights-dec');
@@ -113,6 +102,33 @@
 
   let buf = "";
   function renderDots(){ dots.innerHTML=""; for(let i=0;i<buf.length;i++){ const d=document.createElement('div'); d.className='dot'; dots.appendChild(d); } }
-  function handleKey(k){ if(k==='C'){buf="";renderDots();return;} if(k==='B'){buf=buf.slice(0,-1);renderDots();return;} if(/^\d$/.test(k)){ if(buf.length<32){buf+=k;renderDots();} } }
+  function handleKey(k){
+    if(k==='X'){ buf=''; renderDots(); return; }
+    if(k==='OK'){ tryUnlock(); return; }
+    if(/^\d$/.test(k)){ if(buf.length<32){ buf+=k; renderDots(); } }
+  }
+  const dots = document.getElementById('dots');
   document.querySelectorAll('.key').forEach(el=>{ el.addEventListener('click', ()=> handleKey(el.getAttribute('data-k'))); });
-  document.addEventListener('keydown', (e)=>{ if(e.key>='0'&&e.key<='9') handleKey(e.key); else if(e.key==='Backspace') handleKey('B'
+  document.addEventListener('keydown', (e)=>{
+    if(e.key>='0'&&e.key<='9') handleKey(e.key);
+    else if(e.key==='Enter') handleKey('OK');
+    else if(e.key.toLowerCase()==='x') handleKey('X');
+  });
+
+  function tryUnlock(){
+    const digest = sha256(buf);
+    if(digest === PASS_HASH){
+      gate.classList.add('hidden');
+      form.classList.remove('hidden');
+      const d=new Date(); d.setDate(d.getDate()+1);
+      whenInput.value=d.toISOString().slice(0,10);
+      setNights(1);
+      document.getElementById('where').focus();
+      setTimeout(()=>{ if(whenInput.showPicker) whenInput.showPicker(); },0);
+    }else{
+      buf=""; renderDots(); alert('Wrong code');
+    }
+  }
+</script>
+</body>
+</html>
