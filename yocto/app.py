@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import os, subprocess, html, json, re
+import os, re, html, json, subprocess
 from datetime import datetime, timedelta, date
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import requests
 from flask import Flask, request, Response, abort
 
-# ==== CONFIG (env) ====
+# ===== ENV =====
 SERPAPI_KEY = os.environ.get("SERPAPI_KEY")
 REPO_DIR    = os.environ.get("REPO_DIR")
 BASIC_USER  = os.environ.get("BASIC_AUTH_USER")
 BASIC_PASS  = os.environ.get("BASIC_AUTH_PASS")
 SITE_BASE   = os.environ.get("SITE_BASE", "https://hiner.nyc")
 
-# Hard-wired query params
+# hard-wired filters
 BRANDS_PARAM = "84,7,41,118,256,26,136,289,2,3"
 HOTEL_CLASS  = "4,5"
 SORT_BY      = "8"
@@ -24,22 +24,17 @@ if not (SERPAPI_KEY and REPO_DIR and BASIC_USER and BASIC_PASS):
     raise SystemExit("Missing env vars: SERPAPI_KEY, REPO_DIR, BASIC_AUTH_USER, BASIC_AUTH_PASS are required")
 
 RESULTS_FILE = os.path.join(REPO_DIR, "yocto", "results", "index.html")
-LOGO_DIR     = os.path.join(REPO_DIR, "yocto", "logos")
-LOGO_URLBASE = "/yocto/logos"
 
 app = Flask(__name__)
 
-# ==== BASIC AUTH ====
-def _ok_auth(a) -> bool:
-    return bool(a and a.username == BASIC_USER and a.password == BASIC_PASS)
-
+# ===== BASIC AUTH =====
 @app.before_request
 def _auth():
     a = request.authorization
-    if not _ok_auth(a):
+    if not (a and a.username == BASIC_USER and a.password == BASIC_PASS):
         return Response("Auth required", 401, {"WWW-Authenticate": 'Basic realm="yocto"'})
 
-# ==== SERPAPI ====
+# ===== SERPAPI =====
 def serpapi_hotels(q: str, check_in: str, check_out: str) -> Dict[str, Any]:
     url = "https://serpapi.com/search.json"
     params = {
@@ -60,7 +55,7 @@ def serpapi_hotels(q: str, check_in: str, check_out: str) -> Dict[str, Any]:
     r.raise_for_status()
     return r.json()
 
-# ==== UTIL ====
+# ===== UTIL =====
 def esc(s: Any) -> str:
     return html.escape(str(s)) if s is not None else ""
 
@@ -68,7 +63,6 @@ def parse_date(s: str) -> date:
     return datetime.strptime(s, "%Y-%m-%d").date()
 
 def titlecase_city(s: str) -> str:
-    # Title Case, but respect some all-caps tokens
     tokens = re.split(r"(\s|-)", s.strip().lower())
     out = []
     for t in tokens:
@@ -78,68 +72,75 @@ def titlecase_city(s: str) -> str:
     return "".join(out)
 
 def format_dates(ci: date, co: date) -> str:
-    # If years differ, full weekday + year on checkout, no year on checkin.
     if ci.year != co.year:
-        a = ci.strftime("%A, %b %-d")
-        b = co.strftime("%A, %b %-d, %Y")
-        return f"{a} - {b}"
-    # otherwise: Eee, Mmm Dd - Eee, Mmm Dd (no year)
-    # Use locale-independent narrow weekday? We'll stick to 3-letter English
+        return f"{ci.strftime('%A, %b %-d')} - {co.strftime('%A, %b %-d, %Y')}"
     return f"{ci.strftime('%a, %b %-d')} - {co.strftime('%a, %b %-d')}"
 
 def extract_price(p: Dict[str, Any]) -> Optional[str]:
     v = (p.get("rate_per_night") or {}).get("lowest")
     if v in (None, "", "None"): return None
-    try: return f"${int(float(v))}"
-    except: return f"${v}"
+    try:
+        return f"${int(round(float(v)))}"
+    except Exception:
+        return f"${v}"
 
 def get_class_rating(p: Dict[str, Any]) -> int:
-    v = p.get("hotel_class")
-    try:
-        n = int(round(float(v)))
-        return max(0, min(5, n))
-    except:
-        return 0
+    """
+    Robustly parse a 0–5 star class:
+      accepts 5, 4.5, "5", "5-star hotel", "4 star", etc.
+    """
+    cand = p.get("hotel_class") or p.get("stars") or p.get("classification") or ""
+    if isinstance(cand, (int, float)):
+        n = float(cand)
+    else:
+        m = re.search(r"(\d(?:\.\d)?)", str(cand))
+        n = float(m.group(1)) if m else 0.0
+    return max(0, min(5, int(round(n))))
 
-# ==== LOGOS ====
-LOGO_URLBASE = "/yocto/logos"  # served by GitHub Pages
-FALLBACK_LOGO = "fallback.png"
+def pick_images(p: Dict[str, Any]) -> List[str]:
+    imgs = p.get("images") or []
+    out = []
+    if isinstance(imgs, list):
+        for im in imgs:
+            u = im.get("original_image") or im.get("thumbnail") or im.get("image")
+            if u: out.append(u)
+    return out
 
+# ===== LOGOS (explicit map; URLs point to SITE_BASE to work via ngrok) =====
 def _norm(s: str) -> str:
     s = s.lower().strip()
     s = re.sub(r"&", " and ", s)
     return re.sub(r"[^a-z0-9]+", "", s)
 
 BRAND_LOGOS = {
-    # Hilton
-    "conrad":                "conrad.png",
-    "embassysuites":         "embassy_suites.png",
+    # Hilton family
+    "conrad": "conrad.png",
+    "embassysuites": "embassy_suites.png",
     # Hyatt
-    "grandhyatt":            "grand_hyatt.png",
-    "hyattregency":          "hyatt_regency.png",
-    "parkhyatt":             "park_hyatt.png",
-    "thompson":              "thompson.png",
+    "grandhyatt": "grand_hyatt.png",
+    "hyattregency": "hyatt_regency.png",
+    "parkhyatt": "park_hyatt.png",
+    "thompson": "thompson.png",
     # Marriott
-    "jwmarriott":            "jw_marriott.png",
-    "renaissance":           "renaissance.png",
-    "residenceinn":          "residence_inn.png",
-    "stregis":               "st_regis.png",
-    "ritzcarlton":           "ritz_carlton.png",
-    "westin":                "westin.png",
-    "edition":               "edition.png",
+    "jwmarriott": "jw_marriott.png",
+    "renaissance": "renaissance.png",
+    "residenceinn": "residence_inn.png",
+    "stregis": "st_regis.png",
+    "ritzcarlton": "ritz_carlton.png",
+    "westin": "westin.png",
+    "edition": "edition.png",
     # IHG
-    "intercontinental":      "intercontinental.png",
-    "kimpton":               "kimpton.png",
+    "intercontinental": "intercontinental.png",
+    "kimpton": "kimpton.png",
     # MOHG
-    "mandarinoriental":      "mandarin_oriental.png",
+    "mandarinoriental": "mandarin_oriental.png",
     # Four Seasons
-    "fourseasons":           "four_seasons.png",
-    # Hilton luxury standalone
-    "waldorfastoria":        "waldorf_astoria.png",
+    "fourseasons": "four_seasons.png",
+    # Hilton luxury
+    "waldorfastoria": "waldorf_astoria.png",
     # W Hotels
-    "whotels":               "w_hotels.png",
+    "whotels": "w_hotels.png",
 }
-
 ALIAS = {
     "st.regis": "stregis",
     "saintregis": "stregis",
@@ -150,40 +151,27 @@ ALIAS = {
     "four seasons": "fourseasons",
     "inter-continental": "intercontinental",
 }
-
-def _alias_or_self(tok: str) -> str:
-    return ALIAS.get(tok, tok)
+def _alias(tok: str) -> str: return ALIAS.get(tok, tok)
 
 def logo_for_property(p: Dict[str, Any]) -> str:
-    """
-    Priority:
-      1) Names starting with 'W ' => W Hotels (avoid Westin)
-      2) brand/chain/type/subtype direct/substring matches
-      3) hotel name fuzzy substring
-      4) fallback.png
-    """
     name = str(p.get("name") or "")
     if name.strip().lower().startswith("w "):
-        return f"{LOGO_URLBASE}/{BRAND_LOGOS['whotels']}"
-
+        fname = BRAND_LOGOS["whotels"]
+        return f"{SITE_BASE}/yocto/logos/{fname}"
     candidates = [c for c in (p.get("brand"), p.get("chain"), p.get("type"), p.get("subtype")) if c] + [name]
-
     for cand in candidates:
-        tok = _alias_or_self(_norm(str(cand)))
+        tok = _alias(_norm(str(cand)))
         if tok in BRAND_LOGOS:
-            return f"{LOGO_URLBASE}/{BRAND_LOGOS[tok]}"
+            return f"{SITE_BASE}/yocto/logos/{BRAND_LOGOS[tok]}"
         for key, fname in BRAND_LOGOS.items():
             if key in tok:
-                return f"{LOGO_URLBASE}/{fname}"
+                return f"{SITE_BASE}/yocto/logos/{fname}"
         for raw, alias_key in ALIAS.items():
             if raw in tok and alias_key in BRAND_LOGOS:
-                return f"{LOGO_URLBASE}/{BRAND_LOGOS[alias_key]}"
+                return f"{SITE_BASE}/yocto/logos/{BRAND_LOGOS[alias_key]}"
+    return f"{SITE_BASE}/yocto/logos/fallback.png"
 
-    return f"{LOGO_URLBASE}/{FALLBACK_LOGO}"
-
-
-# ==== AMENITIES (FILTER + ICONS + LABELS) ====
-# minimal, angular icons (black strokes; filled where appropriate)
+# ===== AMENITIES (curated + relabeled) =====
 AMENITY_SVGS = {
     "Olly OK":       "<svg class='amen' viewBox='0 0 24 24'><path d='M7 11a2 2 0 110-4 2 2 0 010 4zm10 0a2 2 0 110-4 2 2 0 010 4zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z' fill='none' stroke='#000' stroke-width='1.5'/></svg>",
     "Spa":           "<svg class='amen' viewBox='0 0 24 24'><path d='M12 3c-3 3-4 6-4 9s1 6 4 9c3-3 4-6 4-9s-1-6-4-9z' fill='none' stroke='#000' stroke-width='1.5'/></svg>",
@@ -195,16 +183,13 @@ AMENITY_SVGS = {
     "Beach":         "<svg class='amen' viewBox='0 0 24 24'><path d='M3 18h18M5 18c2-6 8-6 10 0' fill='none' stroke='#000' stroke-width='1.5'/><path d='M12 6c3 0 5 2 5 4' fill='none' stroke='#000' stroke-width='1.5'/></svg>",
     "Casino":        "<svg class='amen' viewBox='0 0 24 24'><rect x='4' y='4' width='16' height='16' rx='3' ry='3' fill='none' stroke='#000' stroke-width='1.5'/><circle cx='9' cy='9' r='1.5'/><circle cx='15' cy='9' r='1.5'/><circle cx='9' cy='15' r='1.5'/><circle cx='15' cy='15' r='1.5'/></svg>",
 }
-
 def pick_amenities(raw: Any) -> List[str]:
-    """Return ordered list of labels to show."""
-    labels: List[str] = []
-    if not isinstance(raw, list): return labels
+    labs: List[str] = []
+    if not isinstance(raw, list): return labs
     seen = set()
-    def add(label: str):
-        if label not in seen:
-            labels.append(label); seen.add(label)
-
+    def add(x):
+        if x not in seen:
+            labs.append(x); seen.add(x)
     for a in raw:
         s = str(a).lower()
         if "pet" in s or "dog" in s or "cat" in s: add("Olly OK")
@@ -216,40 +201,35 @@ def pick_amenities(raw: Any) -> List[str]:
         if "hot tub" in s or "whirlpool" in s or "jacuzzi" in s: add("Hot tub")
         if "beach" in s: add("Beach")
         if "casino" in s: add("Casino")
+    return labs[:8]
 
-    # Keep a sane max
-    return labels[:8]
-
-# ==== STARS ====
+# ===== STARS =====
 STAR_SVG = """<svg class="star" viewBox="0 0 24 24" aria-hidden="true">
   <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
         fill="{fill}" stroke="#000" stroke-width="1.2"/>
 </svg>"""
-
 def stars_html(n: int) -> str:
     n = max(0, min(5, int(n)))
-    parts = []
-    for i in range(5):
-        fill = "#FFD54A" if i < n else "none"
-        parts.append(STAR_SVG.format(fill=fill))
-    return "".join(parts)
+    return "".join(STAR_SVG.format(fill="#FFD54A" if i < n else "none") for i in range(5))
 
-# ==== RENDER ====
+# ===== RENDER =====
 LEAFLET_CSS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 LEAFLET_JS  = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-GOOGLE_FONTS = (
-    # Sansation for the header (as requested)
-    '<link href="https://fonts.googleapis.com/css2?family=Sansation:wght@400;700&display=swap" rel="stylesheet">'
-)
+GOOGLE_FONTS = '<link href="https://fonts.googleapis.com/css2?family=Sansation:wght@400;600;700&display=swap" rel="stylesheet">'
 
-def pick_images(p: Dict[str, Any]) -> List[str]:
-    imgs = p.get("images") or []
-    out = []
-    if isinstance(imgs, list):
-        for im in imgs:
-            u = im.get("original_image") or im.get("thumbnail") or im.get("image")
-            if u: out.append(u)
-    return out
+def extract_discount(p: Dict[str, Any]) -> Optional[str]:
+    # Try common shapes, then fallback to parsing any % in deal strings
+    for k in ("price_x_percent_lower_than_usual", "price_drop_percent", "percent_lower_than_usual", "discount_percent"):
+        v = p.get(k)
+        if v is None: continue
+        s = str(v)
+        m = re.search(r"(\d{1,3})", s)
+        if m: return f"{m.group(1)}% lower"
+    for k in ("deal", "deal_description", "price_highlight", "savings_text"):
+        s = str(p.get(k) or "")
+        m = re.search(r"(\d{1,3})\s*%.*lower", s, re.I)
+        if m: return f"{m.group(1)}% lower"
+    return None
 
 def render_html(q: str, ci_s: str, co_s: str, data: Dict[str, Any]) -> str:
     ci = parse_date(ci_s); co = parse_date(co_s)
@@ -257,68 +237,60 @@ def render_html(q: str, ci_s: str, co_s: str, data: Dict[str, Any]) -> str:
     subtitle = format_dates(ci, co)
 
     props = data.get("properties") or []
-
     cards = []
+
     for idx, p in enumerate(props):
-        name = esc(p.get("name") or "")
-        gps  = p.get("gps_coordinates") or {}
-        lat  = gps.get("latitude"); lon = gps.get("longitude")
-        latlon_ok = isinstance(lat, (int, float)) and isinstance(lon, (int, float))
+        name  = esc(p.get("name") or "")
+        link  = esc(p.get("link") or "#")
+        gps   = p.get("gps_coordinates") or {}
+        lat   = gps.get("latitude"); lon = gps.get("longitude")
+        latok = isinstance(lat, (int, float)) and isinstance(lon, (int, float))
         price = esc(extract_price(p) or "—")
-        rating_class = get_class_rating(p)
-        stars = stars_html(rating_class)
+        stars = stars_html(get_class_rating(p))
 
-        # Images
-        logo_url = esc(logo_for_property(p))
         photos = pick_images(p)
-        # 3x3 grid: first tile is logo, next up to 8 from photos
-        thumb_urls = [logo_url] + [esc(u) for u in photos[:8]]
-
-        # hero (use first hotel photo if present)
         hero_url = esc(photos[0] if photos else "")
-
-        # Amenities (filtered + relabeled)
-        amen_labels = pick_amenities(p.get("amenities") or [])
-        amen_html = "".join(f"<span class='am'>{AMENITY_SVGS[l]}<span>{esc(l)}</span></span>" for l in amen_labels)
-
-        # Links
-        link = esc(p.get("link") or "#")
-
-        # map container id
-        map_id = f"map-{idx}"
-
-        # thumbs grid
+        logo_url = esc(logo_for_property(p))
+        thumbs = [logo_url] + [esc(u) for u in photos[:8]]
         tiles = []
-        for j, u in enumerate(thumb_urls):
+        for j, u in enumerate(thumbs[:9]):
             if j == 0:
                 tiles.append(f"<div class='tile logo'><img src='{u}' alt='brand logo'></div>")
             else:
                 tiles.append(f"<button class='tile' data-hero='hero-{idx}' data-src='{u}'><img src='{u}' alt=''></button>")
-        while len(tiles) < 9:
-            tiles.append("<div class='tile empty'></div>")
+        while len(tiles) < 9: tiles.append("<div class='tile empty'></div>")
         grid_html = "".join(tiles[:9])
 
-        hero_html = f"<img id='hero-{idx}' class='hero' src='{hero_url}' alt=''>" if hero_url else ""
+        amen_labels = pick_amenities(p.get("amenities") or [])
+        amen_html = "".join(f"<span class='am'>{AMENITY_SVGS[l]}<span>{esc(l)}</span></span>" for l in amen_labels)
+
+        discount_text = extract_discount(p)
+        banner_html = f"<div class='deal-banner'><span>{esc(discount_text)}</span></div>" if discount_text else ""
+
+        hero_block = ""
+        if hero_url:
+            hero_block = f"""
+<div class="hero-wrap">
+  {banner_html}
+  <img id="hero-{idx}" class="hero" src="{hero_url}" alt="">
+  <div class="price-badge">{price}</div>
+</div>"""
+
+        map_id = f"map-{idx}"
+        map_html = f"<div id='{map_id}' class='map'></div>" if latok else ""
 
         card = f"""
 <article class="card">
   <header class="hd">
     <a href="{link}" target="_blank" rel="noopener" class="hn">{name}</a>
-    <div class="meta">
-      <div class="stars">{stars}</div>
-      <div class="price">{price}</div>
-    </div>
+    <div class="meta"><div class="stars">{stars}</div></div>
   </header>
 
-  {hero_html}
+  {hero_block}
 
   <div class="media">
-    <div class="thumb-grid" id="thumbs-{idx}">
-      {grid_html}
-    </div>
-    <div class="map-wrap">
-      {"<div id='%s' class='map'></div>" % map_id if latlon_ok else ""}
-    </div>
+    <div class="thumb-grid" id="thumbs-{idx}">{grid_html}</div>
+    <div class="map-wrap">{map_html}</div>
   </div>
 
   <div class="amen-row">{amen_html}</div>
@@ -328,15 +300,14 @@ def render_html(q: str, ci_s: str, co_s: str, data: Dict[str, Any]) -> str:
 
     body_cards = "\n".join(cards) if cards else "<p class='empty'>No results.</p>"
 
-    # Map payload
-    map_entries = []
+    # map init payload
+    maps = []
     for idx, p in enumerate(props):
         gps = p.get("gps_coordinates") or {}
         lat = gps.get("latitude"); lon = gps.get("longitude")
         if isinstance(lat, (int, float)) and isinstance(lon, (int, float)):
-            nm = esc(p.get("name") or f"Hotel {idx+1}")
-            map_entries.append({"id": f"map-{idx}", "lat": lat, "lon": lon, "name": nm})
-    maps_json = json.dumps(map_entries)
+            maps.append({"id": f"map-{idx}", "lat": lat, "lon": lon, "name": esc(p.get("name") or f"Hotel {idx+1}")})
+    maps_json = json.dumps(maps)
 
     return f"""<!doctype html>
 <html lang="en">
@@ -348,25 +319,34 @@ def render_html(q: str, ci_s: str, co_s: str, data: Dict[str, Any]) -> str:
 {GOOGLE_FONTS}
 <style>
 :root{{
-  --bg:#0b0b0c; --text:#0b0b0c; --muted:#4b5563; --line:#e5e7eb;
-  --card:#ffffff; --accent:#111;
-  --tile: 86px; --gap:8px;
+  --bg:#0b0b0c; --line:#e5e7eb; --tile: 86px; --gap:8px;
 }}
 *{{box-sizing:border-box}}
-body{{margin:0;background:var(--bg);color:#111;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}}
+body{{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}}
 .header{{position:sticky;top:0;background:#fff;border-bottom:1px solid #eee;padding:12px 16px;z-index:5}}
 .header h1{{margin:0;font-family:'Sansation',sans-serif;font-weight:700;letter-spacing:.2px}}
 .header .sub{{margin-top:4px;color:#555;font-family:'Sansation',sans-serif}}
 
 .wrap{{max-width:980px;margin:0 auto;padding:16px}}
-.card{{background:var(--card);color:#111;border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:14px 0;box-shadow:0 10px 30px rgba(0,0,0,.08)}}
+.card{{background:#fff;color:#111;border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:14px 0;box-shadow:0 10px 30px rgba(0,0,0,.08)}}
 .hd{{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 14px 8px 14px;gap:10px}}
 .hn{{color:#111;text-decoration:none;font-weight:700;font-size:18px}}
 .meta{{display:flex;gap:12px;align-items:center}}
 .stars{{display:flex;gap:2px}}
 .star{{width:18px;height:18px;display:block}}
-.price{{color:#111;font-weight:600}}
+.hero-wrap{{position:relative;background:#0d0f12}}
 .hero{{display:block;width:100%;height:260px;object-fit:cover}}
+.price-badge{{
+  position:absolute;right:12px;bottom:12px;
+  background:rgba(11,101,216,.9);color:#fff;
+  font-family:'Sansation',sans-serif;font-weight:600;
+  padding:8px 12px;border-radius:10px;font-size:16px
+}}
+.deal-banner{{
+  position:absolute;left:0;right:0;top:0;height:28px;
+  background:#FFD54A;color:#111;display:flex;align-items:center;justify-content:flex-end;
+  font-family:'Sansation',sans-serif;font-weight:600;font-size:13px;padding:0 10px
+}}
 
 .media{{display:grid;grid-template-columns:auto auto;gap:12px;padding:12px 14px}}
 .thumb-grid{{--size: calc(var(--tile)*3 + var(--gap)*2); width:var(--size)}}
@@ -409,7 +389,6 @@ body{{margin:0;background:var(--bg);color:#111;font-family:system-ui,-apple-syst
 
 <script src="{LEAFLET_JS}"></script>
 <script>
-// thumbnail -> hero swap
 document.querySelectorAll('.tile[data-src]').forEach(btn => {{
   btn.addEventListener('click', e => {{
     e.preventDefault();
@@ -420,7 +399,6 @@ document.querySelectorAll('.tile[data-src]').forEach(btn => {{
   }});
 }});
 
-// maps
 const entries = {maps_json};
 entries.forEach(it => {{
   const el = document.getElementById(it.id);
@@ -431,10 +409,9 @@ entries.forEach(it => {{
 }});
 </script>
 </body>
-</html>
-"""
+</html>"""
 
-# ==== IO / GIT ====
+# ===== IO / GIT =====
 def write_file(path: str, content: str):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
@@ -450,35 +427,27 @@ def try_git_commit_push() -> Optional[str]:
     except subprocess.CalledProcessError as e:
         return e.stderr or e.stdout or "git error"
 
-# ==== ROUTES ====
+# ===== ROUTES =====
 @app.get("/health")
-def health():
-    return {"status":"ok"}
+def health(): return {"status":"ok"}
 
 @app.get("/run")
 def run():
     where = (request.args.get("where") or request.args.get("q") or "").strip()
     when  = (request.args.get("when")  or request.args.get("check_in_date") or "").strip()
     nights_str = (request.args.get("nights") or "1").strip()
-
-    if not where or not when:
-        abort(400, "Missing 'where' or 'when'")
-
+    if not where or not when: abort(400, "Missing 'where' or 'when'")
     try:
         nights = max(1, int(nights_str))
-        ci = parse_date(when)
-        co = ci + timedelta(days=nights)
+        ci = parse_date(when); co = ci + timedelta(days=nights)
     except Exception:
         abort(400, "Invalid 'when' (YYYY-MM-DD) or 'nights'")
 
     ci_s, co_s = ci.isoformat(), co.isoformat()
-
     data = serpapi_hotels(where, ci_s, co_s)
     html_out = render_html(where, ci_s, co_s, data)
-
     write_file(RESULTS_FILE, html_out)
     _ = try_git_commit_push()
-
     return Response(html_out, mimetype="text/html")
 
 if __name__ == "__main__":
