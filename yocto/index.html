@@ -3,11 +3,8 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<<<<<<< ours
-=======
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
->>>>>>> theirs
   <title>yocto</title>
   <script src="https://cdn.jsdelivr.net/npm/js-sha256@0.9.0/build/sha256.min.js"></script>
   <style>
@@ -16,30 +13,20 @@
     .card{background:#161616;border:1px solid #2a2a2a;border-radius:16px;padding:24px;max-width:520px;width:92vw;box-shadow:0 10px 30px rgba(0,0,0,.35)}
     h1{margin:0 0 16px 0;font-size:20px}
     label{display:block;margin:14px 0 6px 0}
-<<<<<<< ours
-    input,button{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #2a2a2a;background:#0f0f0f;color:#f0f0f0;font-size:17px;-webkit-appearance:none}
+    input,button{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #2a2a2a;background:#0f0f0f;color:#f0f0f0;font-size:17px;-webkit-appearance:none;appearance:none}
     button{cursor:pointer}
     .hidden{display:none}
     .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
     .key{border:1px solid #2a2a2a;background:#0f0f0f;border-radius:12px;padding:20px;font-size:22px;text-align:center;user-select:none;-webkit-tap-highlight-color:transparent}
-=======
-    input,button{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #2a2a2a;background:#0f0f0f;color:#f0f0f0;font-size:15px;-webkit-appearance:none;appearance:none}
-    button{cursor:pointer}
-    .nights-control{display:flex;flex-direction:column;align-items:center;gap:4px}
-    .nbtn{font-size:24px;line-height:1;padding:12px 0}
-    .nights-control input{text-align:center}
-    .hidden{display:none}
-    .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
-    .key{border:1px solid #2a2a2a;background:#0f0f0f;border-radius:12px;padding:20px;font-size:24px;text-align:center;user-select:none}
->>>>>>> theirs
     .key:active{transform:scale(.98)}
     .wide{grid-column:1/-1}
     .dots{display:flex;gap:8px;justify-content:center;margin:8px 0 4px 0;min-height:18px}
     .dot{width:10px;height:10px;border-radius:50%;background:#e5e7eb}
     .muted{opacity:.7;font-size:12px;margin-top:6px;text-align:center}
-    .nights-wrap{display:flex;align-items:center;gap:12px}
-    .nbtn{width:48px;height:48px;font-size:24px;border-radius:10px;border:1px solid #2a2a2a;background:#0f0f0f;color:#f0f0f0;-webkit-appearance:none}
-    .nights-wrap input{text-align:center;font-size:20px;flex:1}
+    .nights-wrap{display:grid;grid-template-columns:72px 1fr 72px;gap:12px;align-items:center}
+    .nbtn{width:72px;height:64px;font-size:28px;border-radius:12px;border:1px solid #2a2a2a;background:#0f0f0f;color:#f0f0f0;line-height:1;-webkit-appearance:none}
+    .nbtn:active{transform:scale(.98)}
+    .nights-wrap input{text-align:center;font-size:22px;height:64px}
     input[type=number]{-moz-appearance:textfield}
     input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   </style>
@@ -64,31 +51,21 @@
         <div class="key" data-k="B">⌫</div>
         <button id="go" class="wide">Unlock</button>
       </div>
-      <div class="muted">Use digits only. Unlock checks a SHA-256 of your code.</div>
+      <div class="muted">Digits only.</div>
     </div>
 
-    <form id="form" class="hidden" method="GET" action="https://80182cc56ad5.ngrok-free.app/run" autocomplete="on">
+    <form id="form" class="hidden" method="GET" action="https://e9b1a589a882.ngrok-free.app/run" autocomplete="on">
       <label for="where">Where</label>
       <input id="where" name="where" type="text" placeholder="e.g., Las Vegas" required>
-<<<<<<< ours
+
       <label for="when">When (check-in)</label>
       <input id="when" name="when" type="date" required>
+
       <label for="nights">Nights</label>
       <div class="nights-wrap">
-        <button type="button" class="nbtn" id="nights-dec">−</button>
+        <button type="button" class="nbtn" id="nights-dec" aria-label="Decrease nights">−</button>
         <input id="nights" name="nights" type="number" min="1" value="1" required inputmode="numeric" pattern="[0-9]*">
-        <button type="button" class="nbtn" id="nights-inc">+</button>
-=======
-
-      <label for="when">When (check-in)</label>
-      <input id="when" name="when" type="date" required>
-
-      <label for="nights">Nights</label>
-      <div class="nights-control">
-        <button type="button" id="nights-up" class="nbtn">▲</button>
-        <input id="nights" name="nights" type="number" min="1" value="1" required>
-        <button type="button" id="nights-down" class="nbtn">▼</button>
->>>>>>> theirs
+        <button type="button" class="nbtn" id="nights-inc" aria-label="Increase nights">+</button>
       </div>
 
       <button type="submit" style="margin-top:14px">Search</button>
@@ -103,81 +80,44 @@
   const title = document.getElementById('gate-title');
   const dots = document.getElementById('dots');
   const goBtn = document.getElementById('go');
-<<<<<<< ours
-  const nightsInput = document.getElementById('nights');
-  document.getElementById('nights-dec').addEventListener('click',()=>{
-    const v = Math.max(1,parseInt(nightsInput.value||'1',10)-1);
-    nightsInput.value = v;
-  });
-  document.getElementById('nights-inc').addEventListener('click',()=>{
-    const v = parseInt(nightsInput.value||'1',10)+1;
-    nightsInput.value = v;
-  });
-=======
   const whenInput = document.getElementById('when');
   const nightsInput = document.getElementById('nights');
-  const upBtn = document.getElementById('nights-up');
-  const downBtn = document.getElementById('nights-down');
->>>>>>> theirs
+  const decBtn = document.getElementById('nights-dec');
+  const incBtn = document.getElementById('nights-inc');
+
+  function setNights(v){ const n=Math.max(1,parseInt(v||'1',10)); nightsInput.value=n; }
+  function stepNights(delta){ setNights((parseInt(nightsInput.value||'1',10))+delta); }
+
+  function pressRepeat(btn, delta){
+    let t; const start=()=>{ stepNights(delta); t=setTimeout(function rep(){ stepNights(delta); t=setTimeout(rep,120); },350); };
+    const stop=()=>{ clearTimeout(t); t=null; };
+    btn.addEventListener('mousedown', start); btn.addEventListener('touchstart', start, {passive:true});
+    ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev=>btn.addEventListener(ev, stop));
+  }
+  pressRepeat(decBtn,-1);
+  pressRepeat(incBtn, 1);
+  document.addEventListener('keydown',(e)=>{ if(e.key==='ArrowUp') stepNights(1); if(e.key==='ArrowDown') stepNights(-1); });
 
   let buf = "";
-
-  function renderDots(){
-    dots.innerHTML = "";
-    for(let i=0;i<buf.length;i++){
-      const d = document.createElement('div');
-      d.className = 'dot';
-      dots.appendChild(d);
-    }
-  }
-
-  function handleKey(k){
-    if(k === 'C'){ buf = ""; renderDots(); return; }
-    if(k === 'B'){ buf = buf.slice(0,-1); renderDots(); return; }
-    if(/^\d$/.test(k)){ if(buf.length<32){ buf += k; renderDots(); } return; }
-  }
-
-  document.querySelectorAll('.key').forEach(el=>{
-    el.addEventListener('click', ()=> handleKey(el.getAttribute('data-k')));
-  });
-
-  document.addEventListener('keydown', (e)=>{
-    if(e.key>='0' && e.key<='9'){ handleKey(e.key); }
-    else if(e.key==='Backspace'){ handleKey('B'); }
-    else if(e.key.toLowerCase()==='c' && (e.metaKey||e.ctrlKey)){ handleKey('C'); }
-    else if(e.key==='Enter'){ goBtn.click(); }
-  });
+  function renderDots(){ dots.innerHTML=""; for(let i=0;i<buf.length;i++){ const d=document.createElement('div'); d.className='dot'; dots.appendChild(d); } }
+  function handleKey(k){ if(k==='C'){buf="";renderDots();return;} if(k==='B'){buf=buf.slice(0,-1);renderDots();return;} if(/^\d$/.test(k)){ if(buf.length<32){buf+=k;renderDots();} } }
+  document.querySelectorAll('.key').forEach(el=>{ el.addEventListener('click', ()=> handleKey(el.getAttribute('data-k'))); });
+  document.addEventListener('keydown', (e)=>{ if(e.key>='0'&&e.key<='9') handleKey(e.key); else if(e.key==='Backspace') handleKey('B'); else if(e.key.toLowerCase()==='c'&&(e.metaKey||e.ctrlKey)) handleKey('C'); else if(e.key==='Enter') goBtn.click(); });
 
   goBtn.addEventListener('click', ()=>{
     const digest = sha256(buf);
     if(digest === PASS_HASH){
       gate.classList.add('hidden');
       form.classList.remove('hidden');
-      title.textContent = 'Hotel finder';
-      const d = new Date(); d.setDate(d.getDate()+1);
-<<<<<<< ours
-      const when = document.getElementById('when');
-      when.value = d.toISOString().slice(0,10);
-      when.focus();
-      if(when.showPicker){ setTimeout(()=>when.showPicker(), 50); }
-=======
-      whenInput.value = d.toISOString().slice(0,10);
-      nightsInput.value = '1';
-      const whereInput = document.getElementById('where');
-      whereInput.focus();
-      setTimeout(()=>{ if(whenInput.showPicker) whenInput.showPicker(); }, 0);
->>>>>>> theirs
+      title.textContent='Hotel finder';
+      const d=new Date(); d.setDate(d.getDate()+1);
+      whenInput.value=d.toISOString().slice(0,10);
+      setNights(1);
+      document.getElementById('where').focus();
+      setTimeout(()=>{ if(whenInput.showPicker) whenInput.showPicker(); },0);
     }else{
-      buf = ""; renderDots(); alert('Wrong code');
+      buf=""; renderDots(); alert('Wrong code');
     }
-  });
-
-  upBtn.addEventListener('click', ()=>{
-    nightsInput.value = String(parseInt(nightsInput.value||'1') + 1);
-  });
-  downBtn.addEventListener('click', ()=>{
-    const v = Math.max(1, parseInt(nightsInput.value||'1') - 1);
-    nightsInput.value = String(v);
   });
 </script>
 </body>
