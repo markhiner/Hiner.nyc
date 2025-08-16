@@ -3,264 +3,541 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Hotels — Washington, DC — 2025-08-17 → 2025-08-18</title>
+<title>Washington, DC Hotels — Sun, Aug 17 - Mon, Aug 18</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link href="https://fonts.googleapis.com/css2?family=Sansation:wght@400;700&display=swap" rel="stylesheet">
 <style>
-html{-webkit-text-size-adjust:100%}
-:root{--bg:#0b0b0c;--card:#111316;--text:#e8eaed;--muted:#9aa0a6;--line:#232629;--accent:#82aaff;}
-*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+:root{
+  --bg:#0b0b0c; --text:#0b0b0c; --muted:#4b5563; --line:#e5e7eb;
+  --card:#ffffff; --accent:#111;
+  --tile: 86px; --gap:8px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#111;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+.header{position:sticky;top:0;background:#fff;border-bottom:1px solid #eee;padding:12px 16px;z-index:5}
+.header h1{margin:0;font-family:'Sansation',sans-serif;font-weight:700;letter-spacing:.2px}
+.header .sub{margin-top:4px;color:#555;font-family:'Sansation',sans-serif}
+
 .wrap{max-width:980px;margin:0 auto;padding:16px}
-.header{position:sticky;top:0;background:rgba(11,11,12,.8);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:10px 16px;z-index:5}
-.header h1{margin:0;font-size:18px;font-weight:600}
-.header .sub{font-size:12px;color:var(--muted)}
-.card{border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:14px 0;background:var(--card);box-shadow:0 10px 30px rgba(0,0,0,.25)}
-.hero-wrap{position:relative;background:#0d0f12}
+.card{background:var(--card);color:#111;border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:14px 0;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+.hd{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 14px 8px 14px;gap:10px}
+.hn{color:#111;text-decoration:none;font-weight:700;font-size:18px}
+.meta{display:flex;gap:12px;align-items:center}
+.stars{display:flex;gap:2px}
+.star{width:18px;height:18px;display:block}
+.price{color:#111;font-weight:600}
 .hero{display:block;width:100%;height:260px;object-fit:cover}
-.deal{position:absolute;bottom:10px;left:10px;background:#0b65d8;color:white;padding:6px 10px;border-radius:10px;font-size:12px}
-.body{padding:14px}
-.title{display:flex;flex-direction:column;gap:6px}
-.title a{color:#fff;text-decoration:none;font-weight:600;font-size:18px}
-.meta{color:var(--muted);font-size:13px}
-.desc{margin:10px 0 6px 0;color:#cfd3d7;font-size:14px;line-height:1.35}
-.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
-.thumb{border:0;background:none;padding:0;cursor:pointer;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
-.thumb img{display:block;width:88px;height:64px;object-fit:cover}
-.amenities{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 12px 0}
-.amen{width:18px;height:18px;fill:#aab2bd;vertical-align:-3px;margin-right:6px}
-.amen-wrap{display:inline-flex;align-items:center;gap:6px;color:#cbd2d8;background:#0f1216;border:1px solid var(--line);padding:6px 8px;border-radius:999px;font-size:12px}
-.map{height:180px;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:10px}
-.empty{color:var(--muted)}
-.footer{color:#b9c1c7;font-size:12px;margin:18px 0;text-align:center}
-.leaflet-tile{filter:grayscale(.1) brightness(.9)}
+
+.media{display:grid;grid-template-columns:auto auto;gap:12px;padding:12px 14px}
+.thumb-grid{--size: calc(var(--tile)*3 + var(--gap)*2); width:var(--size)}
+.thumb-grid{display:grid;grid-template-columns:repeat(3,var(--tile));grid-auto-rows:var(--tile);gap:var(--gap)}
+.tile{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:8px;background:#f6f7f9;padding:0}
+.tile img{display:block;width:100%;height:100%;object-fit:cover}
+.tile.empty{background:#fafafa}
+.tile.logo{background:#fff;display:flex;align-items:center;justify-content:center}
+.tile.logo img{object-fit:contain;padding:12%}
+.map-wrap{width:calc(var(--tile)*3 + var(--gap)*2)}
+.map{width:100%;height:calc(var(--tile)*3 + var(--gap)*2);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+
+.amen-row{display:flex;flex-wrap:wrap;gap:10px;padding:0 14px 14px 14px}
+.amen{width:18px;height:18px}
+.am{display:inline-flex;align-items:center;gap:6px;background:#f6f7f9;border:1px solid var(--line);color:#111;padding:6px 8px;border-radius:999px;font-size:12px}
+
+.empty{color:#666;background:#fff;padding:20px;border-radius:12px;border:1px solid #eee}
+
+@media (max-width: 740px){
+  .media{grid-template-columns:1fr}
+  .thumb-grid, .map-wrap{width:100%}
+  .thumb-grid{--tile: calc((100% - 2*var(--gap))/3)}
+  .map{height: calc((var(--tile)*3 + var(--gap)*2))}
+}
+.leaflet-container .leaflet-tile{filter:grayscale(.05) brightness(.98)}
 </style>
 </head>
 <body>
-<div class="header"><h1>Hotels — Washington, DC</h1><div class="sub">2025-08-17 → 2025-08-18</div></div>
+<div class="header">
+  <h1>Washington, DC Hotels</h1>
+  <div class="sub">Sun, Aug 17 - Mon, Aug 18</div>
+</div>
+
 <div class="wrap">
 
-        <article class="card">
-          <div class="hero-wrap">
-            <img src='https://photos.hotelbeds.com/giata/original/21/216935/216935a_hb_t_001.jpg' alt='' id='hero-0' class='hero'>
-            
-          </div>
-          <div class="body">
-            <header class="title">
-              <a href="https://www.fourseasons.com/washington/?utm_source=google&amp;utm_medium=organicsearch&amp;utm_campaign=tor-was-hre-mid-seo-na&amp;utm_content=na-na&amp;utm_term=na" target="_blank" rel="noopener">Four Seasons Hotel Washington, DC</a>
-              <div class="meta">Class 5-star hotel · Rating 4.7 · From $$1,201</div>
-            </header>
-            <p class="desc">Upscale lodging with restaurants, a spa &amp; an indoor pool, plus complimentary Wi-Fi.</p>
-            <div class="thumbs" id="thumbs-0"><button class='thumb' data-hero='hero-0' data-src='https://photos.hotelbeds.com/giata/original/21/216935/216935a_hb_t_001.jpg'><img src='https://photos.hotelbeds.com/giata/original/21/216935/216935a_hb_t_001.jpg' alt=''></button><button class='thumb' data-hero='hero-0' data-src='https://lh5.googleusercontent.com/p/AF1QipNie2nyBgbQB_SAC-2hCEAAADz4BY4oAqugRTfF=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNie2nyBgbQB_SAC-2hCEAAADz4BY4oAqugRTfF=s10000' alt=''></button><button class='thumb' data-hero='hero-0' data-src='https://lh5.googleusercontent.com/p/CIHM0ogKEICAgICRgdrhVw=s10000'><img src='https://lh5.googleusercontent.com/p/CIHM0ogKEICAgICRgdrhVw=s10000' alt=''></button><button class='thumb' data-hero='hero-0' data-src='https://lh5.googleusercontent.com/p/AF1QipMUwXDNo910u2jgLNrGzXxqOFNTBvgpnezf1-Gk=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipMUwXDNo910u2jgLNrGzXxqOFNTBvgpnezf1-Gk=s10000' alt=''></button><button class='thumb' data-hero='hero-0' data-src='https://lh5.googleusercontent.com/p/AF1QipNncgMJW5Jp6D67dkMGRQiwuP6vBso4Rv0mQC9_=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNncgMJW5Jp6D67dkMGRQiwuP6vBso4Rv0mQC9_=s10000' alt=''></button><button class='thumb' data-hero='hero-0' data-src='https://lh5.googleusercontent.com/p/AF1QipNCo3W71iYPiEq51bLR3oeY5miOi11xxJYe46_9=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNCo3W71iYPiEq51bLR3oeY5miOi11xxJYe46_9=s10000' alt=''></button><button class='thumb' data-hero='hero-0' data-src='https://lh5.googleusercontent.com/p/AF1QipNa8o08xgFxET2qwML4a_wjUPjdfLLnXzJVbs5j=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNa8o08xgFxET2qwML4a_wjUPjdfLLnXzJVbs5j=s10000' alt=''></button><button class='thumb' data-hero='hero-0' data-src='https://images.trvl-media.com/lodging/1000000/20000/14500/14427/8fd753bd_z.jpg'><img src='https://images.trvl-media.com/lodging/1000000/20000/14500/14427/8fd753bd_z.jpg' alt=''></button></div>
-            <div class="amenities"><span class='amen-wrap' title='Wi-Fi'><svg viewBox='0 0 24 24' class='amen'><path d='M12 18a2 2 0 11-.001 3.999A2 2 0 0112 18zm-8.485-5.657l1.414 1.414A9 9 0 0112 12a9 9 0 016.364 2.757l1.414-1.414A11 11 0 0012 10a11 11 0 00-8.485 2.343zM3.515 8.343l1.414 1.414A13 13 0 0112 6a13 13 0 019.071 3.757l1.414-1.414A15 15 0 0012 4a15 15 0 00-8.485 4.343z'/></svg><span>Wi-Fi</span></span><span class='amen-wrap' title='Parking'><svg viewBox='0 0 24 24' class='amen'><path d='M6 3h7a5 5 0 010 10H9v8H6V3zm3 3v4h4a2 2 0 100-4H9z'/></svg><span>Parking</span></span><span class='amen-wrap' title='Pool'><svg viewBox='0 0 24 24' class='amen'><path d='M2 18c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1v2c-2 0-2-1-4-1s-2 1-4 1-2-1-4-1-2 1-4 1v-2zM8 6a4 4 0 118 0v10h-2V6a2 2 0 10-4 0v10H8V6z'/></svg><span>Pool</span></span><span class='amen-wrap' title='Pet-friendly'><svg viewBox='0 0 24 24' class='amen'><path d='M7 11a2 2 0 11.001-3.999A2 2 0 017 11zm10 0a2 2 0 11.001-3.999A2 2 0 0117 11zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z'/></svg><span>Pet-friendly</span></span><span class='amen-wrap' title='Gym'><svg viewBox='0 0 24 24' class='amen'><path d='M3 10h3v4H3v-4zm15 0h3v4h-3v-4zM8 9h8v6H8V9z'/></svg><span>Gym</span></span><span class='amen-wrap' title='Spa'><svg viewBox='0 0 24 24' class='amen'><path d='M12 3C9 6 8 9 8 12s1 6 4 9c3-3 4-6 4-9s-1-6-4-9zm0 6a3 3 0 110 6 3 3 0 010-6z'/></svg><span>Spa</span></span><span class='amen-wrap' title='Bar'><svg viewBox='0 0 24 24' class='amen'><path d='M3 3h18l-6 8v7h-6v-7L3 3z'/></svg><span>Bar</span></span><span class='amen-wrap' title='Restaurant'><svg viewBox='0 0 24 24' class='amen'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z'/></svg><span>Restaurant</span></span></div>
-            <div id='map-0' class='map'></div>
-          </div>
-        </article>
-        
+<article class="card">
+  <header class="hd">
+    <a href="https://www.fourseasons.com/washington/?utm_source=google&amp;utm_medium=organicsearch&amp;utm_campaign=tor-was-hre-mid-seo-na&amp;utm_content=na-na&amp;utm_term=na" target="_blank" rel="noopener" class="hn">Four Seasons Hotel Washington, DC</a>
+    <div class="meta">
+      <div class="stars"><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg></div>
+      <div class="price">$$1,182</div>
+    </div>
+  </header>
 
-        <article class="card">
-          <div class="hero-wrap">
-            <img src='https://lh5.googleusercontent.com/p/AF1QipMDxR0CMnbN7pVBO9_g6WOspS_V2SEVxCej5j3Y=s10000' alt='' id='hero-1' class='hero'>
-            
-          </div>
-          <div class="body">
-            <header class="title">
-              <a href="https://www.ihg.com/intercontinental/hotels/us/en/washington/washa/hoteldetail?cm_mmc=GoogleMaps-_-IC-_-US-_-WASHA" target="_blank" rel="noopener">InterContinental the Willard Washington D.C. by IHG</a>
-              <div class="meta">Class 5-star hotel · Rating 4.6 · From $$384</div>
-            </header>
-            <p class="desc">Elegant landmark property featuring an ornate lobby &amp; a luxe spa, plus an acclaimed bar &amp; dining.</p>
-            <div class="thumbs" id="thumbs-1"><button class='thumb' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/AF1QipMDxR0CMnbN7pVBO9_g6WOspS_V2SEVxCej5j3Y=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipMDxR0CMnbN7pVBO9_g6WOspS_V2SEVxCej5j3Y=s10000' alt=''></button><button class='thumb' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/AF1QipOyFAdxmbxcIuTVW-ReU9nuT3IM_eUcGsVgpoOI=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOyFAdxmbxcIuTVW-ReU9nuT3IM_eUcGsVgpoOI=s10000' alt=''></button><button class='thumb' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/AF1QipOUM3_S2YR_Yql9VrbfZ0IDTjVnNzLnFe0ckIAI=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOUM3_S2YR_Yql9VrbfZ0IDTjVnNzLnFe0ckIAI=s10000' alt=''></button><button class='thumb' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/AF1QipPF7p9XjnFIQP96USBqmBGkG8ddXkHeIozS8uXk=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPF7p9XjnFIQP96USBqmBGkG8ddXkHeIozS8uXk=s10000' alt=''></button><button class='thumb' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/AF1QipNsgRMhTLtHDzzf9fc78qLJxhNUiU2xDGgOcqA2=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNsgRMhTLtHDzzf9fc78qLJxhNUiU2xDGgOcqA2=s10000' alt=''></button><button class='thumb' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/AF1QipP2xmHbbYq2AYWU8ODxKe84C1rCosVIQ_zsloEZ=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipP2xmHbbYq2AYWU8ODxKe84C1rCosVIQ_zsloEZ=s10000' alt=''></button><button class='thumb' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/AF1QipPn3i3ULiePd6XeYFXaBgDsZDx-no7rmKOufDlP=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPn3i3ULiePd6XeYFXaBgDsZDx-no7rmKOufDlP=s10000' alt=''></button><button class='thumb' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/AF1QipO2p2hpF507IiRf0EgTHoS-V9oVZYZFf29nD3mJ=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipO2p2hpF507IiRf0EgTHoS-V9oVZYZFf29nD3mJ=s10000' alt=''></button></div>
-            <div class="amenities"><span class='amen-wrap' title='Wi-Fi'><svg viewBox='0 0 24 24' class='amen'><path d='M12 18a2 2 0 11-.001 3.999A2 2 0 0112 18zm-8.485-5.657l1.414 1.414A9 9 0 0112 12a9 9 0 016.364 2.757l1.414-1.414A11 11 0 0012 10a11 11 0 00-8.485 2.343zM3.515 8.343l1.414 1.414A13 13 0 0112 6a13 13 0 019.071 3.757l1.414-1.414A15 15 0 0012 4a15 15 0 00-8.485 4.343z'/></svg><span>Wi-Fi</span></span><span class='amen-wrap' title='Parking'><svg viewBox='0 0 24 24' class='amen'><path d='M6 3h7a5 5 0 010 10H9v8H6V3zm3 3v4h4a2 2 0 100-4H9z'/></svg><span>Parking</span></span><span class='amen-wrap' title='Pet-friendly'><svg viewBox='0 0 24 24' class='amen'><path d='M7 11a2 2 0 11.001-3.999A2 2 0 017 11zm10 0a2 2 0 11.001-3.999A2 2 0 0117 11zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z'/></svg><span>Pet-friendly</span></span><span class='amen-wrap' title='Gym'><svg viewBox='0 0 24 24' class='amen'><path d='M3 10h3v4H3v-4zm15 0h3v4h-3v-4zM8 9h8v6H8V9z'/></svg><span>Gym</span></span><span class='amen-wrap' title='Spa'><svg viewBox='0 0 24 24' class='amen'><path d='M12 3C9 6 8 9 8 12s1 6 4 9c3-3 4-6 4-9s-1-6-4-9zm0 6a3 3 0 110 6 3 3 0 010-6z'/></svg><span>Spa</span></span><span class='amen-wrap' title='Bar'><svg viewBox='0 0 24 24' class='amen'><path d='M3 3h18l-6 8v7h-6v-7L3 3z'/></svg><span>Bar</span></span><span class='amen-wrap' title='Restaurant'><svg viewBox='0 0 24 24' class='amen'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z'/></svg><span>Restaurant</span></span><span class='amen-wrap' title='Room service'><svg viewBox='0 0 24 24' class='amen'><path d='M12 5c3 0 6 2.2 7 5h3v2H2V10h3c1-2.8 4-5 7-5zm-9 9h18v2H3v-2z'/></svg><span>Room service</span></span></div>
-            <div id='map-1' class='map'></div>
-          </div>
-        </article>
-        
+  <img id='hero-0' class='hero' src='https://photos.hotelbeds.com/giata/original/21/216935/216935a_hb_t_001.jpg' alt=''>
 
-        <article class="card">
-          <div class="hero-wrap">
-            <img src='https://lh5.googleusercontent.com/p/AF1QipN0xL31XqsDJsskU39UAgLzZc_w-3nNobOf85yr=s10000' alt='' id='hero-2' class='hero'>
-            
-          </div>
-          <div class="body">
-            <header class="title">
-              <a href="https://www.ritzcarlton.com/en/hotels/wasty-the-ritz-carlton-tysons-corner/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener">The Ritz-Carlton, Tysons Corner</a>
-              <div class="meta">Class 4-star hotel · Rating 4.6 · From $$414</div>
-            </header>
-            <p class="desc">Chic rooms &amp; suites in a refined hotel offering upscale dining, an indoor pool &amp; a spa.</p>
-            <div class="thumbs" id="thumbs-2"><button class='thumb' data-hero='hero-2' data-src='https://lh5.googleusercontent.com/p/AF1QipN0xL31XqsDJsskU39UAgLzZc_w-3nNobOf85yr=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipN0xL31XqsDJsskU39UAgLzZc_w-3nNobOf85yr=s10000' alt=''></button><button class='thumb' data-hero='hero-2' data-src='https://photos.hotelbeds.com/giata/original/35/353782/353782a_hb_a_028.jpg'><img src='https://photos.hotelbeds.com/giata/original/35/353782/353782a_hb_a_028.jpg' alt=''></button><button class='thumb' data-hero='hero-2' data-src='https://lh5.googleusercontent.com/p/CIHM0ogKEICAgIDOw4SThgE=s10000'><img src='https://lh5.googleusercontent.com/p/CIHM0ogKEICAgIDOw4SThgE=s10000' alt=''></button><button class='thumb' data-hero='hero-2' data-src='https://lh5.googleusercontent.com/p/JELR8-2mY5MAAAQINS3j-Q=s10000'><img src='https://lh5.googleusercontent.com/p/JELR8-2mY5MAAAQINS3j-Q=s10000' alt=''></button><button class='thumb' data-hero='hero-2' data-src='https://photos.hotelbeds.com/giata/original/35/353782/353782a_hb_a_023.jpg'><img src='https://photos.hotelbeds.com/giata/original/35/353782/353782a_hb_a_023.jpg' alt=''></button><button class='thumb' data-hero='hero-2' data-src='https://photos.hotelbeds.com/giata/original/35/353782/353782a_hb_a_015.jpg'><img src='https://photos.hotelbeds.com/giata/original/35/353782/353782a_hb_a_015.jpg' alt=''></button><button class='thumb' data-hero='hero-2' data-src='https://lh5.googleusercontent.com/p/AF1QipN7JBaGa8BENqzcwLx1Ni2yjZTB1bQIMyMDdTRS=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipN7JBaGa8BENqzcwLx1Ni2yjZTB1bQIMyMDdTRS=s10000' alt=''></button><button class='thumb' data-hero='hero-2' data-src='https://photos.hotelbeds.com/giata/original/35/353782/353782a_hb_a_007.jpg'><img src='https://photos.hotelbeds.com/giata/original/35/353782/353782a_hb_a_007.jpg' alt=''></button></div>
-            <div class="amenities"><span class='amen-wrap' title='Wi-Fi'><svg viewBox='0 0 24 24' class='amen'><path d='M12 18a2 2 0 11-.001 3.999A2 2 0 0112 18zm-8.485-5.657l1.414 1.414A9 9 0 0112 12a9 9 0 016.364 2.757l1.414-1.414A11 11 0 0012 10a11 11 0 00-8.485 2.343zM3.515 8.343l1.414 1.414A13 13 0 0112 6a13 13 0 019.071 3.757l1.414-1.414A15 15 0 0012 4a15 15 0 00-8.485 4.343z'/></svg><span>Wi-Fi</span></span><span class='amen-wrap' title='Parking'><svg viewBox='0 0 24 24' class='amen'><path d='M6 3h7a5 5 0 010 10H9v8H6V3zm3 3v4h4a2 2 0 100-4H9z'/></svg><span>Parking</span></span><span class='amen-wrap' title='Pool'><svg viewBox='0 0 24 24' class='amen'><path d='M2 18c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1v2c-2 0-2-1-4-1s-2 1-4 1-2-1-4-1-2 1-4 1v-2zM8 6a4 4 0 118 0v10h-2V6a2 2 0 10-4 0v10H8V6z'/></svg><span>Pool</span></span><span class='amen-wrap' title='Gym'><svg viewBox='0 0 24 24' class='amen'><path d='M3 10h3v4H3v-4zm15 0h3v4h-3v-4zM8 9h8v6H8V9z'/></svg><span>Gym</span></span><span class='amen-wrap' title='Spa'><svg viewBox='0 0 24 24' class='amen'><path d='M12 3C9 6 8 9 8 12s1 6 4 9c3-3 4-6 4-9s-1-6-4-9zm0 6a3 3 0 110 6 3 3 0 010-6z'/></svg><span>Spa</span></span><span class='amen-wrap' title='Bar'><svg viewBox='0 0 24 24' class='amen'><path d='M3 3h18l-6 8v7h-6v-7L3 3z'/></svg><span>Bar</span></span><span class='amen-wrap' title='Restaurant'><svg viewBox='0 0 24 24' class='amen'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z'/></svg><span>Restaurant</span></span><span class='amen-wrap' title='Room service'><svg viewBox='0 0 24 24' class='amen'><path d='M12 5c3 0 6 2.2 7 5h3v2H2V10h3c1-2.8 4-5 7-5zm-9 9h18v2H3v-2z'/></svg><span>Room service</span></span></div>
-            <div id='map-2' class='map'></div>
-          </div>
-        </article>
-        
+  <div class="media">
+    <div class="thumb-grid" id="thumbs-0">
+      <div class='tile logo'><img src='/yocto/logos/four_seasons.png' alt='brand logo'></div><button class='tile' data-hero='hero-0' data-src='https://photos.hotelbeds.com/giata/original/21/216935/216935a_hb_t_001.jpg'><img src='https://photos.hotelbeds.com/giata/original/21/216935/216935a_hb_t_001.jpg' alt=''></button><button class='tile' data-hero='hero-0' data-src='https://lh5.googleusercontent.com/p/AF1QipNie2nyBgbQB_SAC-2hCEAAADz4BY4oAqugRTfF=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNie2nyBgbQB_SAC-2hCEAAADz4BY4oAqugRTfF=s10000' alt=''></button><button class='tile' data-hero='hero-0' data-src='https://lh5.googleusercontent.com/p/CIHM0ogKEICAgICRgdrhVw=s10000'><img src='https://lh5.googleusercontent.com/p/CIHM0ogKEICAgICRgdrhVw=s10000' alt=''></button><button class='tile' data-hero='hero-0' data-src='https://lh5.googleusercontent.com/p/AF1QipMUwXDNo910u2jgLNrGzXxqOFNTBvgpnezf1-Gk=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipMUwXDNo910u2jgLNrGzXxqOFNTBvgpnezf1-Gk=s10000' alt=''></button><button class='tile' data-hero='hero-0' data-src='https://lh5.googleusercontent.com/p/AF1QipNncgMJW5Jp6D67dkMGRQiwuP6vBso4Rv0mQC9_=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNncgMJW5Jp6D67dkMGRQiwuP6vBso4Rv0mQC9_=s10000' alt=''></button><button class='tile' data-hero='hero-0' data-src='https://lh5.googleusercontent.com/p/AF1QipNCo3W71iYPiEq51bLR3oeY5miOi11xxJYe46_9=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNCo3W71iYPiEq51bLR3oeY5miOi11xxJYe46_9=s10000' alt=''></button><button class='tile' data-hero='hero-0' data-src='https://lh5.googleusercontent.com/p/AF1QipNa8o08xgFxET2qwML4a_wjUPjdfLLnXzJVbs5j=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNa8o08xgFxET2qwML4a_wjUPjdfLLnXzJVbs5j=s10000' alt=''></button><button class='tile' data-hero='hero-0' data-src='https://images.trvl-media.com/lodging/1000000/20000/14500/14427/8fd753bd_z.jpg'><img src='https://images.trvl-media.com/lodging/1000000/20000/14500/14427/8fd753bd_z.jpg' alt=''></button>
+    </div>
+    <div class="map-wrap">
+      <div id='map-0' class='map'></div>
+    </div>
+  </div>
 
-        <article class="card">
-          <div class="hero-wrap">
-            <img src='https://lh5.googleusercontent.com/p/CIHM0ogKEICAgIDmuN_fXQ=s10000' alt='' id='hero-3' class='hero'>
-            
-          </div>
-          <div class="body">
-            <header class="title">
-              <a href="https://www.hilton.com/en/hotels/wascici-conrad-washington-dc/?SEO_id=GMB-AMER-CN-WASCICI&amp;y_source=1_MTIxMTg5MTgtNzE1LWxvY2F0aW9uLndlYnNpdGU%3D" target="_blank" rel="noopener">Conrad Washington, DC</a>
-              <div class="meta">Class 5-star hotel · Rating 4.6 · From $$509</div>
-            </header>
-            <p class="desc">Polished rooms &amp; suites in a sophisticated hotel offering a seafood restaurant &amp; a rooftop bar.</p>
-            <div class="thumbs" id="thumbs-3"><button class='thumb' data-hero='hero-3' data-src='https://lh5.googleusercontent.com/p/CIHM0ogKEICAgIDmuN_fXQ=s10000'><img src='https://lh5.googleusercontent.com/p/CIHM0ogKEICAgIDmuN_fXQ=s10000' alt=''></button><button class='thumb' data-hero='hero-3' data-src='https://images.trvl-media.com/lodging/27000000/26920000/26919200/26919134/2be6dd40_z.jpg'><img src='https://images.trvl-media.com/lodging/27000000/26920000/26919200/26919134/2be6dd40_z.jpg' alt=''></button><button class='thumb' data-hero='hero-3' data-src='https://lh5.googleusercontent.com/p/AF1QipNwW8GI0eUeaqMbrkDG8c7AbiKHIymP-AD5QCs6=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNwW8GI0eUeaqMbrkDG8c7AbiKHIymP-AD5QCs6=s10000' alt=''></button><button class='thumb' data-hero='hero-3' data-src='https://lh5.googleusercontent.com/p/AF1QipPRaLJN9l-gVRJ7tGQ1RDeZxZ7VUYSVIWUMMcOZ=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPRaLJN9l-gVRJ7tGQ1RDeZxZ7VUYSVIWUMMcOZ=s10000' alt=''></button><button class='thumb' data-hero='hero-3' data-src='https://lh5.googleusercontent.com/p/AF1QipMLGIUqXgp7st-dPyui9T-4zj3p7gN-JtT_cObm=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipMLGIUqXgp7st-dPyui9T-4zj3p7gN-JtT_cObm=s10000' alt=''></button><button class='thumb' data-hero='hero-3' data-src='https://lh5.googleusercontent.com/p/AF1QipOL9DcNbP6euZUFlwQlxknL_KXiXUmWXodfOhu_=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOL9DcNbP6euZUFlwQlxknL_KXiXUmWXodfOhu_=s10000' alt=''></button><button class='thumb' data-hero='hero-3' data-src='https://lh5.googleusercontent.com/p/AF1QipPrffBNLs9ZnB7iwRLVdOHUMjvW7h-wbZtACybr=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPrffBNLs9ZnB7iwRLVdOHUMjvW7h-wbZtACybr=s10000' alt=''></button><button class='thumb' data-hero='hero-3' data-src='https://photos.hotelbeds.com/giata/original/63/632949/632949a_hb_l_021.jpg'><img src='https://photos.hotelbeds.com/giata/original/63/632949/632949a_hb_l_021.jpg' alt=''></button></div>
-            <div class="amenities"><span class='amen-wrap' title='Wi-Fi'><svg viewBox='0 0 24 24' class='amen'><path d='M12 18a2 2 0 11-.001 3.999A2 2 0 0112 18zm-8.485-5.657l1.414 1.414A9 9 0 0112 12a9 9 0 016.364 2.757l1.414-1.414A11 11 0 0012 10a11 11 0 00-8.485 2.343zM3.515 8.343l1.414 1.414A13 13 0 0112 6a13 13 0 019.071 3.757l1.414-1.414A15 15 0 0012 4a15 15 0 00-8.485 4.343z'/></svg><span>Wi-Fi</span></span><span class='amen-wrap' title='Parking'><svg viewBox='0 0 24 24' class='amen'><path d='M6 3h7a5 5 0 010 10H9v8H6V3zm3 3v4h4a2 2 0 100-4H9z'/></svg><span>Parking</span></span><span class='amen-wrap' title='Pet-friendly'><svg viewBox='0 0 24 24' class='amen'><path d='M7 11a2 2 0 11.001-3.999A2 2 0 017 11zm10 0a2 2 0 11.001-3.999A2 2 0 0117 11zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z'/></svg><span>Pet-friendly</span></span><span class='amen-wrap' title='Gym'><svg viewBox='0 0 24 24' class='amen'><path d='M3 10h3v4H3v-4zm15 0h3v4h-3v-4zM8 9h8v6H8V9z'/></svg><span>Gym</span></span><span class='amen-wrap' title='Bar'><svg viewBox='0 0 24 24' class='amen'><path d='M3 3h18l-6 8v7h-6v-7L3 3z'/></svg><span>Bar</span></span><span class='amen-wrap' title='Restaurant'><svg viewBox='0 0 24 24' class='amen'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z'/></svg><span>Restaurant</span></span><span class='amen-wrap' title='Room service'><svg viewBox='0 0 24 24' class='amen'><path d='M12 5c3 0 6 2.2 7 5h3v2H2V10h3c1-2.8 4-5 7-5zm-9 9h18v2H3v-2z'/></svg><span>Room service</span></span></div>
-            <div id='map-3' class='map'></div>
-          </div>
-        </article>
-        
+  <div class="amen-row"><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M3 18c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Pool</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><circle cx='12' cy='12' r='5' fill='none' stroke='#000' stroke-width='1.5'/><path d='M3 18c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Hot tub</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M7 11a2 2 0 110-4 2 2 0 010 4zm10 0a2 2 0 110-4 2 2 0 010 4zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Olly OK</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M12 3c-3 3-4 6-4 9s1 6 4 9c3-3 4-6 4-9s-1-6-4-9z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Spa</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M3 3h18l-6 8v7H9v-7L3 3z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Bar</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Restaurant</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M12 5c3 0 6 2 7 5h3v2H2V10h3c1-3 4-5 7-5zM3 18h18' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>In-Room Dining</span></span></div>
+</article>
 
-        <article class="card">
-          <div class="hero-wrap">
-            <img src='https://lh5.googleusercontent.com/p/WzhMcoq62CIAAAAGOoyTSw=s10000' alt='' id='hero-4' class='hero'>
-            
-          </div>
-          <div class="body">
-            <header class="title">
-              <a href="https://www.ritzcarlton.com/en/hotels/wasgo-the-ritz-carlton-georgetown-washington-dc/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener">The Ritz-Carlton Georgetown, Washington, D.C.</a>
-              <div class="meta">Class 5-star hotel · Rating 4.6 · From $$593</div>
-            </header>
-            <p class="desc">Sophisticated hotel with a refined restaurant, a full-service spa &amp; a cozy lounge bar.</p>
-            <div class="thumbs" id="thumbs-4"><button class='thumb' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/WzhMcoq62CIAAAAGOoyTSw=s10000'><img src='https://lh5.googleusercontent.com/p/WzhMcoq62CIAAAAGOoyTSw=s10000' alt=''></button><button class='thumb' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/AF1QipO2hLnpswzdSYs-KO-5vfZZ8KehPbCDMMbSqJc=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipO2hLnpswzdSYs-KO-5vfZZ8KehPbCDMMbSqJc=s10000' alt=''></button><button class='thumb' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/AF1QipN-JvelItrjxJ3-0zrlPLpRlG62OlBgK6kmXV8=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipN-JvelItrjxJ3-0zrlPLpRlG62OlBgK6kmXV8=s10000' alt=''></button><button class='thumb' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/OP7FlYVoPdcAAAAGOoyZQQ=s10000'><img src='https://lh5.googleusercontent.com/p/OP7FlYVoPdcAAAAGOoyZQQ=s10000' alt=''></button><button class='thumb' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/AF1QipMSbvsWmFVf8a7G35HMc-NhsTJSoV6248lepCM=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipMSbvsWmFVf8a7G35HMc-NhsTJSoV6248lepCM=s10000' alt=''></button><button class='thumb' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/AF1QipP_PZZN8tMPfueZgRiDUJJ3wMoSS9mzXOUA6Y0=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipP_PZZN8tMPfueZgRiDUJJ3wMoSS9mzXOUA6Y0=s10000' alt=''></button><button class='thumb' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/Cnw7tcGHrt4AAAAGOoyOyQ=s10000'><img src='https://lh5.googleusercontent.com/p/Cnw7tcGHrt4AAAAGOoyOyQ=s10000' alt=''></button><button class='thumb' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/AF1QipOPB98ZdsDsKywvm7M7F83K-Zb6NLGrhYfOuL4=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOPB98ZdsDsKywvm7M7F83K-Zb6NLGrhYfOuL4=s10000' alt=''></button></div>
-            <div class="amenities"><span class='amen-wrap' title='Wi-Fi'><svg viewBox='0 0 24 24' class='amen'><path d='M12 18a2 2 0 11-.001 3.999A2 2 0 0112 18zm-8.485-5.657l1.414 1.414A9 9 0 0112 12a9 9 0 016.364 2.757l1.414-1.414A11 11 0 0012 10a11 11 0 00-8.485 2.343zM3.515 8.343l1.414 1.414A13 13 0 0112 6a13 13 0 019.071 3.757l1.414-1.414A15 15 0 0012 4a15 15 0 00-8.485 4.343z'/></svg><span>Wi-Fi</span></span><span class='amen-wrap' title='Parking'><svg viewBox='0 0 24 24' class='amen'><path d='M6 3h7a5 5 0 010 10H9v8H6V3zm3 3v4h4a2 2 0 100-4H9z'/></svg><span>Parking</span></span><span class='amen-wrap' title='Pet-friendly'><svg viewBox='0 0 24 24' class='amen'><path d='M7 11a2 2 0 11.001-3.999A2 2 0 017 11zm10 0a2 2 0 11.001-3.999A2 2 0 0117 11zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z'/></svg><span>Pet-friendly</span></span><span class='amen-wrap' title='Gym'><svg viewBox='0 0 24 24' class='amen'><path d='M3 10h3v4H3v-4zm15 0h3v4h-3v-4zM8 9h8v6H8V9z'/></svg><span>Gym</span></span><span class='amen-wrap' title='Spa'><svg viewBox='0 0 24 24' class='amen'><path d='M12 3C9 6 8 9 8 12s1 6 4 9c3-3 4-6 4-9s-1-6-4-9zm0 6a3 3 0 110 6 3 3 0 010-6z'/></svg><span>Spa</span></span><span class='amen-wrap' title='Bar'><svg viewBox='0 0 24 24' class='amen'><path d='M3 3h18l-6 8v7h-6v-7L3 3z'/></svg><span>Bar</span></span><span class='amen-wrap' title='Restaurant'><svg viewBox='0 0 24 24' class='amen'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z'/></svg><span>Restaurant</span></span><span class='amen-wrap' title='Room service'><svg viewBox='0 0 24 24' class='amen'><path d='M12 5c3 0 6 2.2 7 5h3v2H2V10h3c1-2.8 4-5 7-5zm-9 9h18v2H3v-2z'/></svg><span>Room service</span></span></div>
-            <div id='map-4' class='map'></div>
-          </div>
-        </article>
-        
 
-        <article class="card">
-          <div class="hero-wrap">
-            <img src='https://lh5.googleusercontent.com/p/AF1QipMlI-2OCSfLebbprJ94eJGIJs8IQefkOlIxWb4c=s10000' alt='' id='hero-5' class='hero'>
-            
-          </div>
-          <div class="body">
-            <header class="title">
-              <a href="https://www.ritzcarlton.com/en/hotels/waspc-the-ritz-carlton-pentagon-city/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener">The Ritz-Carlton, Pentagon City</a>
-              <div class="meta">Class 4-star hotel · Rating 4.5 · From $$281</div>
-            </header>
-            <p class="desc">High-end hotel with a fine-dining restaurant &amp; a bar, plus a sauna, a gym &amp; a steam room.</p>
-            <div class="thumbs" id="thumbs-5"><button class='thumb' data-hero='hero-5' data-src='https://lh5.googleusercontent.com/p/AF1QipMlI-2OCSfLebbprJ94eJGIJs8IQefkOlIxWb4c=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipMlI-2OCSfLebbprJ94eJGIJs8IQefkOlIxWb4c=s10000' alt=''></button><button class='thumb' data-hero='hero-5' data-src='https://lh5.googleusercontent.com/p/AF1QipPF4HyKRBrKfCi6JIELA5mK32FvgC5NtPBCJaE6=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPF4HyKRBrKfCi6JIELA5mK32FvgC5NtPBCJaE6=s10000' alt=''></button><button class='thumb' data-hero='hero-5' data-src='https://lh5.googleusercontent.com/p/AF1QipPdYPjgQhgemmwXe1kHflHMVSJJRTmzqNz0w7_O=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPdYPjgQhgemmwXe1kHflHMVSJJRTmzqNz0w7_O=s10000' alt=''></button><button class='thumb' data-hero='hero-5' data-src='https://lh5.googleusercontent.com/p/AF1QipNt3NQHCn0UXod97NKk8Y9NMlt5whrD5NjFx0c1=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNt3NQHCn0UXod97NKk8Y9NMlt5whrD5NjFx0c1=s10000' alt=''></button><button class='thumb' data-hero='hero-5' data-src='https://lh5.googleusercontent.com/p/rokntxRCZEMAAAQINS3Slg=s10000'><img src='https://lh5.googleusercontent.com/p/rokntxRCZEMAAAQINS3Slg=s10000' alt=''></button><button class='thumb' data-hero='hero-5' data-src='https://lh5.googleusercontent.com/p/AF1QipNG1_3OB5_D-VYiibveCn2c0xSOcG9IsBkFDY_6=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNG1_3OB5_D-VYiibveCn2c0xSOcG9IsBkFDY_6=s10000' alt=''></button><button class='thumb' data-hero='hero-5' data-src='https://lh5.googleusercontent.com/p/AF1QipNyjoJRNX5B9dm3ytDPIIvXmVLktIp6xpaHT9rY=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNyjoJRNX5B9dm3ytDPIIvXmVLktIp6xpaHT9rY=s10000' alt=''></button><button class='thumb' data-hero='hero-5' data-src='https://photos.hotelbeds.com/giata/original/38/387223/387223a_hb_a_001.jpg'><img src='https://photos.hotelbeds.com/giata/original/38/387223/387223a_hb_a_001.jpg' alt=''></button></div>
-            <div class="amenities"><span class='amen-wrap' title='Wi-Fi'><svg viewBox='0 0 24 24' class='amen'><path d='M12 18a2 2 0 11-.001 3.999A2 2 0 0112 18zm-8.485-5.657l1.414 1.414A9 9 0 0112 12a9 9 0 016.364 2.757l1.414-1.414A11 11 0 0012 10a11 11 0 00-8.485 2.343zM3.515 8.343l1.414 1.414A13 13 0 0112 6a13 13 0 019.071 3.757l1.414-1.414A15 15 0 0012 4a15 15 0 00-8.485 4.343z'/></svg><span>Wi-Fi</span></span><span class='amen-wrap' title='Parking'><svg viewBox='0 0 24 24' class='amen'><path d='M6 3h7a5 5 0 010 10H9v8H6V3zm3 3v4h4a2 2 0 100-4H9z'/></svg><span>Parking</span></span><span class='amen-wrap' title='Gym'><svg viewBox='0 0 24 24' class='amen'><path d='M3 10h3v4H3v-4zm15 0h3v4h-3v-4zM8 9h8v6H8V9z'/></svg><span>Gym</span></span><span class='amen-wrap' title='Bar'><svg viewBox='0 0 24 24' class='amen'><path d='M3 3h18l-6 8v7h-6v-7L3 3z'/></svg><span>Bar</span></span><span class='amen-wrap' title='Restaurant'><svg viewBox='0 0 24 24' class='amen'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z'/></svg><span>Restaurant</span></span><span class='amen-wrap' title='Room service'><svg viewBox='0 0 24 24' class='amen'><path d='M12 5c3 0 6 2.2 7 5h3v2H2V10h3c1-2.8 4-5 7-5zm-9 9h18v2H3v-2z'/></svg><span>Room service</span></span></div>
-            <div id='map-5' class='map'></div>
-          </div>
-        </article>
-        
+<article class="card">
+  <header class="hd">
+    <a href="https://www.ihg.com/intercontinental/hotels/us/en/washington/washa/hoteldetail?cm_mmc=GoogleMaps-_-IC-_-US-_-WASHA" target="_blank" rel="noopener" class="hn">InterContinental the Willard Washington D.C. by IHG</a>
+    <div class="meta">
+      <div class="stars"><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg></div>
+      <div class="price">$$389</div>
+    </div>
+  </header>
 
-        <article class="card">
-          <div class="hero-wrap">
-            <img src='https://lh5.googleusercontent.com/p/AF1QipPYa7R3BckczRK3QAJaG4InLpiLyGBSsL-YIFC7=s10000' alt='' id='hero-6' class='hero'>
-            
-          </div>
-          <div class="body">
-            <header class="title">
-              <a href="https://wharfintercontinentaldc.com/" target="_blank" rel="noopener">InterContinental Washington D.C. - The Wharf, an IHG Hotel</a>
-              <div class="meta">Class 4-star hotel · Rating 4.5 · From $$268</div>
-            </header>
-            <p class="desc">Chic hotel featuring an upscale restaurant, a fitness center &amp; a spa, plus a rooftop pool &amp; bar.</p>
-            <div class="thumbs" id="thumbs-6"><button class='thumb' data-hero='hero-6' data-src='https://lh5.googleusercontent.com/p/AF1QipPYa7R3BckczRK3QAJaG4InLpiLyGBSsL-YIFC7=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPYa7R3BckczRK3QAJaG4InLpiLyGBSsL-YIFC7=s10000' alt=''></button><button class='thumb' data-hero='hero-6' data-src='https://lh5.googleusercontent.com/p/CIHM0ogKEICAgIDOo8CyIw=s10000'><img src='https://lh5.googleusercontent.com/p/CIHM0ogKEICAgIDOo8CyIw=s10000' alt=''></button><button class='thumb' data-hero='hero-6' data-src='https://lh5.googleusercontent.com/p/AF1QipOkcsBhftI0l9_ZZDDoYfNU2itK2Ii1oN-wISaK=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOkcsBhftI0l9_ZZDDoYfNU2itK2Ii1oN-wISaK=s10000' alt=''></button><button class='thumb' data-hero='hero-6' data-src='https://d2hyz2bfif3cr8.cloudfront.net/imageRepo/7/0/151/507/140/WASHC_8159009340_O.jpg'><img src='https://d2hyz2bfif3cr8.cloudfront.net/imageRepo/7/0/151/507/140/WASHC_8159009340_O.jpg' alt=''></button><button class='thumb' data-hero='hero-6' data-src='https://lh5.googleusercontent.com/p/AF1QipNsfEvxETI3MEWd-aTvD1FbTO8q9kxPIHtDtO5V=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNsfEvxETI3MEWd-aTvD1FbTO8q9kxPIHtDtO5V=s10000' alt=''></button><button class='thumb' data-hero='hero-6' data-src='https://d2hyz2bfif3cr8.cloudfront.net/imageRepo/7/0/128/495/887/WASHC_6067203746_O.jpg'><img src='https://d2hyz2bfif3cr8.cloudfront.net/imageRepo/7/0/128/495/887/WASHC_6067203746_O.jpg' alt=''></button><button class='thumb' data-hero='hero-6' data-src='https://lh5.googleusercontent.com/p/AF1QipPktbQS8ShemwPzEvA7Qnp9VstDrwbMe4NT_K8h=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPktbQS8ShemwPzEvA7Qnp9VstDrwbMe4NT_K8h=s10000' alt=''></button><button class='thumb' data-hero='hero-6' data-src='https://lh5.googleusercontent.com/p/AF1QipNj5z5focOLJPytKKbcKjGEKeWh-ItHYaEcMBsx=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNj5z5focOLJPytKKbcKjGEKeWh-ItHYaEcMBsx=s10000' alt=''></button></div>
-            <div class="amenities"><span class='amen-wrap' title='Wi-Fi'><svg viewBox='0 0 24 24' class='amen'><path d='M12 18a2 2 0 11-.001 3.999A2 2 0 0112 18zm-8.485-5.657l1.414 1.414A9 9 0 0112 12a9 9 0 016.364 2.757l1.414-1.414A11 11 0 0012 10a11 11 0 00-8.485 2.343zM3.515 8.343l1.414 1.414A13 13 0 0112 6a13 13 0 019.071 3.757l1.414-1.414A15 15 0 0012 4a15 15 0 00-8.485 4.343z'/></svg><span>Wi-Fi</span></span><span class='amen-wrap' title='Parking'><svg viewBox='0 0 24 24' class='amen'><path d='M6 3h7a5 5 0 010 10H9v8H6V3zm3 3v4h4a2 2 0 100-4H9z'/></svg><span>Parking</span></span><span class='amen-wrap' title='Pool'><svg viewBox='0 0 24 24' class='amen'><path d='M2 18c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1v2c-2 0-2-1-4-1s-2 1-4 1-2-1-4-1-2 1-4 1v-2zM8 6a4 4 0 118 0v10h-2V6a2 2 0 10-4 0v10H8V6z'/></svg><span>Pool</span></span><span class='amen-wrap' title='Pet-friendly'><svg viewBox='0 0 24 24' class='amen'><path d='M7 11a2 2 0 11.001-3.999A2 2 0 017 11zm10 0a2 2 0 11.001-3.999A2 2 0 0117 11zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z'/></svg><span>Pet-friendly</span></span><span class='amen-wrap' title='Gym'><svg viewBox='0 0 24 24' class='amen'><path d='M3 10h3v4H3v-4zm15 0h3v4h-3v-4zM8 9h8v6H8V9z'/></svg><span>Gym</span></span><span class='amen-wrap' title='Bar'><svg viewBox='0 0 24 24' class='amen'><path d='M3 3h18l-6 8v7h-6v-7L3 3z'/></svg><span>Bar</span></span><span class='amen-wrap' title='Restaurant'><svg viewBox='0 0 24 24' class='amen'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z'/></svg><span>Restaurant</span></span><span class='amen-wrap' title='Room service'><svg viewBox='0 0 24 24' class='amen'><path d='M12 5c3 0 6 2.2 7 5h3v2H2V10h3c1-2.8 4-5 7-5zm-9 9h18v2H3v-2z'/></svg><span>Room service</span></span></div>
-            <div id='map-6' class='map'></div>
-          </div>
-        </article>
-        
+  <img id='hero-1' class='hero' src='https://lh5.googleusercontent.com/p/AF1QipMDxR0CMnbN7pVBO9_g6WOspS_V2SEVxCej5j3Y=s10000' alt=''>
 
-        <article class="card">
-          <div class="hero-wrap">
-            <img src='https://photos.hotelbeds.com/giata/original/13/137246/137246a_hb_a_002.jpg' alt='' id='hero-7' class='hero'>
-            
-          </div>
-          <div class="body">
-            <header class="title">
-              <a href="https://www.ritzcarlton.com/en/hotels/wasrt-the-ritz-carlton-washington-dc/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener">The Ritz-Carlton, Washington, D.C.</a>
-              <div class="meta">Class 5-star hotel · Rating 4.5 · From $$453</div>
-            </header>
-            <p class="desc">Sophisticated quarters in a posh lodging with a spa, an indoor pool &amp; a fitness center, plus dining.</p>
-            <div class="thumbs" id="thumbs-7"><button class='thumb' data-hero='hero-7' data-src='https://photos.hotelbeds.com/giata/original/13/137246/137246a_hb_a_002.jpg'><img src='https://photos.hotelbeds.com/giata/original/13/137246/137246a_hb_a_002.jpg' alt=''></button><button class='thumb' data-hero='hero-7' data-src='https://lh5.googleusercontent.com/p/AF1QipPt9cJ_J-jJpi8xf1uIXFyL1GYfd20wGbdxSfrM=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPt9cJ_J-jJpi8xf1uIXFyL1GYfd20wGbdxSfrM=s10000' alt=''></button><button class='thumb' data-hero='hero-7' data-src='https://photos.hotelbeds.com/giata/original/13/137246/137246a_hb_r_006.jpg'><img src='https://photos.hotelbeds.com/giata/original/13/137246/137246a_hb_r_006.jpg' alt=''></button><button class='thumb' data-hero='hero-7' data-src='https://images.trvl-media.com/lodging/1000000/490000/483500/483418/e159ae2a_z.jpg'><img src='https://images.trvl-media.com/lodging/1000000/490000/483500/483418/e159ae2a_z.jpg' alt=''></button><button class='thumb' data-hero='hero-7' data-src='https://images.trvl-media.com/lodging/1000000/490000/483500/483418/94aac07e_z.jpg'><img src='https://images.trvl-media.com/lodging/1000000/490000/483500/483418/94aac07e_z.jpg' alt=''></button><button class='thumb' data-hero='hero-7' data-src='https://photos.hotelbeds.com/giata/original/13/137246/137246a_hb_a_019.jpg'><img src='https://photos.hotelbeds.com/giata/original/13/137246/137246a_hb_a_019.jpg' alt=''></button><button class='thumb' data-hero='hero-7' data-src='https://photos.hotelbeds.com/giata/original/13/137246/137246a_hb_r_002.jpg'><img src='https://photos.hotelbeds.com/giata/original/13/137246/137246a_hb_r_002.jpg' alt=''></button><button class='thumb' data-hero='hero-7' data-src='https://photos.hotelbeds.com/giata/original/13/137246/137246a_hb_r_001.jpg'><img src='https://photos.hotelbeds.com/giata/original/13/137246/137246a_hb_r_001.jpg' alt=''></button></div>
-            <div class="amenities"><span class='amen-wrap' title='Wi-Fi'><svg viewBox='0 0 24 24' class='amen'><path d='M12 18a2 2 0 11-.001 3.999A2 2 0 0112 18zm-8.485-5.657l1.414 1.414A9 9 0 0112 12a9 9 0 016.364 2.757l1.414-1.414A11 11 0 0012 10a11 11 0 00-8.485 2.343zM3.515 8.343l1.414 1.414A13 13 0 0112 6a13 13 0 019.071 3.757l1.414-1.414A15 15 0 0012 4a15 15 0 00-8.485 4.343z'/></svg><span>Wi-Fi</span></span><span class='amen-wrap' title='Parking'><svg viewBox='0 0 24 24' class='amen'><path d='M6 3h7a5 5 0 010 10H9v8H6V3zm3 3v4h4a2 2 0 100-4H9z'/></svg><span>Parking</span></span><span class='amen-wrap' title='Pet-friendly'><svg viewBox='0 0 24 24' class='amen'><path d='M7 11a2 2 0 11.001-3.999A2 2 0 017 11zm10 0a2 2 0 11.001-3.999A2 2 0 0117 11zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z'/></svg><span>Pet-friendly</span></span><span class='amen-wrap' title='Gym'><svg viewBox='0 0 24 24' class='amen'><path d='M3 10h3v4H3v-4zm15 0h3v4h-3v-4zM8 9h8v6H8V9z'/></svg><span>Gym</span></span><span class='amen-wrap' title='Bar'><svg viewBox='0 0 24 24' class='amen'><path d='M3 3h18l-6 8v7h-6v-7L3 3z'/></svg><span>Bar</span></span><span class='amen-wrap' title='Restaurant'><svg viewBox='0 0 24 24' class='amen'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z'/></svg><span>Restaurant</span></span><span class='amen-wrap' title='Room service'><svg viewBox='0 0 24 24' class='amen'><path d='M12 5c3 0 6 2.2 7 5h3v2H2V10h3c1-2.8 4-5 7-5zm-9 9h18v2H3v-2z'/></svg><span>Room service</span></span></div>
-            <div id='map-7' class='map'></div>
-          </div>
-        </article>
-        
+  <div class="media">
+    <div class="thumb-grid" id="thumbs-1">
+      <div class='tile logo'><img src='/yocto/logos/intercontinental.png' alt='brand logo'></div><button class='tile' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/AF1QipMDxR0CMnbN7pVBO9_g6WOspS_V2SEVxCej5j3Y=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipMDxR0CMnbN7pVBO9_g6WOspS_V2SEVxCej5j3Y=s10000' alt=''></button><button class='tile' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/AF1QipPF7p9XjnFIQP96USBqmBGkG8ddXkHeIozS8uXk=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPF7p9XjnFIQP96USBqmBGkG8ddXkHeIozS8uXk=s10000' alt=''></button><button class='tile' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/AF1QipOyFAdxmbxcIuTVW-ReU9nuT3IM_eUcGsVgpoOI=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOyFAdxmbxcIuTVW-ReU9nuT3IM_eUcGsVgpoOI=s10000' alt=''></button><button class='tile' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/AF1QipOUM3_S2YR_Yql9VrbfZ0IDTjVnNzLnFe0ckIAI=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOUM3_S2YR_Yql9VrbfZ0IDTjVnNzLnFe0ckIAI=s10000' alt=''></button><button class='tile' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/AF1QipNsgRMhTLtHDzzf9fc78qLJxhNUiU2xDGgOcqA2=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNsgRMhTLtHDzzf9fc78qLJxhNUiU2xDGgOcqA2=s10000' alt=''></button><button class='tile' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/AF1QipP2xmHbbYq2AYWU8ODxKe84C1rCosVIQ_zsloEZ=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipP2xmHbbYq2AYWU8ODxKe84C1rCosVIQ_zsloEZ=s10000' alt=''></button><button class='tile' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/AF1QipPn3i3ULiePd6XeYFXaBgDsZDx-no7rmKOufDlP=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPn3i3ULiePd6XeYFXaBgDsZDx-no7rmKOufDlP=s10000' alt=''></button><button class='tile' data-hero='hero-1' data-src='https://lh5.googleusercontent.com/p/AF1QipO2p2hpF507IiRf0EgTHoS-V9oVZYZFf29nD3mJ=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipO2p2hpF507IiRf0EgTHoS-V9oVZYZFf29nD3mJ=s10000' alt=''></button>
+    </div>
+    <div class="map-wrap">
+      <div id='map-1' class='map'></div>
+    </div>
+  </div>
 
-        <article class="card">
-          <div class="hero-wrap">
-            <img src='https://lh5.googleusercontent.com/p/AF1QipNSAw8YE2x0cd2cahFM3rgP3T6bbIFzoQ2Xn7zs=s10000' alt='' id='hero-8' class='hero'>
-            
-          </div>
-          <div class="body">
-            <header class="title">
-              <a href="https://www.hyatt.com/en-US/hotel/washington-dc/park-hyatt-washington-dc/wasph?src=corp_lclb_google_seo_wasph&amp;utm_source=google&amp;utm_medium=organic&amp;utm_campaign=lmr" target="_blank" rel="noopener">Park Hyatt Washington D.C.</a>
-              <div class="meta">Class 5-star hotel · Rating 4.5 · From $$431</div>
-            </header>
-            <p class="desc">High-end lodging featuring elegant rooms, plus a spa, an acclaimed restaurant &amp; a saltwater pool.</p>
-            <div class="thumbs" id="thumbs-8"><button class='thumb' data-hero='hero-8' data-src='https://lh5.googleusercontent.com/p/AF1QipNSAw8YE2x0cd2cahFM3rgP3T6bbIFzoQ2Xn7zs=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNSAw8YE2x0cd2cahFM3rgP3T6bbIFzoQ2Xn7zs=s10000' alt=''></button><button class='thumb' data-hero='hero-8' data-src='https://lh5.googleusercontent.com/p/AF1QipPwO4oiIqSZlWjj2_cUkr3Fzefu3Swu_RmrgtxP=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPwO4oiIqSZlWjj2_cUkr3Fzefu3Swu_RmrgtxP=s10000' alt=''></button><button class='thumb' data-hero='hero-8' data-src='https://lh5.googleusercontent.com/p/AF1QipMb77E8QV7w_nYmHv5vOab2Y_pdgVfm_40NyUrJ=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipMb77E8QV7w_nYmHv5vOab2Y_pdgVfm_40NyUrJ=s10000' alt=''></button><button class='thumb' data-hero='hero-8' data-src='https://lh5.googleusercontent.com/p/AF1QipPNdeJkjjbbAVM_7jaKdEdMXeiMviURznpgdRr2=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPNdeJkjjbbAVM_7jaKdEdMXeiMviURznpgdRr2=s10000' alt=''></button><button class='thumb' data-hero='hero-8' data-src='https://lh5.googleusercontent.com/p/AF1QipN22SM5ORGyboTItPRJrsSkIK-DA96QLMAe3ZuN=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipN22SM5ORGyboTItPRJrsSkIK-DA96QLMAe3ZuN=s10000' alt=''></button><button class='thumb' data-hero='hero-8' data-src='https://lh5.googleusercontent.com/p/AF1QipNRxh0t4aUou8TnKMB82N4L8gZhoaazx9o2y8av=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNRxh0t4aUou8TnKMB82N4L8gZhoaazx9o2y8av=s10000' alt=''></button><button class='thumb' data-hero='hero-8' data-src='https://lh5.googleusercontent.com/p/AF1QipMWPlfvNeqG53OOIjrxpNmLmhxuodARoxS_qb6y=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipMWPlfvNeqG53OOIjrxpNmLmhxuodARoxS_qb6y=s10000' alt=''></button><button class='thumb' data-hero='hero-8' data-src='https://lh5.googleusercontent.com/p/AF1QipP8GiGT0tRJWyzIE8pq7L6mNwaIukadjoN-B-QG=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipP8GiGT0tRJWyzIE8pq7L6mNwaIukadjoN-B-QG=s10000' alt=''></button></div>
-            <div class="amenities"><span class='amen-wrap' title='Wi-Fi'><svg viewBox='0 0 24 24' class='amen'><path d='M12 18a2 2 0 11-.001 3.999A2 2 0 0112 18zm-8.485-5.657l1.414 1.414A9 9 0 0112 12a9 9 0 016.364 2.757l1.414-1.414A11 11 0 0012 10a11 11 0 00-8.485 2.343zM3.515 8.343l1.414 1.414A13 13 0 0112 6a13 13 0 019.071 3.757l1.414-1.414A15 15 0 0012 4a15 15 0 00-8.485 4.343z'/></svg><span>Wi-Fi</span></span><span class='amen-wrap' title='Parking'><svg viewBox='0 0 24 24' class='amen'><path d='M6 3h7a5 5 0 010 10H9v8H6V3zm3 3v4h4a2 2 0 100-4H9z'/></svg><span>Parking</span></span><span class='amen-wrap' title='Pool'><svg viewBox='0 0 24 24' class='amen'><path d='M2 18c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1v2c-2 0-2-1-4-1s-2 1-4 1-2-1-4-1-2 1-4 1v-2zM8 6a4 4 0 118 0v10h-2V6a2 2 0 10-4 0v10H8V6z'/></svg><span>Pool</span></span><span class='amen-wrap' title='Pet-friendly'><svg viewBox='0 0 24 24' class='amen'><path d='M7 11a2 2 0 11.001-3.999A2 2 0 017 11zm10 0a2 2 0 11.001-3.999A2 2 0 0117 11zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z'/></svg><span>Pet-friendly</span></span><span class='amen-wrap' title='Gym'><svg viewBox='0 0 24 24' class='amen'><path d='M3 10h3v4H3v-4zm15 0h3v4h-3v-4zM8 9h8v6H8V9z'/></svg><span>Gym</span></span><span class='amen-wrap' title='Spa'><svg viewBox='0 0 24 24' class='amen'><path d='M12 3C9 6 8 9 8 12s1 6 4 9c3-3 4-6 4-9s-1-6-4-9zm0 6a3 3 0 110 6 3 3 0 010-6z'/></svg><span>Spa</span></span><span class='amen-wrap' title='Bar'><svg viewBox='0 0 24 24' class='amen'><path d='M3 3h18l-6 8v7h-6v-7L3 3z'/></svg><span>Bar</span></span><span class='amen-wrap' title='Restaurant'><svg viewBox='0 0 24 24' class='amen'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z'/></svg><span>Restaurant</span></span></div>
-            <div id='map-8' class='map'></div>
-          </div>
-        </article>
-        
+  <div class="amen-row"><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M7 11a2 2 0 110-4 2 2 0 010 4zm10 0a2 2 0 110-4 2 2 0 010 4zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Olly OK</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M12 3c-3 3-4 6-4 9s1 6 4 9c3-3 4-6 4-9s-1-6-4-9z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Spa</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M3 3h18l-6 8v7H9v-7L3 3z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Bar</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Restaurant</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M12 5c3 0 6 2 7 5h3v2H2V10h3c1-3 4-5 7-5zM3 18h18' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>In-Room Dining</span></span></div>
+</article>
 
-        <article class="card">
-          <div class="hero-wrap">
-            <img src='https://lh5.googleusercontent.com/p/AF1QipN8l7VBnJp47aQ-zxrNV4bd6v1lKbeQVoJ0l-xq=s10000' alt='' id='hero-9' class='hero'>
-            
-          </div>
-          <div class="body">
-            <header class="title">
-              <a href="https://www.marriott.com/en-us/hotels/wassx-the-st-regis-washington-dc/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener">The St. Regis Washington, D.C.</a>
-              <div class="meta">Class 5-star hotel · Rating 4.5 · From $$544</div>
-            </header>
-            <p class="desc">Luxe rooms in a historic lodging with butler service &amp; chic dining, plus live jazz &amp; afternoon tea.</p>
-            <div class="thumbs" id="thumbs-9"><button class='thumb' data-hero='hero-9' data-src='https://lh5.googleusercontent.com/p/AF1QipN8l7VBnJp47aQ-zxrNV4bd6v1lKbeQVoJ0l-xq=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipN8l7VBnJp47aQ-zxrNV4bd6v1lKbeQVoJ0l-xq=s10000' alt=''></button><button class='thumb' data-hero='hero-9' data-src='https://d2hyz2bfif3cr8.cloudfront.net/imageRepo/7/0/157/942/919/wassx-guestroom-6170-hor-clsc_O.jpg'><img src='https://d2hyz2bfif3cr8.cloudfront.net/imageRepo/7/0/157/942/919/wassx-guestroom-6170-hor-clsc_O.jpg' alt=''></button><button class='thumb' data-hero='hero-9' data-src='https://photos.hotelbeds.com/giata/original/17/175446/175446a_hb_a_155.jpg'><img src='https://photos.hotelbeds.com/giata/original/17/175446/175446a_hb_a_155.jpg' alt=''></button><button class='thumb' data-hero='hero-9' data-src='https://photos.hotelbeds.com/giata/original/17/175446/175446a_hb_w_005.jpg'><img src='https://photos.hotelbeds.com/giata/original/17/175446/175446a_hb_w_005.jpg' alt=''></button><button class='thumb' data-hero='hero-9' data-src='https://photos.hotelbeds.com/giata/original/17/175446/175446a_hb_a_015.jpg'><img src='https://photos.hotelbeds.com/giata/original/17/175446/175446a_hb_a_015.jpg' alt=''></button><button class='thumb' data-hero='hero-9' data-src='https://photos.hotelbeds.com/giata/original/17/175446/175446a_hb_a_122.jpg'><img src='https://photos.hotelbeds.com/giata/original/17/175446/175446a_hb_a_122.jpg' alt=''></button><button class='thumb' data-hero='hero-9' data-src='https://lh5.googleusercontent.com/p/AF1QipPsnqA68kUjsVkuQzMcjHxOthVO0EFwqWkfHVUc=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPsnqA68kUjsVkuQzMcjHxOthVO0EFwqWkfHVUc=s10000' alt=''></button><button class='thumb' data-hero='hero-9' data-src='https://photos.hotelbeds.com/giata/original/17/175446/175446a_hb_a_113.jpg'><img src='https://photos.hotelbeds.com/giata/original/17/175446/175446a_hb_a_113.jpg' alt=''></button></div>
-            <div class="amenities"><span class='amen-wrap' title='Wi-Fi'><svg viewBox='0 0 24 24' class='amen'><path d='M12 18a2 2 0 11-.001 3.999A2 2 0 0112 18zm-8.485-5.657l1.414 1.414A9 9 0 0112 12a9 9 0 016.364 2.757l1.414-1.414A11 11 0 0012 10a11 11 0 00-8.485 2.343zM3.515 8.343l1.414 1.414A13 13 0 0112 6a13 13 0 019.071 3.757l1.414-1.414A15 15 0 0012 4a15 15 0 00-8.485 4.343z'/></svg><span>Wi-Fi</span></span><span class='amen-wrap' title='Parking'><svg viewBox='0 0 24 24' class='amen'><path d='M6 3h7a5 5 0 010 10H9v8H6V3zm3 3v4h4a2 2 0 100-4H9z'/></svg><span>Parking</span></span><span class='amen-wrap' title='Pet-friendly'><svg viewBox='0 0 24 24' class='amen'><path d='M7 11a2 2 0 11.001-3.999A2 2 0 017 11zm10 0a2 2 0 11.001-3.999A2 2 0 0117 11zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z'/></svg><span>Pet-friendly</span></span><span class='amen-wrap' title='Bar'><svg viewBox='0 0 24 24' class='amen'><path d='M3 3h18l-6 8v7h-6v-7L3 3z'/></svg><span>Bar</span></span><span class='amen-wrap' title='Restaurant'><svg viewBox='0 0 24 24' class='amen'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z'/></svg><span>Restaurant</span></span><span class='amen-wrap' title='Room service'><svg viewBox='0 0 24 24' class='amen'><path d='M12 5c3 0 6 2.2 7 5h3v2H2V10h3c1-2.8 4-5 7-5zm-9 9h18v2H3v-2z'/></svg><span>Room service</span></span></div>
-            <div id='map-9' class='map'></div>
-          </div>
-        </article>
-        
 
-        <article class="card">
-          <div class="hero-wrap">
-            <img src='https://lh5.googleusercontent.com/p/AF1QipOew8Cfw171yd5pMnFb-2kCqKtwFHokEFBqvoSD=s10000' alt='' id='hero-10' class='hero'>
-            
-          </div>
-          <div class="body">
-            <header class="title">
-              <a href="https://www.marriott.com/en-us/hotels/wasjw-jw-marriott-washington-dc/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener">JW Marriott Washington, DC</a>
-              <div class="meta">Class 4-star hotel · Rating 4.4 · From $$354</div>
-            </header>
-            <p class="desc">Understated rooms &amp; suites in an upscale hotel featuring a fitness center &amp; a cafe.</p>
-            <div class="thumbs" id="thumbs-10"><button class='thumb' data-hero='hero-10' data-src='https://lh5.googleusercontent.com/p/AF1QipOew8Cfw171yd5pMnFb-2kCqKtwFHokEFBqvoSD=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOew8Cfw171yd5pMnFb-2kCqKtwFHokEFBqvoSD=s10000' alt=''></button><button class='thumb' data-hero='hero-10' data-src='https://photos.hotelbeds.com/giata/original/25/252858/252858a_hb_a_060.jpg'><img src='https://photos.hotelbeds.com/giata/original/25/252858/252858a_hb_a_060.jpg' alt=''></button><button class='thumb' data-hero='hero-10' data-src='https://lh5.googleusercontent.com/p/AF1QipMOO5SO8X0d2xLAS71rHm0Y_SY1JiEOgTZChj_-=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipMOO5SO8X0d2xLAS71rHm0Y_SY1JiEOgTZChj_-=s10000' alt=''></button><button class='thumb' data-hero='hero-10' data-src='https://photos.hotelbeds.com/giata/original/25/252858/252858a_hb_ro_318.jpg'><img src='https://photos.hotelbeds.com/giata/original/25/252858/252858a_hb_ro_318.jpg' alt=''></button><button class='thumb' data-hero='hero-10' data-src='https://lh5.googleusercontent.com/p/4jIgB27rrnYAAAQIL7x3ag=s10000'><img src='https://lh5.googleusercontent.com/p/4jIgB27rrnYAAAQIL7x3ag=s10000' alt=''></button><button class='thumb' data-hero='hero-10' data-src='https://d2hyz2bfif3cr8.cloudfront.net/imageRepo/6/0/96/589/820/wasjw-fitness-0140-hor-clsc_O.jpg'><img src='https://d2hyz2bfif3cr8.cloudfront.net/imageRepo/6/0/96/589/820/wasjw-fitness-0140-hor-clsc_O.jpg' alt=''></button><button class='thumb' data-hero='hero-10' data-src='https://lh5.googleusercontent.com/p/AF1QipPmLqxIMeoK73F2ZSy0zsd6BmwbKMO7nOJgMVKe=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPmLqxIMeoK73F2ZSy0zsd6BmwbKMO7nOJgMVKe=s10000' alt=''></button><button class='thumb' data-hero='hero-10' data-src='https://lh5.googleusercontent.com/p/AF1QipOqT98zDMS9QCD7dI2f2STxQwIrbUDT8hYfki-v=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOqT98zDMS9QCD7dI2f2STxQwIrbUDT8hYfki-v=s10000' alt=''></button></div>
-            <div class="amenities"><span class='amen-wrap' title='Wi-Fi'><svg viewBox='0 0 24 24' class='amen'><path d='M12 18a2 2 0 11-.001 3.999A2 2 0 0112 18zm-8.485-5.657l1.414 1.414A9 9 0 0112 12a9 9 0 016.364 2.757l1.414-1.414A11 11 0 0012 10a11 11 0 00-8.485 2.343zM3.515 8.343l1.414 1.414A13 13 0 0112 6a13 13 0 019.071 3.757l1.414-1.414A15 15 0 0012 4a15 15 0 00-8.485 4.343z'/></svg><span>Wi-Fi</span></span><span class='amen-wrap' title='Parking'><svg viewBox='0 0 24 24' class='amen'><path d='M6 3h7a5 5 0 010 10H9v8H6V3zm3 3v4h4a2 2 0 100-4H9z'/></svg><span>Parking</span></span><span class='amen-wrap' title='Gym'><svg viewBox='0 0 24 24' class='amen'><path d='M3 10h3v4H3v-4zm15 0h3v4h-3v-4zM8 9h8v6H8V9z'/></svg><span>Gym</span></span><span class='amen-wrap' title='Bar'><svg viewBox='0 0 24 24' class='amen'><path d='M3 3h18l-6 8v7h-6v-7L3 3z'/></svg><span>Bar</span></span><span class='amen-wrap' title='Restaurant'><svg viewBox='0 0 24 24' class='amen'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z'/></svg><span>Restaurant</span></span><span class='amen-wrap' title='Room service'><svg viewBox='0 0 24 24' class='amen'><path d='M12 5c3 0 6 2.2 7 5h3v2H2V10h3c1-2.8 4-5 7-5zm-9 9h18v2H3v-2z'/></svg><span>Room service</span></span></div>
-            <div id='map-10' class='map'></div>
-          </div>
-        </article>
-        
+<article class="card">
+  <header class="hd">
+    <a href="https://www.ritzcarlton.com/en/hotels/wasty-the-ritz-carlton-tysons-corner/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener" class="hn">The Ritz-Carlton, Tysons Corner</a>
+    <div class="meta">
+      <div class="stars"><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg></div>
+      <div class="price">$$424</div>
+    </div>
+  </header>
 
-        <article class="card">
-          <div class="hero-wrap">
-            <img src='https://lh5.googleusercontent.com/p/AF1QipOshhd2o8JkWG07y8iDbYHif5MhSmdVMwz7YHRu=s10000' alt='' id='hero-11' class='hero'>
-            <div class='deal'>37% less than usual</div>
-          </div>
-          <div class="body">
-            <header class="title">
-              <a href="http://sofitel.accor.com/hotels/3293?merchantid=seo-maps-US-3293&amp;sourceid=aw-cen&amp;utm_source=google+Maps&amp;utm_medium=seo+maps&amp;utm_campaign=seo+maps&amp;utm_term=Sofitel-Launch" target="_blank" rel="noopener">Sofitel Washington DC Lafayette Square</a>
-              <div class="meta">Class 5-star hotel · Rating 4.4 · From $$186</div>
-            </header>
-            <p class="desc">Elegant lodging in a 19th-century landmark, offering a French bistro, a lounge bar &amp; a gym.</p>
-            <div class="thumbs" id="thumbs-11"><button class='thumb' data-hero='hero-11' data-src='https://lh5.googleusercontent.com/p/AF1QipOshhd2o8JkWG07y8iDbYHif5MhSmdVMwz7YHRu=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOshhd2o8JkWG07y8iDbYHif5MhSmdVMwz7YHRu=s10000' alt=''></button><button class='thumb' data-hero='hero-11' data-src='https://lh5.googleusercontent.com/p/AF1QipNZ3RnqnuiLmSXwzy6ItmUH3_sobqTArkNaMpWS=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNZ3RnqnuiLmSXwzy6ItmUH3_sobqTArkNaMpWS=s10000' alt=''></button><button class='thumb' data-hero='hero-11' data-src='https://lh5.googleusercontent.com/p/AF1QipOovF65sR0POKxUkSoZOjJtyPULXCbnBVg0IrZz=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOovF65sR0POKxUkSoZOjJtyPULXCbnBVg0IrZz=s10000' alt=''></button><button class='thumb' data-hero='hero-11' data-src='https://lh5.googleusercontent.com/p/AF1QipPL44ufGgz3y3Umharv22NHH1m_orwj-5NHgFre=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPL44ufGgz3y3Umharv22NHH1m_orwj-5NHgFre=s10000' alt=''></button><button class='thumb' data-hero='hero-11' data-src='https://lh5.googleusercontent.com/p/AF1QipM2tWWsKvQMJYtG2N4EOzbMwEHSfMKAVsXpvvNk=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipM2tWWsKvQMJYtG2N4EOzbMwEHSfMKAVsXpvvNk=s10000' alt=''></button><button class='thumb' data-hero='hero-11' data-src='https://lh5.googleusercontent.com/p/AF1QipMCwGLppQPZqy_LCM50d_RiyHiZO-XGdw_iBnQz=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipMCwGLppQPZqy_LCM50d_RiyHiZO-XGdw_iBnQz=s10000' alt=''></button><button class='thumb' data-hero='hero-11' data-src='https://lh5.googleusercontent.com/p/AF1QipPFAteWRWsNH4kONCJmKOqpclIKSFkC_O_s7-3r=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPFAteWRWsNH4kONCJmKOqpclIKSFkC_O_s7-3r=s10000' alt=''></button><button class='thumb' data-hero='hero-11' data-src='https://lh5.googleusercontent.com/p/AF1QipPQfrCzv5YYAVkWKsshyQfmWUQ6It9_Z1IVbG_6=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPQfrCzv5YYAVkWKsshyQfmWUQ6It9_Z1IVbG_6=s10000' alt=''></button></div>
-            <div class="amenities"><span class='amen-wrap' title='Wi-Fi'><svg viewBox='0 0 24 24' class='amen'><path d='M12 18a2 2 0 11-.001 3.999A2 2 0 0112 18zm-8.485-5.657l1.414 1.414A9 9 0 0112 12a9 9 0 016.364 2.757l1.414-1.414A11 11 0 0012 10a11 11 0 00-8.485 2.343zM3.515 8.343l1.414 1.414A13 13 0 0112 6a13 13 0 019.071 3.757l1.414-1.414A15 15 0 0012 4a15 15 0 00-8.485 4.343z'/></svg><span>Wi-Fi</span></span><span class='amen-wrap' title='Parking'><svg viewBox='0 0 24 24' class='amen'><path d='M6 3h7a5 5 0 010 10H9v8H6V3zm3 3v4h4a2 2 0 100-4H9z'/></svg><span>Parking</span></span><span class='amen-wrap' title='Pet-friendly'><svg viewBox='0 0 24 24' class='amen'><path d='M7 11a2 2 0 11.001-3.999A2 2 0 017 11zm10 0a2 2 0 11.001-3.999A2 2 0 0117 11zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z'/></svg><span>Pet-friendly</span></span><span class='amen-wrap' title='Gym'><svg viewBox='0 0 24 24' class='amen'><path d='M3 10h3v4H3v-4zm15 0h3v4h-3v-4zM8 9h8v6H8V9z'/></svg><span>Gym</span></span><span class='amen-wrap' title='Bar'><svg viewBox='0 0 24 24' class='amen'><path d='M3 3h18l-6 8v7h-6v-7L3 3z'/></svg><span>Bar</span></span><span class='amen-wrap' title='Restaurant'><svg viewBox='0 0 24 24' class='amen'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z'/></svg><span>Restaurant</span></span><span class='amen-wrap' title='Room service'><svg viewBox='0 0 24 24' class='amen'><path d='M12 5c3 0 6 2.2 7 5h3v2H2V10h3c1-2.8 4-5 7-5zm-9 9h18v2H3v-2z'/></svg><span>Room service</span></span></div>
-            <div id='map-11' class='map'></div>
-          </div>
-        </article>
-        
-<div class="footer">Published to <a href="https://hiner.nyc/yocto/results/" style="color:#82aaff">https://hiner.nyc/yocto/results/</a></div>
+  <img id='hero-2' class='hero' src='https://lh5.googleusercontent.com/p/AF1QipN0xL31XqsDJsskU39UAgLzZc_w-3nNobOf85yr=s10000' alt=''>
+
+  <div class="media">
+    <div class="thumb-grid" id="thumbs-2">
+      <div class='tile logo'><img src='/yocto/logos/ritz_carlton.png' alt='brand logo'></div><button class='tile' data-hero='hero-2' data-src='https://lh5.googleusercontent.com/p/AF1QipN0xL31XqsDJsskU39UAgLzZc_w-3nNobOf85yr=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipN0xL31XqsDJsskU39UAgLzZc_w-3nNobOf85yr=s10000' alt=''></button><button class='tile' data-hero='hero-2' data-src='https://photos.hotelbeds.com/giata/original/35/353782/353782a_hb_a_028.jpg'><img src='https://photos.hotelbeds.com/giata/original/35/353782/353782a_hb_a_028.jpg' alt=''></button><button class='tile' data-hero='hero-2' data-src='https://lh5.googleusercontent.com/p/CIHM0ogKEICAgIDOw4SThgE=s10000'><img src='https://lh5.googleusercontent.com/p/CIHM0ogKEICAgIDOw4SThgE=s10000' alt=''></button><button class='tile' data-hero='hero-2' data-src='https://lh5.googleusercontent.com/p/JELR8-2mY5MAAAQINS3j-Q=s10000'><img src='https://lh5.googleusercontent.com/p/JELR8-2mY5MAAAQINS3j-Q=s10000' alt=''></button><button class='tile' data-hero='hero-2' data-src='https://photos.hotelbeds.com/giata/original/35/353782/353782a_hb_a_023.jpg'><img src='https://photos.hotelbeds.com/giata/original/35/353782/353782a_hb_a_023.jpg' alt=''></button><button class='tile' data-hero='hero-2' data-src='https://photos.hotelbeds.com/giata/original/35/353782/353782a_hb_a_015.jpg'><img src='https://photos.hotelbeds.com/giata/original/35/353782/353782a_hb_a_015.jpg' alt=''></button><button class='tile' data-hero='hero-2' data-src='https://lh5.googleusercontent.com/p/AF1QipN7JBaGa8BENqzcwLx1Ni2yjZTB1bQIMyMDdTRS=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipN7JBaGa8BENqzcwLx1Ni2yjZTB1bQIMyMDdTRS=s10000' alt=''></button><button class='tile' data-hero='hero-2' data-src='https://photos.hotelbeds.com/giata/original/35/353782/353782a_hb_a_007.jpg'><img src='https://photos.hotelbeds.com/giata/original/35/353782/353782a_hb_a_007.jpg' alt=''></button>
+    </div>
+    <div class="map-wrap">
+      <div id='map-2' class='map'></div>
+    </div>
+  </div>
+
+  <div class="amen-row"><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M3 18c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Pool</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M12 3c-3 3-4 6-4 9s1 6 4 9c3-3 4-6 4-9s-1-6-4-9z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Spa</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M3 3h18l-6 8v7H9v-7L3 3z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Bar</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Restaurant</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M12 5c3 0 6 2 7 5h3v2H2V10h3c1-3 4-5 7-5zM3 18h18' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>In-Room Dining</span></span></div>
+</article>
+
+
+<article class="card">
+  <header class="hd">
+    <a href="https://www.hilton.com/en/hotels/wascici-conrad-washington-dc/?SEO_id=GMB-AMER-CN-WASCICI&amp;y_source=1_MTIxMTg5MTgtNzE1LWxvY2F0aW9uLndlYnNpdGU%3D" target="_blank" rel="noopener" class="hn">Conrad Washington, DC</a>
+    <div class="meta">
+      <div class="stars"><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg></div>
+      <div class="price">$$509</div>
+    </div>
+  </header>
+
+  <img id='hero-3' class='hero' src='https://lh5.googleusercontent.com/p/CIHM0ogKEICAgIDmuN_fXQ=s10000' alt=''>
+
+  <div class="media">
+    <div class="thumb-grid" id="thumbs-3">
+      <div class='tile logo'><img src='/yocto/logos/conrad.png' alt='brand logo'></div><button class='tile' data-hero='hero-3' data-src='https://lh5.googleusercontent.com/p/CIHM0ogKEICAgIDmuN_fXQ=s10000'><img src='https://lh5.googleusercontent.com/p/CIHM0ogKEICAgIDmuN_fXQ=s10000' alt=''></button><button class='tile' data-hero='hero-3' data-src='https://images.trvl-media.com/lodging/27000000/26920000/26919200/26919134/2be6dd40_z.jpg'><img src='https://images.trvl-media.com/lodging/27000000/26920000/26919200/26919134/2be6dd40_z.jpg' alt=''></button><button class='tile' data-hero='hero-3' data-src='https://lh5.googleusercontent.com/p/AF1QipNwW8GI0eUeaqMbrkDG8c7AbiKHIymP-AD5QCs6=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNwW8GI0eUeaqMbrkDG8c7AbiKHIymP-AD5QCs6=s10000' alt=''></button><button class='tile' data-hero='hero-3' data-src='https://lh5.googleusercontent.com/p/AF1QipPRaLJN9l-gVRJ7tGQ1RDeZxZ7VUYSVIWUMMcOZ=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPRaLJN9l-gVRJ7tGQ1RDeZxZ7VUYSVIWUMMcOZ=s10000' alt=''></button><button class='tile' data-hero='hero-3' data-src='https://lh5.googleusercontent.com/p/AF1QipMLGIUqXgp7st-dPyui9T-4zj3p7gN-JtT_cObm=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipMLGIUqXgp7st-dPyui9T-4zj3p7gN-JtT_cObm=s10000' alt=''></button><button class='tile' data-hero='hero-3' data-src='https://lh5.googleusercontent.com/p/AF1QipOL9DcNbP6euZUFlwQlxknL_KXiXUmWXodfOhu_=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOL9DcNbP6euZUFlwQlxknL_KXiXUmWXodfOhu_=s10000' alt=''></button><button class='tile' data-hero='hero-3' data-src='https://lh5.googleusercontent.com/p/AF1QipPrffBNLs9ZnB7iwRLVdOHUMjvW7h-wbZtACybr=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPrffBNLs9ZnB7iwRLVdOHUMjvW7h-wbZtACybr=s10000' alt=''></button><button class='tile' data-hero='hero-3' data-src='https://photos.hotelbeds.com/giata/original/63/632949/632949a_hb_l_021.jpg'><img src='https://photos.hotelbeds.com/giata/original/63/632949/632949a_hb_l_021.jpg' alt=''></button>
+    </div>
+    <div class="map-wrap">
+      <div id='map-3' class='map'></div>
+    </div>
+  </div>
+
+  <div class="amen-row"><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M7 11a2 2 0 110-4 2 2 0 010 4zm10 0a2 2 0 110-4 2 2 0 010 4zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Olly OK</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M3 3h18l-6 8v7H9v-7L3 3z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Bar</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Restaurant</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M12 5c3 0 6 2 7 5h3v2H2V10h3c1-3 4-5 7-5zM3 18h18' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>In-Room Dining</span></span></div>
+</article>
+
+
+<article class="card">
+  <header class="hd">
+    <a href="https://www.ritzcarlton.com/en/hotels/wasgo-the-ritz-carlton-georgetown-washington-dc/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener" class="hn">The Ritz-Carlton Georgetown, Washington, D.C.</a>
+    <div class="meta">
+      <div class="stars"><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg></div>
+      <div class="price">$$625</div>
+    </div>
+  </header>
+
+  <img id='hero-4' class='hero' src='https://lh5.googleusercontent.com/p/WzhMcoq62CIAAAAGOoyTSw=s10000' alt=''>
+
+  <div class="media">
+    <div class="thumb-grid" id="thumbs-4">
+      <div class='tile logo'><img src='/yocto/logos/ritz_carlton.png' alt='brand logo'></div><button class='tile' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/WzhMcoq62CIAAAAGOoyTSw=s10000'><img src='https://lh5.googleusercontent.com/p/WzhMcoq62CIAAAAGOoyTSw=s10000' alt=''></button><button class='tile' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/AF1QipO2hLnpswzdSYs-KO-5vfZZ8KehPbCDMMbSqJc=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipO2hLnpswzdSYs-KO-5vfZZ8KehPbCDMMbSqJc=s10000' alt=''></button><button class='tile' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/AF1QipN-JvelItrjxJ3-0zrlPLpRlG62OlBgK6kmXV8=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipN-JvelItrjxJ3-0zrlPLpRlG62OlBgK6kmXV8=s10000' alt=''></button><button class='tile' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/OP7FlYVoPdcAAAAGOoyZQQ=s10000'><img src='https://lh5.googleusercontent.com/p/OP7FlYVoPdcAAAAGOoyZQQ=s10000' alt=''></button><button class='tile' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/AF1QipMSbvsWmFVf8a7G35HMc-NhsTJSoV6248lepCM=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipMSbvsWmFVf8a7G35HMc-NhsTJSoV6248lepCM=s10000' alt=''></button><button class='tile' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/AF1QipP_PZZN8tMPfueZgRiDUJJ3wMoSS9mzXOUA6Y0=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipP_PZZN8tMPfueZgRiDUJJ3wMoSS9mzXOUA6Y0=s10000' alt=''></button><button class='tile' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/Cnw7tcGHrt4AAAAGOoyOyQ=s10000'><img src='https://lh5.googleusercontent.com/p/Cnw7tcGHrt4AAAAGOoyOyQ=s10000' alt=''></button><button class='tile' data-hero='hero-4' data-src='https://lh5.googleusercontent.com/p/AF1QipOPB98ZdsDsKywvm7M7F83K-Zb6NLGrhYfOuL4=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOPB98ZdsDsKywvm7M7F83K-Zb6NLGrhYfOuL4=s10000' alt=''></button>
+    </div>
+    <div class="map-wrap">
+      <div id='map-4' class='map'></div>
+    </div>
+  </div>
+
+  <div class="amen-row"><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M7 11a2 2 0 110-4 2 2 0 010 4zm10 0a2 2 0 110-4 2 2 0 010 4zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Olly OK</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M12 3c-3 3-4 6-4 9s1 6 4 9c3-3 4-6 4-9s-1-6-4-9z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Spa</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M3 3h18l-6 8v7H9v-7L3 3z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Bar</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Restaurant</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M12 5c3 0 6 2 7 5h3v2H2V10h3c1-3 4-5 7-5zM3 18h18' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>In-Room Dining</span></span></div>
+</article>
+
+
+<article class="card">
+  <header class="hd">
+    <a href="https://www.ritzcarlton.com/en/hotels/waspc-the-ritz-carlton-pentagon-city/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener" class="hn">The Ritz-Carlton, Pentagon City</a>
+    <div class="meta">
+      <div class="stars"><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg></div>
+      <div class="price">$$291</div>
+    </div>
+  </header>
+
+  <img id='hero-5' class='hero' src='https://lh5.googleusercontent.com/p/AF1QipMlI-2OCSfLebbprJ94eJGIJs8IQefkOlIxWb4c=s10000' alt=''>
+
+  <div class="media">
+    <div class="thumb-grid" id="thumbs-5">
+      <div class='tile logo'><img src='/yocto/logos/ritz_carlton.png' alt='brand logo'></div><button class='tile' data-hero='hero-5' data-src='https://lh5.googleusercontent.com/p/AF1QipMlI-2OCSfLebbprJ94eJGIJs8IQefkOlIxWb4c=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipMlI-2OCSfLebbprJ94eJGIJs8IQefkOlIxWb4c=s10000' alt=''></button><button class='tile' data-hero='hero-5' data-src='https://lh5.googleusercontent.com/p/AF1QipPdYPjgQhgemmwXe1kHflHMVSJJRTmzqNz0w7_O=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPdYPjgQhgemmwXe1kHflHMVSJJRTmzqNz0w7_O=s10000' alt=''></button><button class='tile' data-hero='hero-5' data-src='https://lh5.googleusercontent.com/p/rokntxRCZEMAAAQINS3Slg=s10000'><img src='https://lh5.googleusercontent.com/p/rokntxRCZEMAAAQINS3Slg=s10000' alt=''></button><button class='tile' data-hero='hero-5' data-src='https://lh5.googleusercontent.com/p/AF1QipPF4HyKRBrKfCi6JIELA5mK32FvgC5NtPBCJaE6=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPF4HyKRBrKfCi6JIELA5mK32FvgC5NtPBCJaE6=s10000' alt=''></button><button class='tile' data-hero='hero-5' data-src='https://lh5.googleusercontent.com/p/AF1QipNt3NQHCn0UXod97NKk8Y9NMlt5whrD5NjFx0c1=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNt3NQHCn0UXod97NKk8Y9NMlt5whrD5NjFx0c1=s10000' alt=''></button><button class='tile' data-hero='hero-5' data-src='https://lh5.googleusercontent.com/p/AF1QipNG1_3OB5_D-VYiibveCn2c0xSOcG9IsBkFDY_6=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNG1_3OB5_D-VYiibveCn2c0xSOcG9IsBkFDY_6=s10000' alt=''></button><button class='tile' data-hero='hero-5' data-src='https://lh5.googleusercontent.com/p/AF1QipNyjoJRNX5B9dm3ytDPIIvXmVLktIp6xpaHT9rY=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNyjoJRNX5B9dm3ytDPIIvXmVLktIp6xpaHT9rY=s10000' alt=''></button><button class='tile' data-hero='hero-5' data-src='https://photos.hotelbeds.com/giata/original/38/387223/387223a_hb_a_001.jpg'><img src='https://photos.hotelbeds.com/giata/original/38/387223/387223a_hb_a_001.jpg' alt=''></button>
+    </div>
+    <div class="map-wrap">
+      <div id='map-5' class='map'></div>
+    </div>
+  </div>
+
+  <div class="amen-row"><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M3 3h18l-6 8v7H9v-7L3 3z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Bar</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Restaurant</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M12 5c3 0 6 2 7 5h3v2H2V10h3c1-3 4-5 7-5zM3 18h18' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>In-Room Dining</span></span></div>
+</article>
+
+
+<article class="card">
+  <header class="hd">
+    <a href="https://wharfintercontinentaldc.com/" target="_blank" rel="noopener" class="hn">InterContinental Washington D.C. - The Wharf, an IHG Hotel</a>
+    <div class="meta">
+      <div class="stars"><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg></div>
+      <div class="price">$$187</div>
+    </div>
+  </header>
+
+  <img id='hero-6' class='hero' src='https://lh5.googleusercontent.com/p/AF1QipNsfEvxETI3MEWd-aTvD1FbTO8q9kxPIHtDtO5V=s10000' alt=''>
+
+  <div class="media">
+    <div class="thumb-grid" id="thumbs-6">
+      <div class='tile logo'><img src='/yocto/logos/intercontinental.png' alt='brand logo'></div><button class='tile' data-hero='hero-6' data-src='https://lh5.googleusercontent.com/p/AF1QipNsfEvxETI3MEWd-aTvD1FbTO8q9kxPIHtDtO5V=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNsfEvxETI3MEWd-aTvD1FbTO8q9kxPIHtDtO5V=s10000' alt=''></button><button class='tile' data-hero='hero-6' data-src='https://lh5.googleusercontent.com/p/AF1QipOkcsBhftI0l9_ZZDDoYfNU2itK2Ii1oN-wISaK=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOkcsBhftI0l9_ZZDDoYfNU2itK2Ii1oN-wISaK=s10000' alt=''></button><button class='tile' data-hero='hero-6' data-src='https://lh5.googleusercontent.com/p/CIHM0ogKEICAgIDOo8CyIw=s10000'><img src='https://lh5.googleusercontent.com/p/CIHM0ogKEICAgIDOo8CyIw=s10000' alt=''></button><button class='tile' data-hero='hero-6' data-src='https://d2hyz2bfif3cr8.cloudfront.net/imageRepo/7/0/151/507/140/WASHC_8159009340_O.jpg'><img src='https://d2hyz2bfif3cr8.cloudfront.net/imageRepo/7/0/151/507/140/WASHC_8159009340_O.jpg' alt=''></button><button class='tile' data-hero='hero-6' data-src='https://lh5.googleusercontent.com/p/AF1QipPYa7R3BckczRK3QAJaG4InLpiLyGBSsL-YIFC7=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPYa7R3BckczRK3QAJaG4InLpiLyGBSsL-YIFC7=s10000' alt=''></button><button class='tile' data-hero='hero-6' data-src='https://d2hyz2bfif3cr8.cloudfront.net/imageRepo/7/0/128/495/887/WASHC_6067203746_O.jpg'><img src='https://d2hyz2bfif3cr8.cloudfront.net/imageRepo/7/0/128/495/887/WASHC_6067203746_O.jpg' alt=''></button><button class='tile' data-hero='hero-6' data-src='https://lh5.googleusercontent.com/p/AF1QipPktbQS8ShemwPzEvA7Qnp9VstDrwbMe4NT_K8h=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPktbQS8ShemwPzEvA7Qnp9VstDrwbMe4NT_K8h=s10000' alt=''></button><button class='tile' data-hero='hero-6' data-src='https://lh5.googleusercontent.com/p/AF1QipNj5z5focOLJPytKKbcKjGEKeWh-ItHYaEcMBsx=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNj5z5focOLJPytKKbcKjGEKeWh-ItHYaEcMBsx=s10000' alt=''></button>
+    </div>
+    <div class="map-wrap">
+      <div id='map-6' class='map'></div>
+    </div>
+  </div>
+
+  <div class="amen-row"><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M3 18c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Pool</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M7 11a2 2 0 110-4 2 2 0 010 4zm10 0a2 2 0 110-4 2 2 0 010 4zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Olly OK</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M3 3h18l-6 8v7H9v-7L3 3z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Bar</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Restaurant</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M12 5c3 0 6 2 7 5h3v2H2V10h3c1-3 4-5 7-5zM3 18h18' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>In-Room Dining</span></span></div>
+</article>
+
+
+<article class="card">
+  <header class="hd">
+    <a href="https://www.ritzcarlton.com/en/hotels/wasrt-the-ritz-carlton-washington-dc/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener" class="hn">The Ritz-Carlton, Washington, D.C.</a>
+    <div class="meta">
+      <div class="stars"><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg></div>
+      <div class="price">$$453</div>
+    </div>
+  </header>
+
+  <img id='hero-7' class='hero' src='https://photos.hotelbeds.com/giata/original/13/137246/137246a_hb_a_002.jpg' alt=''>
+
+  <div class="media">
+    <div class="thumb-grid" id="thumbs-7">
+      <div class='tile logo'><img src='/yocto/logos/ritz_carlton.png' alt='brand logo'></div><button class='tile' data-hero='hero-7' data-src='https://photos.hotelbeds.com/giata/original/13/137246/137246a_hb_a_002.jpg'><img src='https://photos.hotelbeds.com/giata/original/13/137246/137246a_hb_a_002.jpg' alt=''></button><button class='tile' data-hero='hero-7' data-src='https://lh5.googleusercontent.com/p/AF1QipPt9cJ_J-jJpi8xf1uIXFyL1GYfd20wGbdxSfrM=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPt9cJ_J-jJpi8xf1uIXFyL1GYfd20wGbdxSfrM=s10000' alt=''></button><button class='tile' data-hero='hero-7' data-src='https://photos.hotelbeds.com/giata/original/13/137246/137246a_hb_r_006.jpg'><img src='https://photos.hotelbeds.com/giata/original/13/137246/137246a_hb_r_006.jpg' alt=''></button><button class='tile' data-hero='hero-7' data-src='https://images.trvl-media.com/lodging/1000000/490000/483500/483418/e159ae2a_z.jpg'><img src='https://images.trvl-media.com/lodging/1000000/490000/483500/483418/e159ae2a_z.jpg' alt=''></button><button class='tile' data-hero='hero-7' data-src='https://images.trvl-media.com/lodging/1000000/490000/483500/483418/94aac07e_z.jpg'><img src='https://images.trvl-media.com/lodging/1000000/490000/483500/483418/94aac07e_z.jpg' alt=''></button><button class='tile' data-hero='hero-7' data-src='https://photos.hotelbeds.com/giata/original/13/137246/137246a_hb_a_019.jpg'><img src='https://photos.hotelbeds.com/giata/original/13/137246/137246a_hb_a_019.jpg' alt=''></button><button class='tile' data-hero='hero-7' data-src='https://photos.hotelbeds.com/giata/original/13/137246/137246a_hb_r_002.jpg'><img src='https://photos.hotelbeds.com/giata/original/13/137246/137246a_hb_r_002.jpg' alt=''></button><button class='tile' data-hero='hero-7' data-src='https://photos.hotelbeds.com/giata/original/13/137246/137246a_hb_r_001.jpg'><img src='https://photos.hotelbeds.com/giata/original/13/137246/137246a_hb_r_001.jpg' alt=''></button>
+    </div>
+    <div class="map-wrap">
+      <div id='map-7' class='map'></div>
+    </div>
+  </div>
+
+  <div class="amen-row"><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M7 11a2 2 0 110-4 2 2 0 010 4zm10 0a2 2 0 110-4 2 2 0 010 4zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Olly OK</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M3 3h18l-6 8v7H9v-7L3 3z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Bar</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Restaurant</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M12 5c3 0 6 2 7 5h3v2H2V10h3c1-3 4-5 7-5zM3 18h18' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>In-Room Dining</span></span></div>
+</article>
+
+
+<article class="card">
+  <header class="hd">
+    <a href="https://www.hyatt.com/en-US/hotel/washington-dc/park-hyatt-washington-dc/wasph?src=corp_lclb_google_seo_wasph&amp;utm_source=google&amp;utm_medium=organic&amp;utm_campaign=lmr" target="_blank" rel="noopener" class="hn">Park Hyatt Washington D.C.</a>
+    <div class="meta">
+      <div class="stars"><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg></div>
+      <div class="price">$$431</div>
+    </div>
+  </header>
+
+  <img id='hero-8' class='hero' src='https://lh5.googleusercontent.com/p/AF1QipNSAw8YE2x0cd2cahFM3rgP3T6bbIFzoQ2Xn7zs=s10000' alt=''>
+
+  <div class="media">
+    <div class="thumb-grid" id="thumbs-8">
+      <div class='tile logo'><img src='/yocto/logos/park_hyatt.png' alt='brand logo'></div><button class='tile' data-hero='hero-8' data-src='https://lh5.googleusercontent.com/p/AF1QipNSAw8YE2x0cd2cahFM3rgP3T6bbIFzoQ2Xn7zs=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNSAw8YE2x0cd2cahFM3rgP3T6bbIFzoQ2Xn7zs=s10000' alt=''></button><button class='tile' data-hero='hero-8' data-src='https://lh5.googleusercontent.com/p/AF1QipPwO4oiIqSZlWjj2_cUkr3Fzefu3Swu_RmrgtxP=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPwO4oiIqSZlWjj2_cUkr3Fzefu3Swu_RmrgtxP=s10000' alt=''></button><button class='tile' data-hero='hero-8' data-src='https://lh5.googleusercontent.com/p/AF1QipMb77E8QV7w_nYmHv5vOab2Y_pdgVfm_40NyUrJ=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipMb77E8QV7w_nYmHv5vOab2Y_pdgVfm_40NyUrJ=s10000' alt=''></button><button class='tile' data-hero='hero-8' data-src='https://lh5.googleusercontent.com/p/AF1QipPNdeJkjjbbAVM_7jaKdEdMXeiMviURznpgdRr2=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPNdeJkjjbbAVM_7jaKdEdMXeiMviURznpgdRr2=s10000' alt=''></button><button class='tile' data-hero='hero-8' data-src='https://lh5.googleusercontent.com/p/AF1QipN22SM5ORGyboTItPRJrsSkIK-DA96QLMAe3ZuN=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipN22SM5ORGyboTItPRJrsSkIK-DA96QLMAe3ZuN=s10000' alt=''></button><button class='tile' data-hero='hero-8' data-src='https://lh5.googleusercontent.com/p/AF1QipNRxh0t4aUou8TnKMB82N4L8gZhoaazx9o2y8av=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNRxh0t4aUou8TnKMB82N4L8gZhoaazx9o2y8av=s10000' alt=''></button><button class='tile' data-hero='hero-8' data-src='https://lh5.googleusercontent.com/p/AF1QipMWPlfvNeqG53OOIjrxpNmLmhxuodARoxS_qb6y=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipMWPlfvNeqG53OOIjrxpNmLmhxuodARoxS_qb6y=s10000' alt=''></button><button class='tile' data-hero='hero-8' data-src='https://lh5.googleusercontent.com/p/AF1QipP8GiGT0tRJWyzIE8pq7L6mNwaIukadjoN-B-QG=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipP8GiGT0tRJWyzIE8pq7L6mNwaIukadjoN-B-QG=s10000' alt=''></button>
+    </div>
+    <div class="map-wrap">
+      <div id='map-8' class='map'></div>
+    </div>
+  </div>
+
+  <div class="amen-row"><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M3 18c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Pool</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><circle cx='12' cy='12' r='5' fill='none' stroke='#000' stroke-width='1.5'/><path d='M3 18c2 0 2-1 4-1s2 1 4 1 2-1 4-1 2 1 4 1' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Hot tub</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M7 11a2 2 0 110-4 2 2 0 010 4zm10 0a2 2 0 110-4 2 2 0 010 4zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Olly OK</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M12 3c-3 3-4 6-4 9s1 6 4 9c3-3 4-6 4-9s-1-6-4-9z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Spa</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M3 3h18l-6 8v7H9v-7L3 3z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Bar</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Restaurant</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M12 5c3 0 6 2 7 5h3v2H2V10h3c1-3 4-5 7-5zM3 18h18' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>In-Room Dining</span></span></div>
+</article>
+
+
+<article class="card">
+  <header class="hd">
+    <a href="https://www.marriott.com/en-us/hotels/wassx-the-st-regis-washington-dc/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener" class="hn">The St. Regis Washington, D.C.</a>
+    <div class="meta">
+      <div class="stars"><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg></div>
+      <div class="price">$$544</div>
+    </div>
+  </header>
+
+  <img id='hero-9' class='hero' src='https://lh5.googleusercontent.com/p/AF1QipN8l7VBnJp47aQ-zxrNV4bd6v1lKbeQVoJ0l-xq=s10000' alt=''>
+
+  <div class="media">
+    <div class="thumb-grid" id="thumbs-9">
+      <div class='tile logo'><img src='/yocto/logos/st_regis.png' alt='brand logo'></div><button class='tile' data-hero='hero-9' data-src='https://lh5.googleusercontent.com/p/AF1QipN8l7VBnJp47aQ-zxrNV4bd6v1lKbeQVoJ0l-xq=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipN8l7VBnJp47aQ-zxrNV4bd6v1lKbeQVoJ0l-xq=s10000' alt=''></button><button class='tile' data-hero='hero-9' data-src='https://d2hyz2bfif3cr8.cloudfront.net/imageRepo/7/0/157/942/919/wassx-guestroom-6170-hor-clsc_O.jpg'><img src='https://d2hyz2bfif3cr8.cloudfront.net/imageRepo/7/0/157/942/919/wassx-guestroom-6170-hor-clsc_O.jpg' alt=''></button><button class='tile' data-hero='hero-9' data-src='https://photos.hotelbeds.com/giata/original/17/175446/175446a_hb_a_155.jpg'><img src='https://photos.hotelbeds.com/giata/original/17/175446/175446a_hb_a_155.jpg' alt=''></button><button class='tile' data-hero='hero-9' data-src='https://photos.hotelbeds.com/giata/original/17/175446/175446a_hb_w_005.jpg'><img src='https://photos.hotelbeds.com/giata/original/17/175446/175446a_hb_w_005.jpg' alt=''></button><button class='tile' data-hero='hero-9' data-src='https://photos.hotelbeds.com/giata/original/17/175446/175446a_hb_a_015.jpg'><img src='https://photos.hotelbeds.com/giata/original/17/175446/175446a_hb_a_015.jpg' alt=''></button><button class='tile' data-hero='hero-9' data-src='https://photos.hotelbeds.com/giata/original/17/175446/175446a_hb_a_122.jpg'><img src='https://photos.hotelbeds.com/giata/original/17/175446/175446a_hb_a_122.jpg' alt=''></button><button class='tile' data-hero='hero-9' data-src='https://lh5.googleusercontent.com/p/AF1QipPsnqA68kUjsVkuQzMcjHxOthVO0EFwqWkfHVUc=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPsnqA68kUjsVkuQzMcjHxOthVO0EFwqWkfHVUc=s10000' alt=''></button><button class='tile' data-hero='hero-9' data-src='https://photos.hotelbeds.com/giata/original/17/175446/175446a_hb_a_113.jpg'><img src='https://photos.hotelbeds.com/giata/original/17/175446/175446a_hb_a_113.jpg' alt=''></button>
+    </div>
+    <div class="map-wrap">
+      <div id='map-9' class='map'></div>
+    </div>
+  </div>
+
+  <div class="amen-row"><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M7 11a2 2 0 110-4 2 2 0 010 4zm10 0a2 2 0 110-4 2 2 0 010 4zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Olly OK</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M3 3h18l-6 8v7H9v-7L3 3z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Bar</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Restaurant</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M12 5c3 0 6 2 7 5h3v2H2V10h3c1-3 4-5 7-5zM3 18h18' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>In-Room Dining</span></span></div>
+</article>
+
+
+<article class="card">
+  <header class="hd">
+    <a href="https://www.marriott.com/en-us/hotels/wasjw-jw-marriott-washington-dc/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0" target="_blank" rel="noopener" class="hn">JW Marriott Washington, DC</a>
+    <div class="meta">
+      <div class="stars"><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg></div>
+      <div class="price">$$354</div>
+    </div>
+  </header>
+
+  <img id='hero-10' class='hero' src='https://lh5.googleusercontent.com/p/AF1QipOew8Cfw171yd5pMnFb-2kCqKtwFHokEFBqvoSD=s10000' alt=''>
+
+  <div class="media">
+    <div class="thumb-grid" id="thumbs-10">
+      <div class='tile logo'><img src='/yocto/logos/jw_marriott.png' alt='brand logo'></div><button class='tile' data-hero='hero-10' data-src='https://lh5.googleusercontent.com/p/AF1QipOew8Cfw171yd5pMnFb-2kCqKtwFHokEFBqvoSD=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOew8Cfw171yd5pMnFb-2kCqKtwFHokEFBqvoSD=s10000' alt=''></button><button class='tile' data-hero='hero-10' data-src='https://photos.hotelbeds.com/giata/original/25/252858/252858a_hb_a_060.jpg'><img src='https://photos.hotelbeds.com/giata/original/25/252858/252858a_hb_a_060.jpg' alt=''></button><button class='tile' data-hero='hero-10' data-src='https://lh5.googleusercontent.com/p/AF1QipMOO5SO8X0d2xLAS71rHm0Y_SY1JiEOgTZChj_-=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipMOO5SO8X0d2xLAS71rHm0Y_SY1JiEOgTZChj_-=s10000' alt=''></button><button class='tile' data-hero='hero-10' data-src='https://photos.hotelbeds.com/giata/original/25/252858/252858a_hb_ro_318.jpg'><img src='https://photos.hotelbeds.com/giata/original/25/252858/252858a_hb_ro_318.jpg' alt=''></button><button class='tile' data-hero='hero-10' data-src='https://lh5.googleusercontent.com/p/4jIgB27rrnYAAAQIL7x3ag=s10000'><img src='https://lh5.googleusercontent.com/p/4jIgB27rrnYAAAQIL7x3ag=s10000' alt=''></button><button class='tile' data-hero='hero-10' data-src='https://d2hyz2bfif3cr8.cloudfront.net/imageRepo/6/0/96/589/820/wasjw-fitness-0140-hor-clsc_O.jpg'><img src='https://d2hyz2bfif3cr8.cloudfront.net/imageRepo/6/0/96/589/820/wasjw-fitness-0140-hor-clsc_O.jpg' alt=''></button><button class='tile' data-hero='hero-10' data-src='https://lh5.googleusercontent.com/p/AF1QipPmLqxIMeoK73F2ZSy0zsd6BmwbKMO7nOJgMVKe=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPmLqxIMeoK73F2ZSy0zsd6BmwbKMO7nOJgMVKe=s10000' alt=''></button><button class='tile' data-hero='hero-10' data-src='https://lh5.googleusercontent.com/p/AF1QipOqT98zDMS9QCD7dI2f2STxQwIrbUDT8hYfki-v=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOqT98zDMS9QCD7dI2f2STxQwIrbUDT8hYfki-v=s10000' alt=''></button>
+    </div>
+    <div class="map-wrap">
+      <div id='map-10' class='map'></div>
+    </div>
+  </div>
+
+  <div class="amen-row"><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M3 3h18l-6 8v7H9v-7L3 3z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Bar</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Restaurant</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M12 5c3 0 6 2 7 5h3v2H2V10h3c1-3 4-5 7-5zM3 18h18' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>In-Room Dining</span></span></div>
+</article>
+
+
+<article class="card">
+  <header class="hd">
+    <a href="http://sofitel.accor.com/hotels/3293?merchantid=seo-maps-US-3293&amp;sourceid=aw-cen&amp;utm_source=google+Maps&amp;utm_medium=seo+maps&amp;utm_campaign=seo+maps&amp;utm_term=Sofitel-Launch" target="_blank" rel="noopener" class="hn">Sofitel Washington DC Lafayette Square</a>
+    <div class="meta">
+      <div class="stars"><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg><svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="none" stroke="#000" stroke-width="1.2"/>
+</svg></div>
+      <div class="price">$$186</div>
+    </div>
+  </header>
+
+  <img id='hero-11' class='hero' src='https://lh5.googleusercontent.com/p/AF1QipOshhd2o8JkWG07y8iDbYHif5MhSmdVMwz7YHRu=s10000' alt=''>
+
+  <div class="media">
+    <div class="thumb-grid" id="thumbs-11">
+      <div class='tile logo'><img src='/yocto/logos/fallback.png' alt='brand logo'></div><button class='tile' data-hero='hero-11' data-src='https://lh5.googleusercontent.com/p/AF1QipOshhd2o8JkWG07y8iDbYHif5MhSmdVMwz7YHRu=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOshhd2o8JkWG07y8iDbYHif5MhSmdVMwz7YHRu=s10000' alt=''></button><button class='tile' data-hero='hero-11' data-src='https://lh5.googleusercontent.com/p/AF1QipNZ3RnqnuiLmSXwzy6ItmUH3_sobqTArkNaMpWS=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipNZ3RnqnuiLmSXwzy6ItmUH3_sobqTArkNaMpWS=s10000' alt=''></button><button class='tile' data-hero='hero-11' data-src='https://lh5.googleusercontent.com/p/AF1QipOovF65sR0POKxUkSoZOjJtyPULXCbnBVg0IrZz=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipOovF65sR0POKxUkSoZOjJtyPULXCbnBVg0IrZz=s10000' alt=''></button><button class='tile' data-hero='hero-11' data-src='https://lh5.googleusercontent.com/p/AF1QipPL44ufGgz3y3Umharv22NHH1m_orwj-5NHgFre=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPL44ufGgz3y3Umharv22NHH1m_orwj-5NHgFre=s10000' alt=''></button><button class='tile' data-hero='hero-11' data-src='https://lh5.googleusercontent.com/p/AF1QipM2tWWsKvQMJYtG2N4EOzbMwEHSfMKAVsXpvvNk=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipM2tWWsKvQMJYtG2N4EOzbMwEHSfMKAVsXpvvNk=s10000' alt=''></button><button class='tile' data-hero='hero-11' data-src='https://lh5.googleusercontent.com/p/AF1QipMCwGLppQPZqy_LCM50d_RiyHiZO-XGdw_iBnQz=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipMCwGLppQPZqy_LCM50d_RiyHiZO-XGdw_iBnQz=s10000' alt=''></button><button class='tile' data-hero='hero-11' data-src='https://lh5.googleusercontent.com/p/AF1QipPFAteWRWsNH4kONCJmKOqpclIKSFkC_O_s7-3r=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPFAteWRWsNH4kONCJmKOqpclIKSFkC_O_s7-3r=s10000' alt=''></button><button class='tile' data-hero='hero-11' data-src='https://lh5.googleusercontent.com/p/AF1QipPQfrCzv5YYAVkWKsshyQfmWUQ6It9_Z1IVbG_6=s10000'><img src='https://lh5.googleusercontent.com/p/AF1QipPQfrCzv5YYAVkWKsshyQfmWUQ6It9_Z1IVbG_6=s10000' alt=''></button>
+    </div>
+    <div class="map-wrap">
+      <div id='map-11' class='map'></div>
+    </div>
+  </div>
+
+  <div class="amen-row"><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M7 11a2 2 0 110-4 2 2 0 010 4zm10 0a2 2 0 110-4 2 2 0 010 4zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Olly OK</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M3 3h18l-6 8v7H9v-7L3 3z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Bar</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M7 2h2v10a2 2 0 11-4 0V2h2zm8 0h2v7h2v13h-2V11h-2V2z' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>Restaurant</span></span><span class='am'><svg class='amen' viewBox='0 0 24 24'><path d='M12 5c3 0 6 2 7 5h3v2H2V10h3c1-3 4-5 7-5zM3 18h18' fill='none' stroke='#000' stroke-width='1.5'/></svg><span>In-Room Dining</span></span></div>
+</article>
+
+<div style="text-align:center;color:#555;font-size:12px;margin:18px 0;">
+  Published to <a href="https://hiner.nyc/yocto/results/" style="color:#111">https://hiner.nyc/yocto/results/</a>
 </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-// thumbnail -> hero swapper
-document.querySelectorAll('.thumb').forEach(btn => {
+// thumbnail -> hero swap
+document.querySelectorAll('.tile[data-src]').forEach(btn => {
   btn.addEventListener('click', e => {
     e.preventDefault();
     const heroId = btn.getAttribute('data-hero');
@@ -269,6 +546,7 @@ document.querySelectorAll('.thumb').forEach(btn => {
     if (hero && src) hero.src = src;
   });
 });
+
 // maps
 const entries = [{"id": "map-0", "lat": 38.9048185, "lon": -77.0572948, "name": "Four Seasons Hotel Washington, DC"}, {"id": "map-1", "lat": 38.896812499999996, "lon": -77.0322812, "name": "InterContinental the Willard Washington D.C. by IHG"}, {"id": "map-2", "lat": 38.924379699999996, "lon": -77.2235439, "name": "The Ritz-Carlton, Tysons Corner"}, {"id": "map-3", "lat": 38.9013723, "lon": -77.0252838, "name": "Conrad Washington, DC"}, {"id": "map-4", "lat": 38.9029838, "lon": -77.06173179999999, "name": "The Ritz-Carlton Georgetown, Washington, D.C."}, {"id": "map-5", "lat": 38.8625791, "lon": -77.0605463, "name": "The Ritz-Carlton, Pentagon City"}, {"id": "map-6", "lat": 38.8793637, "lon": -77.0249025, "name": "InterContinental Washington D.C. - The Wharf, an IHG Hotel"}, {"id": "map-7", "lat": 38.9046966, "lon": -77.0490792, "name": "The Ritz-Carlton, Washington, D.C."}, {"id": "map-8", "lat": 38.906086599999995, "lon": -77.0510944, "name": "Park Hyatt Washington D.C."}, {"id": "map-9", "lat": 38.9021897, "lon": -77.036168, "name": "The St. Regis Washington, D.C."}, {"id": "map-10", "lat": 38.89659, "lon": -77.031471, "name": "JW Marriott Washington, DC"}, {"id": "map-11", "lat": 38.900478199999995, "lon": -77.03400599999999, "name": "Sofitel Washington DC Lafayette Square"}];
 entries.forEach(it => {
