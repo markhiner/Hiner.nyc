@@ -192,6 +192,8 @@ def render_html(q: str, ci: str, co: str, data: Dict[str, Any]) -> str:
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Hotels — {city_disp} — {date_disp}</title>
 <link rel="stylesheet" href="{LEAFLET_CSS}">
 <style>
