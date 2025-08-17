@@ -11,10 +11,34 @@
   <link href="https://fonts.googleapis.com/css2?family=Encode+Sans+SC:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/js-sha256@0.9.0/build/sha256.min.js"></script>
   <style>
+    /* FIX: prevent 100%+padding overflow on iPhone */
+    *,*::before,*::after{box-sizing:border-box}
+
     html{-webkit-text-size-adjust:100%}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#0b0b0b;color:#eee;display:flex;min-height:100vh;align-items:center;justify-content:center}
-    .card{background:#161616;border:1px solid #2a2a2a;border-radius:16px;padding:24px;max-width:520px;width:92vw;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-    input,button{width:100%;padding:12px 14px;border-radius:10px;border:1px solid #2a2a2a;background:#0f0f0f;color:#f0f0f0;font-size:17px;-webkit-appearance:none;appearance:none}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      background:#0b0b0b;color:#eee;
+      min-height:100vh;display:flex;align-items:center;justify-content:center
+    }
+    .card{
+      background:#161616;border:1px solid #2a2a2a;border-radius:16px;
+      /* clamp width + honor safe-area insets so nothing hugs the right edge */
+      width:min(92vw,520px);
+      padding:
+        24px
+        calc(24px + env(safe-area-inset-right))
+        24px
+        calc(24px + env(safe-area-inset-left));
+      box-shadow:0 10px 30px rgba(0,0,0,.35)
+    }
+
+    input,button{
+      width:100%;
+      padding:12px 14px;
+      border-radius:10px;border:1px solid #2a2a2a;background:#0f0f0f;color:#f0f0f0;
+      font-size:17px;-webkit-appearance:none;appearance:none
+    }
     button{cursor:pointer}
     .hidden{display:none}
 
@@ -27,7 +51,7 @@
       height:68px;border:none;background:transparent;color:#fff;
       font-family:"Encode Sans SC",sans-serif;font-weight:100;font-size:34px;line-height:1;
       font-optical-sizing:auto;font-variation-settings:"wdth" 100;
-      user-select:none;-webkit-tap-highlight-color:transparent;outline:none;
+      user-select:none;-webkit-tap-highlight-color:transparent;outline:none
     }
     .key:active{transform:scale(.98)}
     .ok-icon{width:30px;height:30px;display:block}
@@ -43,7 +67,7 @@
       flex:0 0 auto;padding:10px 14px;border-radius:999px;border:1px solid #2a2a2a;
       background:#0f0f0f;color:#fff;width:auto;
       font-family:"Encode Sans SC",sans-serif;font-weight:100;font-optical-sizing:auto;font-variation-settings:"wdth" 100;
-      font-size:16px;line-height:1;
+      font-size:16px;line-height:1
     }
     .chip:active{transform:scale(.98)}
 
@@ -54,13 +78,14 @@
     .nvalue{display:flex;align-items:center;justify-content:center;gap:10px;height:64px;border:1px solid #2a2a2a;background:#0f0f0f;border-radius:12px}
     .nvalue input{width:72px;text-align:center;font-size:22px;height:100%;border:none;background:transparent;color:#f0f0f0;outline:none}
     .nlabel{font-size:16px;color:#cfd3d7}
+
     input[type=number]{-moz-appearance:textfield}
     input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 
     /* Search button */
     .search-btn{
       font-family:"Encode Sans SC",sans-serif;font-weight:100;font-optical-sizing:auto;font-variation-settings:"wdth" 100;
-      font-size:20px;padding:14px 16px;border-radius:12px;background:#0f0f0f;border:1px solid #2a2a2a;color:#fff;margin-top:14px;
+      font-size:20px;padding:14px 16px;border-radius:12px;background:#0f0f0f;border:1px solid #2a2a2a;color:#fff;margin-top:14px
     }
     .search-btn:active{transform:scale(.99)}
   </style>
@@ -149,7 +174,6 @@
   // Auto-collapse date picker after selection AND auto-submit
   whenInput.addEventListener('change', ()=>{
     whenInput.blur();
-    // if where/nights satisfy required, this submits; otherwise browser shows native validation
     if (form.requestSubmit) form.requestSubmit();
     else form.submit();
   });
@@ -159,7 +183,6 @@
     btn.addEventListener('click', ()=>{
       whereInput.value = btn.getAttribute('data-val') || '';
       whereInput.blur();
-      // convenience: open calendar so the next tap triggers auto-submit
       if (whenInput && whenInput.showPicker) whenInput.showPicker();
     });
   });
@@ -188,7 +211,7 @@
       whenInput.value = d.toISOString().slice(0,10);
       setNights(1);
       whereInput.focus();
-      // optional: auto-open calendar; selecting a date will now auto-submit
+      // optional: open calendar; selecting a date will auto-submit
       setTimeout(()=>{ if(whenInput.showPicker) whenInput.showPicker(); },0);
     }else{
       buf=""; renderDots(); alert('Wrong code');
