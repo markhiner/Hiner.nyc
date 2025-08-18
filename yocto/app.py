@@ -8,14 +8,16 @@ from typing import Any, Dict, List, Optional
 import requests
 from flask import Flask, request, Response, abort
 
-# ===== ENV =====
+# =========================
+# ENV / CONFIG
+# =========================
 SERPAPI_KEY = os.environ.get("SERPAPI_KEY")
 REPO_DIR    = os.environ.get("REPO_DIR")
 BASIC_USER  = os.environ.get("BASIC_AUTH_USER")
 BASIC_PASS  = os.environ.get("BASIC_AUTH_PASS")
-SITE_BASE   = os.environ.get("SITE_BASE", "https://hiner.nyc")
+SITE_BASE   = os.environ.get("SITE_BASE", "https://hiner.nyc")  # used for absolute asset URLs
 
-# hard-wired HOTEL filters
+# Hard-wired hotel filters
 BRANDS_PARAM = "84,7,41,118,256,26,136,289,2,3"
 HOTEL_CLASS  = "4,5"
 SORT_BY      = "8"
@@ -23,19 +25,27 @@ SORT_BY      = "8"
 if not (SERPAPI_KEY and REPO_DIR and BASIC_USER and BASIC_PASS):
     raise SystemExit("Missing env vars: SERPAPI_KEY, REPO_DIR, BASIC_AUTH_USER, BASIC_AUTH_PASS are required")
 
-RESULTS_HOTELS = os.path.join(REPO_DIR, "yocto", "results", "index.html")
+RESULTS_HOTELS  = os.path.join(REPO_DIR, "yocto", "results", "index.html")
 RESULTS_FLIGHTS = os.path.join(REPO_DIR, "yocto", "fly", "results", "index.html")
+
+LEAFLET_CSS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+LEAFLET_JS  = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
 
 app = Flask(__name__)
 
-# ===== BASIC AUTH =====
+# =========================
+# BASIC AUTH (all routes)
+# =========================
 @app.before_request
 def _auth():
     a = request.authorization
     if not (a and a.username == BASIC_USER and a.password == BASIC_PASS):
         return Response("Auth required", 401, {"WWW-Authenticate": 'Basic realm="yocto"'})
 
-# ===== SHARED UTILS =====
+
+# =========================
+# UTIL
+# =========================
 def esc(s: Any) -> str:
     return html.escape(str(s)) if s is not None else ""
 
@@ -71,7 +81,10 @@ def git_add_commit_push(paths: List[str]) -> Optional[str]:
     except subprocess.CalledProcessError as e:
         return e.stderr or e.stdout or "git error"
 
-# ====== HOTELS (unchanged features you asked for earlier) ======
+
+# =========================
+# HOTELS (SerpAPI Google Hotels)
+# =========================
 def serpapi_hotels(q: str, check_in: str, check_out: str) -> Dict[str, Any]:
     url = "https://serpapi.com/search.json"
     params = {
@@ -118,7 +131,7 @@ def pick_images(p: Dict[str, Any]) -> List[str]:
             if u: out.append(u)
     return out
 
-# ---- LOGOS for hotels (explicit map; absolute URLs so they resolve via ngrok or Pages) ----
+# ---- LOGOS (explicit brand map; absolute URLs so they load via ngrok and GH Pages) ----
 def _norm(s: str) -> str:
     s = s.lower().strip()
     s = re.sub(r"&", " and ", s)
@@ -164,6 +177,7 @@ ALIAS = {
     "inter-continental": "intercontinental",
 }
 def _alias(tok: str) -> str: return ALIAS.get(tok, tok)
+
 def logo_for_property(p: Dict[str, Any]) -> str:
     name = str(p.get("name") or "")
     if name.strip().lower().startswith("w "):
@@ -193,6 +207,7 @@ AMENITY_SVGS = {
     "Beach":         "<svg class='amen' viewBox='0 0 24 24'><path d='M3 18h18M5 18c2-6 8-6 10 0' fill='none' stroke='#000' stroke-width='1.5'/><path d='M12 6c3 0 5 2 5 4' fill='none' stroke='#000' stroke-width='1.5'/></svg>",
     "Casino":        "<svg class='amen' viewBox='0 0 24 24'><rect x='4' y='4' width='16' height='16' rx='3' ry='3' fill='none' stroke='#000' stroke-width='1.5'/><circle cx='9' cy='9' r='1.5'/><circle cx='15' cy='9' r='1.5'/><circle cx='9' cy='15' r='1.5'/><circle cx='15' cy='15' r='1.5'/></svg>",
 }
+
 def pick_amenities(raw: Any) -> List[str]:
     labs: List[str] = []
     if not isinstance(raw, list): return labs
@@ -217,13 +232,10 @@ STAR_SVG = """<svg class="star" viewBox="0 0 24 24" aria-hidden="true">
   <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
         fill="{fill}" stroke="#000" stroke-width="1.2"/>
 </svg>"""
-def stars_html(n: int) -> str:
-    n = max(0, min(5, int(n)))
-    return "".join(STAR_SVG.format(fill="#FFD54A" if i < n else "none") for i in range(5))
 
-LEAFLET_CSS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-LEAFLET_JS  = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-GOOGLE_FONTS = '<link href="https://fonts.googleapis.com/css2?family=Sansation:wght@400;600;700&display=swap" rel="stylesheet">'
+def stars_html(n: int) -> str:
+    n = max(0, min(5, int(n))))
+    return "".join(STAR_SVG.format(fill="#FFD54A" if i < n else "none") for i in range(5))
 
 def extract_discount(p: Dict[str, Any]) -> Optional[str]:
     for k in ("price_x_percent_lower_than_usual", "price_drop_percent", "percent_lower_than_usual", "discount_percent"):
@@ -242,16 +254,188 @@ def render_hotels_html(q: str, ci_s: str, co_s: str, data: Dict[str, Any]) -> st
     city_title = titlecase_city(q)
     subtitle = format_dates(ci, co)
     props = data.get("properties") or []
-    # … (identical to your previous hotel renderer, omitted here for brevity)
-    # I’ll keep your latest hotel HTML exactly as in our last revision.
-    # === START of prior renderer (unchanged) ===
-    # (omitted due to length; keep your last working version here)
-    # === END of prior renderer ===
-    # For compactness in this message, assume you paste in the exact hotel renderer
-    # from our last working version you deployed.
-    raise NotImplementedError("Paste your existing render_html implementation here from previous step.")
 
-# ====== FLIGHTS ======
+    # Build cards
+    cards = []
+    for idx, p in enumerate(props):
+        name  = esc(p.get("name") or "")
+        link  = esc(p.get("link") or "#")
+        gps   = p.get("gps_coordinates") or {}
+        lat   = gps.get("latitude"); lon = gps.get("longitude")
+        latok = isinstance(lat, (int, float)) and isinstance(lon, (int, float))
+        price = esc(extract_price_hotel(p) or "—")
+        stars = stars_html(get_class_rating(p))
+        photos = pick_images(p)
+        hero_url = esc(photos[0] if photos else "")
+        logo_url = esc(logo_for_property(p))
+        thumbs = [logo_url] + [esc(u) for u in photos[:8]]
+
+        tiles = []
+        for j, u in enumerate(thumbs[:9]):
+            if j == 0:
+                tiles.append(f"<div class='tile logo'><img src='{u}' alt='brand logo'></div>")
+            else:
+                tiles.append(f"<button class='tile' data-hero='hero-{idx}' data-src='{u}'><img src='{u}' alt=''></button>")
+        while len(tiles) < 9: tiles.append("<div class='tile empty'></div>")
+        grid_html = "".join(tiles[:9])
+
+        amen_labels = pick_amenities(p.get("amenities") or [])
+        amen_html = "".join(f"<span class='am'>{AMENITY_SVGS[l]}<span>{esc(l)}</span></span>" for l in amen_labels)
+
+        discount_text = extract_discount(p)
+        banner_html = f"<div class='deal-banner'><span>{esc(discount_text)}</span></div>" if discount_text else ""
+
+        hero_block = ""
+        if hero_url:
+            hero_block = f"""
+<div class="hero-wrap">
+  {banner_html}
+  <img id="hero-{idx}" class="hero" src="{hero_url}" alt="">
+  <div class="price-badge">{price}</div>
+</div>"""
+
+        map_id = f"map-{idx}"
+        map_html = f"<div id='{map_id}' class='map'></div>" if latok else ""
+
+        card = f"""
+<article class="card">
+  <header class="hd">
+    <a href="{link}" target="_blank" rel="noopener" class="hn">{name}</a>
+    <div class="meta"><div class="stars">{stars}</div></div>
+  </header>
+
+  {hero_block}
+
+  <div class="media">
+    <div class="thumb-grid" id="thumbs-{idx}">{grid_html}</div>
+    <div class="map-wrap">{map_html}</div>
+  </div>
+
+  <div class="amen-row">{amen_html}</div>
+</article>
+"""
+        cards.append(card)
+
+    body_cards = "\n".join(cards) if cards else "<p class='empty'>No results.</p>"
+
+    # Map payloads
+    maps = []
+    for idx, p in enumerate(props):
+        gps = p.get("gps_coordinates") or {}
+        lat = gps.get("latitude"); lon = gps.get("longitude")
+        if isinstance(lat, (int, float)) and isinstance(lon, (int, float)):
+            maps.append({"id": f"map-{idx}", "lat": lat, "lon": lon, "name": esc(p.get("name") or f"Hotel {idx+1}")})
+    maps_json = json.dumps(maps)
+
+    GOOGLE_FONTS = '<link href="https://fonts.googleapis.com/css2?family=Sansation:wght@400;600;700&display=swap" rel="stylesheet">'
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{esc(city_title)} Hotels — {esc(subtitle)}</title>
+<link rel="stylesheet" href="{LEAFLET_CSS}">
+{GOOGLE_FONTS}
+<style>
+:root{{
+  --bg:#0b0b0c; --line:#e5e7eb; --tile: 86px; --gap:8px;
+}}
+*{{box-sizing:border-box}}
+body{{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}}
+.header{{position:sticky;top:0;background:#fff;border-bottom:1px solid #eee;padding:12px 16px;z-index:5}}
+.header h1{{margin:0;font-family:'Sansation',sans-serif;font-weight:700;letter-spacing:.2px}}
+.header .sub{{margin-top:4px;color:#555;font-family:'Sansation',sans-serif}}
+
+.wrap{{max-width:980px;margin:0 auto;padding:16px}}
+.card{{background:#fff;color:#111;border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:14px 0;box-shadow:0 10px 30px rgba(0,0,0,.08)}}
+.hd{{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 14px 8px 14px;gap:10px}}
+.hn{{color:#111;text-decoration:none;font-weight:700;font-size:18px}}
+.meta{{display:flex;gap:12px;align-items:center}}
+.stars{{display:flex;gap:2px}}
+.star{{width:18px;height:18px;display:block}}
+.hero-wrap{{position:relative;background:#0d0f12}}
+.hero{{display:block;width:100%;height:260px;object-fit:cover}}
+.price-badge{{
+  position:absolute;right:12px;bottom:12px;
+  background:rgba(11,101,216,.9);color:#fff;
+  font-family:'Sansation',sans-serif;font-weight:600;
+  padding:8px 12px;border-radius:10px;font-size:16px
+}}
+.deal-banner{{
+  position:absolute;left:0;right:0;top:0;height:28px;
+  background:#FFD54A;color:#111;display:flex;align-items:center;justify-content:flex-end;
+  font-family:'Sansation',sans-serif;font-weight:600;font-size:13px;padding:0 10px
+}}
+
+.media{{display:grid;grid-template-columns:auto auto;gap:12px;padding:12px 14px}}
+.thumb-grid{{--size: calc(var(--tile)*3 + var(--gap)*2); width:var(--size)}}
+.thumb-grid{{display:grid;grid-template-columns:repeat(3,var(--tile));grid-auto-rows:var(--tile);gap:var(--gap)}}
+.tile{{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:8px;background:#f6f7f9;padding:0}}
+.tile img{{display:block;width:100%;height:100%;object-fit:cover}}
+.tile.empty{{background:#fafafa}}
+.tile.logo{{background:#fff;display:flex;align-items:center;justify-content:center}}
+.tile.logo img{{object-fit:contain;padding:12%}}
+.map-wrap{{width:calc(var(--tile)*3 + var(--gap)*2)}}
+.map{{width:100%;height:calc(var(--tile)*3 + var(--gap)*2);border:1px solid var(--line);border-radius:8px;overflow:hidden}}
+
+.amen-row{{display:flex;flex-wrap:wrap;gap:10px;padding:0 14px 14px 14px}}
+.amen{{width:18px;height:18px}}
+.am{{display:inline-flex;align-items:center;gap:6px;background:#f6f7f9;border:1px solid var(--line);color:#111;padding:6px 8px;border-radius:999px;font-size:12px}}
+
+.empty{{color:#666;background:#fff;padding:20px;border-radius:12px;border:1px solid #eee}}
+
+@media (max-width: 740px){{
+  .media{{grid-template-columns:1fr}}
+  .thumb-grid, .map-wrap{{width:100%}}
+  .thumb-grid{{--tile: calc((100% - 2*var(--gap))/3)}}
+  .map{{height: calc((var(--tile)*3 + var(--gap)*2))}}
+}}
+.leaflet-container .leaflet-tile{{filter:grayscale(.05) brightness(.98)}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>{esc(city_title)} Hotels</h1>
+  <div class="sub">{esc(subtitle)}</div>
+</div>
+
+<div class="wrap">
+{body_cards}
+<div style="text-align:center;color:#555;font-size:12px;margin:18px 0;">
+  Published to <a href="{SITE_BASE}/yocto/results/" style="color:#111">{SITE_BASE}/yocto/results/</a>
+</div>
+</div>
+
+<script src="{LEAFLET_JS}"></script>
+<script>
+// thumbnail -> hero swap
+document.querySelectorAll('.tile[data-src]').forEach(btn => {{
+  btn.addEventListener('click', e => {{
+    e.preventDefault();
+    const heroId = btn.getAttribute('data-hero');
+    const src = btn.getAttribute('data-src');
+    const hero = document.getElementById(heroId);
+    if (hero && src) hero.src = src;
+  }});
+}});
+
+// maps
+const entries = {maps_json};
+entries.forEach(it => {{
+  const el = document.getElementById(it.id);
+  if (!el) return;
+  const m = L.map(it.id, {{ zoomControl: false, attributionControl: false }}).setView([it.lat, it.lon], 14);
+  L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{ maxZoom: 19 }}).addTo(m);
+  L.marker([it.lat, it.lon]).addTo(m).bindPopup(it.name);
+}});
+</script>
+</body>
+</html>"""
+
+
+# =========================
+# FLIGHTS (SerpAPI Google Flights)
+# =========================
 def serpapi_flights(dep_ids: str, arr_ids: str, date_str: str, class_code: str) -> Dict[str, Any]:
     url = "https://serpapi.com/search.json"
     params = {
@@ -263,7 +447,7 @@ def serpapi_flights(dep_ids: str, arr_ids: str, date_str: str, class_code: str) 
         "departure_id": dep_ids,
         "arrival_id": arr_ids,
         "outbound_date": date_str,
-        "travel_class": class_code,  # 1=econ, 4=first
+        "travel_class": class_code,  # 1=econ, 2=prem, 3=business, 4=first
         "api_key": SERPAPI_KEY,
     }
     r = requests.get(url, params=params, timeout=60)
@@ -276,13 +460,11 @@ def mm_to_hhmm(minutes: int) -> str:
     return f"{h}:{m:02d}"
 
 def map_airport_field(s: str) -> str:
-    """Map HOME/NYC/MIA to multi-airport IDs; pass through single IATA like RDU/LGA/etc."""
     t = (s or "").strip().lower()
     if not t: return ""
     if t == "home": return "GSO,RDU"
     if t == "nyc":  return "LGA,JFK,EWR"
     if t == "mia":  return "MIA,FLL"
-    # Allow comma-separated input too; otherwise uppercase IATA
     if re.fullmatch(r"[a-z]{3}(?:,[a-z]{3})*", t):
         return ",".join(code.upper() for code in t.split(","))
     return t.upper()
@@ -294,6 +476,54 @@ def class_to_code(s: str) -> str:
     if t in ("premium","prem","pe"): return "2"
     return "1"  # main/economy
 
+# 24-hour time conversion
+def to_24h(s: Optional[str]) -> str:
+    if not s: return ""
+    s = s.strip()
+    m = re.match(r'^\s*(\d{1,2})(?::(\d{2}))?\s*([APap][Mm])\s*$', s)
+    if m:
+        h = int(m.group(1)); mnt = int(m.group(2) or 0)
+        ampm = m.group(3).lower()
+        if ampm == "pm" and h != 12: h += 12
+        if ampm == "am" and h == 12: h = 0
+        return f"{h:02d}:{mnt:02d}"
+    m = re.match(r'^\s*(\d{1,2}):(\d{2})\s*$', s)
+    if m:
+        return f"{int(m.group(1)):02d}:{int(m.group(2)):02d}"
+    return s
+
+# aircraft name normalization
+def norm_aircraft(name: Optional[str]) -> str:
+    s = (name or "").lower()
+    if not s: return ""
+    if "a321" in s:
+        return "A321neo" if "neo" in s else "A321"
+    for a in ("220-100","220-300","319","320","330","350"):
+        if f"a{a}" in s or f"airbus a{a}" in s or (a in s and "airbus" in s):
+            if a == "220-100": return "A221"
+            if a == "220-300": return "A223"
+            return f"A{a}".replace("-", "")
+    if "767-400" in s: return "B764"
+    if "767-300" in s: return "B763"
+    if "757-300" in s: return "B753"
+    if "757-200" in s: return "B752"
+    if "787-10"  in s: return "B78X"
+    if "787-9"   in s: return "B789"
+    if "787-8"   in s: return "B788"
+    if "737" in s:
+        if "800" in s or "max 8" in s or re.search(r"\b737-\s*8\b", s): return "B738"
+        if "900" in s or re.search(r"\b737-\s*9\b", s): return "B739"
+        if "700" in s or re.search(r"\b737-\s*7\b", s): return "B737"
+    if "crj" in s:
+        if "900" in s: return "CRJ9"
+        if "700" in s: return "CRJ7"
+        if "200" in s: return "CRJ2"
+    m = re.search(r"(e|erj)[\s-]?(\d{3})", s)
+    if m: return f"E{m.group(2)}"
+    s = re.sub(r"(boeing|airbus|embraer|bombardier|canadair|\bseries\b)", "", s)
+    s = re.sub(r"[^a-z0-9]", "", s)
+    return s.upper() or (name or "")
+
 def flights_from_json(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     out: List[Dict[str, Any]] = []
     for bucket in ("best_flights", "other_flights"):
@@ -303,20 +533,17 @@ def flights_from_json(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             first = flights[0]; last = flights[-1]
             dep_code = (first.get("departure_airport") or {}).get("id")
             arr_code = (last.get("arrival_airport") or {}).get("id")
-            dep_time = (first.get("departure_airport") or {}).get("time")
-            arr_time = (last.get("arrival_airport") or {}).get("time")
+            dep_time = to_24h((first.get("departure_airport") or {}).get("time"))
+            arr_time = to_24h((last.get("arrival_airport") or {}).get("time"))
             airline = first.get("airline") or ""
             logo = first.get("airline_logo") or ""
             total_min = it.get("total_duration")
             layovers = []
             for l in it.get("layovers") or []:
-                try:
-                    d = int(l.get("duration") or 0)
-                except Exception:
-                    d = 0
+                try: d = int(l.get("duration") or 0)
+                except: d = 0
                 layovers.append({
-                    "id": l.get("id"),
-                    "name": l.get("name"),
+                    "id": l.get("id") or l.get("name"),
                     "dur": mm_to_hhmm(d) if d else None
                 })
             legs = []
@@ -324,11 +551,11 @@ def flights_from_json(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                 legs.append({
                     "num": seg.get("flight_number"),
                     "airline": seg.get("airline"),
-                    "plane": seg.get("airplane"),
+                    "plane": norm_aircraft(seg.get("airplane")),
                     "dep": (seg.get("departure_airport") or {}).get("id"),
                     "arr": (seg.get("arrival_airport") or {}).get("id"),
-                    "dep_time": (seg.get("departure_airport") or {}).get("time"),
-                    "arr_time": (seg.get("arrival_airport") or {}).get("time"),
+                    "dep_time": to_24h((seg.get("departure_airport") or {}).get("time")),
+                    "arr_time": to_24h((seg.get("arrival_airport") or {}).get("time")),
                 })
             out.append({
                 "price": it.get("price"),
@@ -341,44 +568,64 @@ def flights_from_json(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             })
     return out
 
-def render_flights_html(dep_disp: str, arr_disp: str, date_str: str, data: Dict[str, Any]) -> str:
+def render_flights_html(dep_disp: str, arr_disp: str, date_str: str, data: Dict[str, Any], class_disp: str = "first") -> str:
     items = flights_from_json(data)
     title = f"{esc(dep_disp.upper())} → {esc(arr_disp.upper())}"
-    subtitle = parse_date(date_str).strftime("%a, %b %-d")
+    try:
+        subtitle = datetime.strptime(date_str, "%Y-%m-%d").strftime("%a, %b %-d")
+    except ValueError:
+        subtitle = esc(date_str)
 
     cards = []
     for f in items:
         price = f.get("price")
         price_txt = f"${int(price):,}" if isinstance(price, int) else (f"${price}" if price else "—")
-        lay = f.get("layovers") or []
-        lay_html = ""
-        if lay:
-            parts = [f"via {esc(x['id'])} ({esc(x['dur'])})" if x.get("id") and x.get("dur") else esc(x.get("name") or "") for x in lay]
-            lay_html = f"<div class='lay'>"+ " · ".join(parts) +"</div>"
+        header_line = f"{price_txt} {esc(f['dep_code'] or '')} {esc(f['dep_time'] or '')} - {esc(f['arr_code'] or '')} {esc(f['arr_time'] or '')}"
+
+        logo_html = f"<img class='logo' src='{esc(f.get('logo') or '')}' alt='airline logo'>" if f.get("logo") else "<div class='logo ph'></div>"
+        cls_txt = "First" if (class_disp or "").lower().startswith("f") else "Main"
+
+        lay_txt = ""
+        if f.get("layovers"):
+            parts = []
+            for l in f["layovers"]:
+                if l["id"] and l["dur"]:
+                    parts.append(f"{esc(l['dur'])} layover in {esc(l['id'])}")
+                elif l["id"]:
+                    parts.append(f"layover in {esc(l['id'])}")
+            lay_txt = " · ".join(parts)
+
+        info_row = f"""
+        <div class="info">
+          <div class="cell logo-cell">{logo_html}</div>
+          <div class="cell class-cell">{esc(cls_txt)}</div>
+          <div class="cell lay-cell">{esc(lay_txt)}</div>
+        </div>
+        """
 
         legs_html = ""
         for lg in f.get("legs") or []:
-            left = f"{esc(lg['dep'])} {esc(lg['dep_time'] or '')}"
-            right = f"{esc(lg['arr'])} {esc(lg['arr_time'] or '')}"
-            plane = esc(lg.get("plane") or "")
-            num = esc(lg.get("num") or "")
-            legs_html += f"<div class='leg'><div>{left} → {right}</div><div class='plane'>{plane} {num}</div></div>"
+            legs_html += f"""
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">{esc(lg['dep'] or '')}</div>
+                <div class="arrow">→</div>
+                <div class="code">{esc(lg['arr'] or '')}</div>
 
-        logo = esc(f.get("logo") or "")
-        logo_html = f"<img class='logo' src='{logo}' alt='airline logo'>" if logo else "<div class='logo ph'></div>"
+                <div class="time">{esc(lg['dep_time'] or '')}</div>
+                <div></div>
+                <div class="time">{esc(lg['arr_time'] or '')}</div>
+              </div>
+              <div class="plane">{esc(lg.get('plane') or '')} {esc(lg.get('num') or '')}</div>
+            </div>
+            """
 
         card = f"""
 <article class="card">
-  <header class="hd">
-    <div class="pair">
-      <div class="route">{esc(f.get('dep_code') or '')} {esc(f.get('dep_time') or '')} → {esc(f.get('arr_code') or '')} {esc(f.get('arr_time') or '')}</div>
-      {lay_html}
-    </div>
-    <div class="price">{price_txt}</div>
-  </header>
+  <div class="bar">{header_line}</div>
   <div class="body">
-    <div class="col logo-col">{logo_html}</div>
-    <div class="col legs">{legs_html}</div>
+    {info_row}
+    <div class="legs">{legs_html}</div>
   </div>
 </article>
 """
@@ -394,7 +641,7 @@ def render_flights_html(dep_disp: str, arr_disp: str, date_str: str, data: Dict[
 <title>{title} — {subtitle}</title>
 <link href="https://fonts.googleapis.com/css2?family=Sansation:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-:root{{--line:#e5e7eb}}
+:root{{ --line:#e5e7eb; --gold:#FFC107; }}
 *{{box-sizing:border-box}}
 body{{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}}
 .header{{position:sticky;top:0;background:#fff;border-bottom:1px solid #eee;padding:12px 16px;z-index:5}}
@@ -403,27 +650,29 @@ body{{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system
 
 .wrap{{max-width:920px;margin:0 auto;padding:16px}}
 .card{{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:14px 0;box-shadow:0 10px 30px rgba(0,0,0,.08)}}
-.hd{{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px}}
-.pair{{display:flex;flex-direction:column;gap:4px}}
-.route{{font-weight:700}}
-.lay{{font-size:13px;color:#444}}
-.price{{background:rgba(11,101,216,.9);color:#fff;font-family:'Sansation',sans-serif;font-weight:600;padding:8px 12px;border-radius:10px;align-self:flex-start}}
+.bar{{background:var(--gold);color:#111;padding:10px 14px;font-weight:700;letter-spacing:.2px}}
+.body{{padding:12px 14px;display:flex;flex-direction:column;gap:12px}}
 
-.body{{display:grid;grid-template-columns:160px 1fr;gap:12px;padding:12px 14px}}
+.info{{display:grid;grid-template-columns:160px 120px 1fr;gap:12px;align-items:center}}
 .logo-col{{display:flex;align-items:center;justify-content:center}}
 .logo{{max-width:130px;max-height:44px;object-fit:contain}}
 .logo.ph{{width:120px;height:36px;background:#f3f4f6;border:1px dashed #e5e7eb;border-radius:8px}}
+.class-cell{{font-weight:700}}
+.lay-cell{{color:#444}}
 
-.legs{{display:flex;flex-direction:column;gap:8px}}
-.leg{{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px dashed #eee;padding:6px 0}}
-.leg:last-child{{border-bottom:none}}
-.plane{{font-size:13px;color:#444}}
+.legs{{display:flex;flex-direction:column;gap:10px}}
+.leg{{border-top:1px dashed #eee;padding-top:8px}}
+.leg:first-child{{border-top:none;padding-top:0}}
+.leggrid{{display:grid;grid-template-columns:1fr 24px 1fr;gap:4px;align-items:end}}
+.code{{font-weight:700}}
+.arrow{{text-align:center}}
+.time{{font-size:13px;color:#444}}
+.plane{{font-size:13px;color:#444;margin-top:4px}}
 
 .empty{{color:#666;background:#fff;padding:20px;border-radius:12px;border:1px solid #eee}}
 
 @media (max-width:720px){{
-  .body{{grid-template-columns:1fr}}
-  .logo-col{{order:2}}
+  .info{{grid-template-columns:1fr;gap:8px}}
 }}
 </style>
 </head>
@@ -441,11 +690,14 @@ body{{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system
 </body>
 </html>"""
 
-# ===== ROUTES =====
+
+# =========================
+# ROUTES
+# =========================
 @app.get("/health")
 def health(): return {"status":"ok"}
 
-# Hotels route (existing)
+# Hotels
 @app.get("/run")
 def run_hotels():
     where = (request.args.get("where") or request.args.get("q") or "").strip()
@@ -459,13 +711,12 @@ def run_hotels():
         abort(400, "Invalid 'when' (YYYY-MM-DD) or 'nights'")
     ci_s, co_s = ci.isoformat(), co.isoformat()
     data = serpapi_hotels(where, ci_s, co_s)
-    # NOTE: replace the next line with your full hotel renderer from the prior step:
-    html_out = render_hotels_html(where, ci_s, co_s, data)  # <-- paste your previous renderer
+    html_out = render_hotels_html(where, ci_s, co_s, data)
     write_file(RESULTS_HOTELS, html_out)
     _ = git_add_commit_push(["yocto/results/index.html"])
     return Response(html_out, mimetype="text/html")
 
-# Flights route (new)
+# Flights
 @app.get("/fly/run")
 def run_flights():
     dep_disp = (request.args.get("departure") or "").strip()
@@ -476,9 +727,9 @@ def run_flights():
         abort(400, "Missing 'departure', 'arrival', or 'date'")
     dep_ids = map_airport_field(dep_disp)
     arr_ids = map_airport_field(arr_disp)
-    class_code = class_to_code(cls)  # 4=first default
+    class_code = class_to_code(cls)
     data = serpapi_flights(dep_ids, arr_ids, date_str, class_code)
-    html_out = render_flights_html(dep_disp, arr_disp, date_str, data)
+    html_out = render_flights_html(dep_disp, arr_disp, date_str, data, cls)
     write_file(RESULTS_FLIGHTS, html_out)
     _ = git_add_commit_push(["yocto/fly/results/index.html"])
     return Response(html_out, mimetype="text/html")
