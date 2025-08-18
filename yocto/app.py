@@ -8,14 +8,12 @@ from typing import Any, Dict, List, Optional
 import requests
 from flask import Flask, request, Response, abort
 
-# =========================
-# ENV / CONFIG
-# =========================
+# ===== ENV =====
 SERPAPI_KEY = os.environ.get("SERPAPI_KEY")
 REPO_DIR    = os.environ.get("REPO_DIR")
 BASIC_USER  = os.environ.get("BASIC_AUTH_USER")
 BASIC_PASS  = os.environ.get("BASIC_AUTH_PASS")
-SITE_BASE   = os.environ.get("SITE_BASE", "https://hiner.nyc")  # used for absolute asset URLs
+SITE_BASE   = os.environ.get("SITE_BASE", "https://hiner.nyc")
 
 # Hard-wired hotel filters
 BRANDS_PARAM = "84,7,41,118,256,26,136,289,2,3"
@@ -33,9 +31,7 @@ LEAFLET_JS  = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
 
 app = Flask(__name__)
 
-# =========================
-# BASIC AUTH (all routes)
-# =========================
+# ===== BASIC AUTH =====
 @app.before_request
 def _auth():
     a = request.authorization
@@ -43,9 +39,7 @@ def _auth():
         return Response("Auth required", 401, {"WWW-Authenticate": 'Basic realm="yocto"'})
 
 
-# =========================
-# UTIL
-# =========================
+# ===== UTIL =====
 def esc(s: Any) -> str:
     return html.escape(str(s)) if s is not None else ""
 
@@ -56,9 +50,12 @@ def titlecase_city(s: str) -> str:
     tokens = re.split(r"(\s|-)", s.strip().lower())
     out = []
     for t in tokens:
-        if t.strip() in ("dc","nyc","la","usa"): out.append(t.upper())
-        elif t in (" ","-"): out.append(t)
-        else: out.append(t.capitalize())
+        if t.strip() in ("dc","nyc","la","usa"):
+            out.append(t.upper())
+        elif t in (" ","-"):
+            out.append(t)
+        else:
+            out.append(t.capitalize())
     return "".join(out)
 
 def format_dates(ci: date, co: date) -> str:
@@ -83,7 +80,7 @@ def git_add_commit_push(paths: List[str]) -> Optional[str]:
 
 
 # =========================
-# HOTELS (SerpAPI Google Hotels)
+# HOTELS
 # =========================
 def serpapi_hotels(q: str, check_in: str, check_out: str) -> Dict[str, Any]:
     url = "https://serpapi.com/search.json"
@@ -131,22 +128,18 @@ def pick_images(p: Dict[str, Any]) -> List[str]:
             if u: out.append(u)
     return out
 
-# ---- LOGOS (explicit brand map; absolute URLs so they load via ngrok and GH Pages) ----
 def _norm(s: str) -> str:
     s = s.lower().strip()
     s = re.sub(r"&", " and ", s)
     return re.sub(r"[^a-z0-9]+", "", s)
 
 BRAND_LOGOS = {
-    # Hilton family
     "conrad": "conrad.png",
     "embassysuites": "embassy_suites.png",
-    # Hyatt
     "grandhyatt": "grand_hyatt.png",
     "hyattregency": "hyatt_regency.png",
     "parkhyatt": "park_hyatt.png",
     "thompson": "thompson.png",
-    # Marriott
     "jwmarriott": "jw_marriott.png",
     "renaissance": "renaissance.png",
     "residenceinn": "residence_inn.png",
@@ -154,16 +147,11 @@ BRAND_LOGOS = {
     "ritzcarlton": "ritz_carlton.png",
     "westin": "westin.png",
     "edition": "edition.png",
-    # IHG
     "intercontinental": "intercontinental.png",
     "kimpton": "kimpton.png",
-    # MOHG
     "mandarinoriental": "mandarin_oriental.png",
-    # Four Seasons
     "fourseasons": "four_seasons.png",
-    # Hilton luxury
     "waldorfastoria": "waldorf_astoria.png",
-    # W Hotels
     "whotels": "w_hotels.png",
 }
 ALIAS = {
@@ -193,9 +181,8 @@ def logo_for_property(p: Dict[str, Any]) -> str:
         for raw, alias_key in ALIAS.items():
             if raw in tok and alias_key in BRAND_LOGOS:
                 return f"{SITE_BASE}/yocto/logos/{BRAND_LOGOS[alias_key]}"
-    return f"{SITE_BASE}/yocto/logos/fallback.png"
+    return f"{SITE_BASE}/yocto/logos/fallback_logo.png"
 
-# ---- AMENITIES (curated + relabeled) ----
 AMENITY_SVGS = {
     "Olly OK":       "<svg class='amen' viewBox='0 0 24 24'><path d='M7 11a2 2 0 110-4 2 2 0 010 4zm10 0a2 2 0 110-4 2 2 0 010 4zM4 15c2-2 4-3 8-3s6 1 8 3l-2 4H6l-2-4z' fill='none' stroke='#000' stroke-width='1.5'/></svg>",
     "Spa":           "<svg class='amen' viewBox='0 0 24 24'><path d='M12 3c-3 3-4 6-4 9s1 6 4 9c3-3 4-6 4-9s-1-6-4-9z' fill='none' stroke='#000' stroke-width='1.5'/></svg>",
@@ -207,6 +194,19 @@ AMENITY_SVGS = {
     "Beach":         "<svg class='amen' viewBox='0 0 24 24'><path d='M3 18h18M5 18c2-6 8-6 10 0' fill='none' stroke='#000' stroke-width='1.5'/><path d='M12 6c3 0 5 2 5 4' fill='none' stroke='#000' stroke-width='1.5'/></svg>",
     "Casino":        "<svg class='amen' viewBox='0 0 24 24'><rect x='4' y='4' width='16' height='16' rx='3' ry='3' fill='none' stroke='#000' stroke-width='1.5'/><circle cx='9' cy='9' r='1.5'/><circle cx='15' cy='9' r='1.5'/><circle cx='9' cy='15' r='1.5'/><circle cx='15' cy='15' r='1.5'/></svg>",
 }
+
+STAR_SVG = """<svg class="star" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
+        fill="{fill}" stroke="#000" stroke-width="1.2"/>
+</svg>"""
+
+def stars_html(n: int) -> str:
+    try:
+        n = int(n)
+    except Exception:
+        n = 0
+    n = max(0, min(5, n))
+    return "".join(STAR_SVG.format(fill="#FFD54A" if i < n else "none") for i in range(5))
 
 def pick_amenities(raw: Any) -> List[str]:
     labs: List[str] = []
@@ -228,15 +228,6 @@ def pick_amenities(raw: Any) -> List[str]:
         if "casino" in s: add("Casino")
     return labs[:8]
 
-STAR_SVG = """<svg class="star" viewBox="0 0 24 24" aria-hidden="true">
-  <path d="M12 2l3.09 6.26L22 9.27l-5 4.86L18.18 22 12 18.7 5.82 22 7 14.13l-5-4.86 6.91-1.01z"
-        fill="{fill}" stroke="#000" stroke-width="1.2"/>
-</svg>"""
-
-def stars_html(n: int) -> str:
-    n = max(0, min(5, int(n))))
-    return "".join(STAR_SVG.format(fill="#FFD54A" if i < n else "none") for i in range(5))
-
 def extract_discount(p: Dict[str, Any]) -> Optional[str]:
     for k in ("price_x_percent_lower_than_usual", "price_drop_percent", "percent_lower_than_usual", "discount_percent"):
         v = p.get(k)
@@ -255,7 +246,6 @@ def render_hotels_html(q: str, ci_s: str, co_s: str, data: Dict[str, Any]) -> st
     subtitle = format_dates(ci, co)
     props = data.get("properties") or []
 
-    # Build cards
     cards = []
     for idx, p in enumerate(props):
         name  = esc(p.get("name") or "")
@@ -318,7 +308,6 @@ def render_hotels_html(q: str, ci_s: str, co_s: str, data: Dict[str, Any]) -> st
 
     body_cards = "\n".join(cards) if cards else "<p class='empty'>No results.</p>"
 
-    # Map payloads
     maps = []
     for idx, p in enumerate(props):
         gps = p.get("gps_coordinates") or {}
@@ -408,33 +397,31 @@ body{{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system
 
 <script src="{LEAFLET_JS}"></script>
 <script>
-// thumbnail -> hero swap
-document.querySelectorAll('.tile[data-src]').forEach(btn => {{
-  btn.addEventListener('click', e => {{
+document.querySelectorAll('.tile[data-src]').forEach(btn => {
+  btn.addEventListener('click', e => {
     e.preventDefault();
     const heroId = btn.getAttribute('data-hero');
     const src = btn.getAttribute('data-src');
     const hero = document.getElementById(heroId);
     if (hero && src) hero.src = src;
-  }});
-}});
+  });
+});
 
-// maps
 const entries = {maps_json};
-entries.forEach(it => {{
+entries.forEach(it => {
   const el = document.getElementById(it.id);
   if (!el) return;
-  const m = L.map(it.id, {{ zoomControl: false, attributionControl: false }}).setView([it.lat, it.lon], 14);
-  L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{ maxZoom: 19 }}).addTo(m);
+  const m = L.map(it.id, { zoomControl: false, attributionControl: false }).setView([it.lat, it.lon], 14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(m);
   L.marker([it.lat, it.lon]).addTo(m).bindPopup(it.name);
-}});
+});
 </script>
 </body>
 </html>"""
 
 
 # =========================
-# FLIGHTS (SerpAPI Google Flights)
+# FLIGHTS
 # =========================
 def serpapi_flights(dep_ids: str, arr_ids: str, date_str: str, class_code: str) -> Dict[str, Any]:
     url = "https://serpapi.com/search.json"
@@ -447,7 +434,7 @@ def serpapi_flights(dep_ids: str, arr_ids: str, date_str: str, class_code: str) 
         "departure_id": dep_ids,
         "arrival_id": arr_ids,
         "outbound_date": date_str,
-        "travel_class": class_code,  # 1=econ, 2=prem, 3=business, 4=first
+        "travel_class": class_code,  # 1=econ, 2=prem, 3=bus, 4=first
         "api_key": SERPAPI_KEY,
     }
     r = requests.get(url, params=params, timeout=60)
@@ -474,9 +461,8 @@ def class_to_code(s: str) -> str:
     if t in ("first","f"): return "4"
     if t in ("business","j","c"): return "3"
     if t in ("premium","prem","pe"): return "2"
-    return "1"  # main/economy
+    return "1"
 
-# 24-hour time conversion
 def to_24h(s: Optional[str]) -> str:
     if not s: return ""
     s = s.strip()
@@ -492,7 +478,6 @@ def to_24h(s: Optional[str]) -> str:
         return f"{int(m.group(1)):02d}:{int(m.group(2)):02d}"
     return s
 
-# aircraft name normalization
 def norm_aircraft(name: Optional[str]) -> str:
     s = (name or "").lower()
     if not s: return ""
@@ -528,43 +513,43 @@ def flights_from_json(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     out: List[Dict[str, Any]] = []
     for bucket in ("best_flights", "other_flights"):
         for it in data.get(bucket) or []:
-            flights = it.get("flights") or []
-            if not flights: continue
-            first = flights[0]; last = flights[-1]
-            dep_code = (first.get("departure_airport") or {}).get("id")
-            arr_code = (last.get("arrival_airport") or {}).get("id")
+            segs = it.get("flights") or []
+            if not segs: continue
+            first, last = segs[0], segs[-1]
+            dep_code = (first.get("departure_airport") or {}).get("id") or ""
+            arr_code = (last.get("arrival_airport") or {}).get("id") or ""
             dep_time = to_24h((first.get("departure_airport") or {}).get("time"))
             arr_time = to_24h((last.get("arrival_airport") or {}).get("time"))
-            airline = first.get("airline") or ""
-            logo = first.get("airline_logo") or ""
-            total_min = it.get("total_duration")
-            layovers = []
+            airline  = first.get("airline") or ""
+            logo     = first.get("airline_logo") or ""
+            total    = it.get("total_duration")
+            lays = []
             for l in it.get("layovers") or []:
-                try: d = int(l.get("duration") or 0)
-                except: d = 0
-                layovers.append({
-                    "id": l.get("id") or l.get("name"),
-                    "dur": mm_to_hhmm(d) if d else None
+                lay_min = 0
+                try: lay_min = int(l.get("duration") or 0)
+                except: pass
+                lays.append({
+                    "id": l.get("id") or l.get("name") or "",
+                    "dur": mm_to_hhmm(lay_min) if lay_min else None
                 })
             legs = []
-            for seg in flights:
+            for seg in segs:
                 legs.append({
-                    "num": seg.get("flight_number"),
-                    "airline": seg.get("airline"),
-                    "plane": norm_aircraft(seg.get("airplane")),
-                    "dep": (seg.get("departure_airport") or {}).get("id"),
-                    "arr": (seg.get("arrival_airport") or {}).get("id"),
+                    "dep": (seg.get("departure_airport") or {}).get("id") or "",
+                    "arr": (seg.get("arrival_airport") or {}).get("id") or "",
                     "dep_time": to_24h((seg.get("departure_airport") or {}).get("time")),
                     "arr_time": to_24h((seg.get("arrival_airport") or {}).get("time")),
+                    "plane": norm_aircraft(seg.get("airplane")),
+                    "num": seg.get("flight_number") or "",
                 })
             out.append({
                 "price": it.get("price"),
                 "dep_code": dep_code, "arr_code": arr_code,
                 "dep_time": dep_time, "arr_time": arr_time,
                 "airline": airline, "logo": logo,
-                "layovers": layovers,
-                "total": mm_to_hhmm(int(total_min)) if isinstance(total_min, int) else None,
+                "layovers": lays,
                 "legs": legs,
+                "total": mm_to_hhmm(total) if isinstance(total, int) else None,
             })
     return out
 
@@ -580,10 +565,10 @@ def render_flights_html(dep_disp: str, arr_disp: str, date_str: str, data: Dict[
     for f in items:
         price = f.get("price")
         price_txt = f"${int(price):,}" if isinstance(price, int) else (f"${price}" if price else "—")
-        header_line = f"{price_txt} {esc(f['dep_code'] or '')} {esc(f['dep_time'] or '')} - {esc(f['arr_code'] or '')} {esc(f['arr_time'] or '')}"
+        header_line = f"{price_txt} {esc(f['dep_code'])} {esc(f['dep_time'])} - {esc(f['arr_code'])} {esc(f['arr_time'])}"
 
         logo_html = f"<img class='logo' src='{esc(f.get('logo') or '')}' alt='airline logo'>" if f.get("logo") else "<div class='logo ph'></div>"
-        cls_txt = "First" if (class_disp or "").lower().startswith("f") else "Main"
+        cls_txt = "First" if (class_disp or '').lower().startswith("f") else "Main"
 
         lay_txt = ""
         if f.get("layovers"):
@@ -608,15 +593,15 @@ def render_flights_html(dep_disp: str, arr_disp: str, date_str: str, data: Dict[
             legs_html += f"""
             <div class="leg">
               <div class="leggrid">
-                <div class="code">{esc(lg['dep'] or '')}</div>
+                <div class="code">{esc(lg['dep'])}</div>
                 <div class="arrow">→</div>
-                <div class="code">{esc(lg['arr'] or '')}</div>
+                <div class="code">{esc(lg['arr'])}</div>
 
-                <div class="time">{esc(lg['dep_time'] or '')}</div>
+                <div class="time">{esc(lg['dep_time'])}</div>
                 <div></div>
-                <div class="time">{esc(lg['arr_time'] or '')}</div>
+                <div class="time">{esc(lg['arr_time'])}</div>
               </div>
-              <div class="plane">{esc(lg.get('plane') or '')} {esc(lg.get('num') or '')}</div>
+              <div class="plane">{esc(lg['plane'])} {esc(lg['num'])}</div>
             </div>
             """
 
@@ -697,11 +682,10 @@ body{{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system
 @app.get("/health")
 def health(): return {"status":"ok"}
 
-# Hotels
 @app.get("/run")
 def run_hotels():
     where = (request.args.get("where") or request.args.get("q") or "").strip()
-    when  = (request.args.get("when")  or request.args.get("check_in_date") or "").strip()
+    when  = (request.args.get("when") or request.args.get("check_in_date") or "").strip()
     nights_str = (request.args.get("nights") or "1").strip()
     if not where or not when: abort(400, "Missing 'where' or 'when'")
     try:
@@ -716,7 +700,6 @@ def run_hotels():
     _ = git_add_commit_push(["yocto/results/index.html"])
     return Response(html_out, mimetype="text/html")
 
-# Flights
 @app.get("/fly/run")
 def run_flights():
     dep_disp = (request.args.get("departure") or "").strip()
