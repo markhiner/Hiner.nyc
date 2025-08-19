@@ -36,8 +36,7 @@ app = Flask(__name__)
 def _auth():
     a = request.authorization
     if not (a and a.username == BASIC_USER and a.password == BASIC_PASS):
-        return Response("Auth required", 401, {"WWW-Authenticate": 'Basic realm="yocto"'})
-
+        return Response('Auth required', 401, {'WWW-Authenticate': 'Basic realm="yocto"'})
 
 # ===== UTIL =====
 def esc(s: Any) -> str:
@@ -48,7 +47,7 @@ def parse_date(s: str) -> date:
 
 def titlecase_city(s: str) -> str:
     tokens = re.split(r"(\s|-)", s.strip().lower())
-    out = []
+    out: List[str] = []
     for t in tokens:
         if t.strip() in ("dc","nyc","la","usa"):
             out.append(t.upper())
@@ -77,7 +76,6 @@ def git_add_commit_push(paths: List[str]) -> Optional[str]:
         return None
     except subprocess.CalledProcessError as e:
         return e.stderr or e.stdout or "git error"
-
 
 # =========================
 # HOTELS
@@ -121,7 +119,7 @@ def get_class_rating(p: Dict[str, Any]) -> int:
 
 def pick_images(p: Dict[str, Any]) -> List[str]:
     imgs = p.get("images") or []
-    out = []
+    out: List[str] = []
     if isinstance(imgs, list):
         for im in imgs:
             u = im.get("original_image") or im.get("thumbnail") or im.get("image")
@@ -326,9 +324,7 @@ def render_hotels_html(q: str, ci_s: str, co_s: str, data: Dict[str, Any]) -> st
 <link rel="stylesheet" href="{LEAFLET_CSS}">
 {GOOGLE_FONTS}
 <style>
-:root{{
-  --bg:#0b0b0c; --line:#e5e7eb; --tile: 86px; --gap:8px;
-}}
+:root{{ --bg:#0b0b0c; --line:#e5e7eb; --tile: 86px; --gap:8px; }}
 *{{box-sizing:border-box}}
 body{{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}}
 .header{{position:sticky;top:0;background:#fff;border-bottom:1px solid #eee;padding:12px 16px;z-index:5}}
@@ -344,20 +340,11 @@ body{{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system
 .star{{width:18px;height:18px;display:block}}
 .hero-wrap{{position:relative;background:#0d0f12}}
 .hero{{display:block;width:100%;height:260px;object-fit:cover}}
-.price-badge{{
-  position:absolute;right:12px;bottom:12px;
-  background:rgba(11,101,216,.9);color:#fff;
-  font-family:'Sansation',sans-serif;font-weight:600;
-  padding:8px 12px;border-radius:10px;font-size:16px
-}}
-.deal-banner{{
-  position:absolute;left:0;right:0;top:0;height:28px;
-  background:#FFD54A;color:#111;display:flex;align-items:center;justify-content:flex-end;
-  font-family:'Sansation',sans-serif;font-weight:600;font-size:13px;padding:0 10px
-}}
+.price-badge{{ position:absolute;right:12px;bottom:12px;background:rgba(11,101,216,.9);color:#fff;font-family:'Sansation',sans-serif;font-weight:600;padding:8px 12px;border-radius:10px;font-size:16px }}
+.deal-banner{{ position:absolute;left:0;right:0;top:0;height:28px;background:#FFD54A;color:#111;display:flex;align-items:center;justify-content:flex-end;font-family:'Sansation',sans-serif;font-weight:600;font-size:13px;padding:0 10px }}
 
 .media{{display:grid;grid-template-columns:auto auto;gap:12px;padding:12px 14px}}
-.thumb-grid{{--size: calc(var(--tile)*3 + var(--gap)*2); width:var(--size)}}
+.thumb-grid{{ --size: calc(var(--tile)*3 + var(--gap)*2); width: var(--size) }}
 .thumb-grid{{display:grid;grid-template-columns:repeat(3,var(--tile));grid-auto-rows:var(--tile);gap:var(--gap)}}
 .tile{{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:8px;background:#f6f7f9;padding:0}}
 .tile img{{display:block;width:100%;height:100%;object-fit:cover}}
@@ -373,12 +360,7 @@ body{{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system
 
 .empty{{color:#666;background:#fff;padding:20px;border-radius:12px;border:1px solid #eee}}
 
-@media (max-width: 740px){{
-  .media{{grid-template-columns:1fr}}
-  .thumb-grid, .map-wrap{{width:100%}}
-  .thumb-grid{{--tile: calc((100% - 2*var(--gap))/3)}}
-  .map{{height: calc((var(--tile)*3 + var(--gap)*2))}}
-}}
+@media (max-width: 740px){{ .media{{grid-template-columns:1fr}} .thumb-grid, .map-wrap{{width:100%}} .thumb-grid{{ --tile: calc((100% - 2*var(--gap))/3) }} .map{{height: calc((var(--tile)*3 + var(--gap)*2))}} }}
 .leaflet-container .leaflet-tile{{filter:grayscale(.05) brightness(.98)}}
 </style>
 </head>
@@ -397,28 +379,29 @@ body{{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system
 
 <script src="{LEAFLET_JS}"></script>
 <script>
-document.querySelectorAll('.tile[data-src]').forEach(btn => {
-  btn.addEventListener('click', e => {
+// thumbnail -> hero swap
+document.querySelectorAll('.tile[data-src]').forEach(btn => {{
+  btn.addEventListener('click', (e) => {{
     e.preventDefault();
     const heroId = btn.getAttribute('data-hero');
     const src = btn.getAttribute('data-src');
     const hero = document.getElementById(heroId);
     if (hero && src) hero.src = src;
-  });
-});
+  }});
+}});
 
+// maps
 const entries = {maps_json};
-entries.forEach(it => {
+entries.forEach((it) => {{
   const el = document.getElementById(it.id);
   if (!el) return;
-  const m = L.map(it.id, { zoomControl: false, attributionControl: false }).setView([it.lat, it.lon], 14);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(m);
+  const m = L.map(it.id, {{ zoomControl: false, attributionControl: false }}).setView([it.lat, it.lon], 14);
+  L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{ maxZoom: 19 }}).addTo(m);
   L.marker([it.lat, it.lon]).addTo(m).bindPopup(it.name);
-});
+}});
 </script>
 </body>
 </html>"""
-
 
 # =========================
 # FLIGHTS
@@ -656,9 +639,7 @@ body{{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system
 
 .empty{{color:#666;background:#fff;padding:20px;border-radius:12px;border:1px solid #eee}}
 
-@media (max-width:720px){{
-  .info{{grid-template-columns:1fr;gap:8px}}
-}}
+@media (max-width:720px){{ .info{{grid-template-columns:1fr;gap:8px}} }}
 </style>
 </head>
 <body>
@@ -674,7 +655,6 @@ body{{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system
 </div>
 </body>
 </html>"""
-
 
 # =========================
 # ROUTES
