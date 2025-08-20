@@ -492,6 +492,25 @@ def norm_aircraft(name: Optional[str]) -> str:
     s = re.sub(r"[^a-z0-9]", "", s)
     return s.upper() or (name or "")
 
+# Airline → background image mapping (files live in /yocto/logos/)
+AIRLINE_BG = {
+    "american": "aa.png",
+    " aa": "aa.png",       # safety for code tokens
+    "delta": "delta.png",
+    "united": "united.png",
+    "jetblue": "JetBlue.png",  # case sensitive on GitHub Pages
+    " b6": "JetBlue.png",
+    "spirit": "spirit.png",
+    "frontier": "frontier.png",
+}
+
+def airline_bg_url(name: Optional[str]) -> Optional[str]:
+    s = (name or "").lower()
+    for key, fname in AIRLINE_BG.items():
+        if key in s:
+            return f"{SITE_BASE}/yocto/logos/{fname}"
+    return None  # fallback → white background
+
 def flights_from_json(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     out: List[Dict[str, Any]] = []
     for bucket in ("best_flights", "other_flights"):
@@ -550,7 +569,6 @@ def render_flights_html(dep_disp: str, arr_disp: str, date_str: str, data: Dict[
         price_txt = f"${int(price):,}" if isinstance(price, int) else (f"${price}" if price else "—")
         header_line = f"{price_txt} {esc(f['dep_code'])} {esc(f['dep_time'])} - {esc(f['arr_code'])} {esc(f['arr_time'])}"
 
-        logo_html = f"<img class='logo' src='{esc(f.get('logo') or '')}' alt='airline logo'>" if f.get("logo") else "<div class='logo ph'></div>"
         cls_txt = "First" if (class_disp or '').lower().startswith("f") else "Main"
 
         lay_txt = ""
@@ -562,14 +580,6 @@ def render_flights_html(dep_disp: str, arr_disp: str, date_str: str, data: Dict[
                 elif l["id"]:
                     parts.append(f"layover in {esc(l['id'])}")
             lay_txt = " · ".join(parts)
-
-        info_row = f"""
-        <div class="info">
-          <div class="cell logo-cell">{logo_html}</div>
-          <div class="cell class-cell">{esc(cls_txt)}</div>
-          <div class="cell lay-cell">{esc(lay_txt)}</div>
-        </div>
-        """
 
         legs_html = ""
         for lg in f.get("legs") or []:
@@ -588,11 +598,18 @@ def render_flights_html(dep_disp: str, arr_disp: str, date_str: str, data: Dict[
             </div>
             """
 
+        # BACKGROUND: airline-specific image, fallback to white
+        bg_url = airline_bg_url(f.get("airline"))
+        style_attr = f" style=\"--bg:url('{esc(bg_url)}')\"" if bg_url else ""
+
         card = f"""
-<article class="card">
+<article class="card"{style_attr}>
   <div class="bar">{header_line}</div>
   <div class="body">
-    {info_row}
+    <div class="info">
+      <div class="cell class-cell">{esc(cls_txt)}</div>
+      <div class="cell lay-cell">{esc(lay_txt)}</div>
+    </div>
     <div class="legs">{legs_html}</div>
   </div>
 </article>
@@ -616,26 +633,41 @@ body{{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system
 .header h1{{margin:0;font-family:'Sansation',sans-serif;font-weight:700;letter-spacing:.2px}}
 .header .sub{{margin-top:4px;color:#555;font-family:'Sansation',sans-serif}}
 
-.wrap{{max-width:920px;margin:0 auto;padding:16px}}
-.card{{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:14px 0;box-shadow:0 10px 30px rgba(0,0,0,.08)}}
+.wrap{{max-width:960px;margin:0 auto;padding:16px}}
+.card{{
+  position:relative;
+  margin:14px 0;
+  border-radius:16px;
+  overflow:hidden;
+  background:#fff;                 /* fallback when no bg image */
+  background-image: var(--bg);
+  background-size: cover;
+  background-position: center;
+  min-height: 420px;               /* ensures room for overlay text */
+  box-shadow:0 10px 30px rgba(0,0,0,.12);
+}}
 .bar{{background:var(--gold);color:#111;padding:10px 14px;font-weight:700;letter-spacing:.2px}}
-.body{{padding:12px 14px;display:flex;flex-direction:column;gap:12px}}
 
-.info{{display:grid;grid-template-columns:160px 120px 1fr;gap:12px;align-items:center}}
-.logo-col{{display:flex;align-items:center;justify-content:center}}
-.logo{{max-width:130px;max-height:44px;object-fit:contain}}
-.logo.ph{{width:120px;height:36px;background:#f3f4f6;border:1px dashed #e5e7eb;border-radius:8px}}
+.body{{
+  position:absolute; left:12px; right:12px; bottom:12px;
+  background:rgba(255,255,255,.86);
+  border:1px solid rgba(0,0,0,.06);
+  border-radius:14px;
+  padding:12px 14px;
+  backdrop-filter:saturate(120%) blur(2px);
+}}
+.info{{display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:center;margin-bottom:8px}}
 .class-cell{{font-weight:700}}
-.lay-cell{{color:#444}}
+.lay-cell{{color:#333}}
 
 .legs{{display:flex;flex-direction:column;gap:10px}}
-.leg{{border-top:1px dashed #eee;padding-top:8px}}
+.leg{{border-top:1px dashed rgba(0,0,0,.12);padding-top:8px}}
 .leg:first-child{{border-top:none;padding-top:0}}
 .leggrid{{display:grid;grid-template-columns:1fr 24px 1fr;gap:4px;align-items:end}}
 .code{{font-weight:700}}
 .arrow{{text-align:center}}
-.time{{font-size:13px;color:#444}}
-.plane{{font-size:13px;color:#444;margin-top:4px}}
+.time{{font-size:13px;color:#222}}
+.plane{{font-size:13px;color:#222;margin-top:4px}}
 
 .empty{{color:#666;background:#fff;padding:20px;border-radius:12px;border:1px solid #eee}}
 
@@ -655,6 +687,7 @@ body{{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system
 </div>
 </body>
 </html>"""
+
 
 # =========================
 # ROUTES
