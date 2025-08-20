@@ -447,19 +447,38 @@ def class_to_code(s: str) -> str:
     return "1"
 
 def to_24h(s: Optional[str]) -> str:
-    if not s: return ""
-    s = s.strip()
-    m = re.match(r'^\s*(\d{1,2})(?::(\d{2}))?\s*([APap][Mm])\s*$', s)
+    if not s:
+        return ""
+    t = " ".join(str(s).strip().split())  # collapse whitespace
+
+    # 1) hh:mm with am/pm anywhere in the string
+    m = re.search(r'(\d{1,2})(?::(\d{2}))\s*([APap][Mm])', t)
     if m:
-        h = int(m.group(1)); mnt = int(m.group(2) or 0)
+        h = int(m.group(1)); mnt = int(m.group(2))
         ampm = m.group(3).lower()
         if ampm == "pm" and h != 12: h += 12
         if ampm == "am" and h == 12: h = 0
         return f"{h:02d}:{mnt:02d}"
-    m = re.match(r'^\s*(\d{1,2}):(\d{2})\s*$', s)
+
+    # 2) hh am/pm (no minutes)
+    m = re.search(r'\b(\d{1,2})\s*([APap][Mm])\b', t)
     if m:
-        return f"{int(m.group(1)):02d}:{int(m.group(2)):02d}"
-    return s
+        h = int(m.group(1)); mnt = 0
+        ampm = m.group(2).lower()
+        if ampm == "pm" and h != 12: h += 12
+        if ampm == "am" and h == 12: h = 0
+        return f"{h:02d}:{mnt:02d}"
+
+    # 3) 24h hh:mm anywhere in the string
+    m = re.search(r'\b(\d{1,2}):(\d{2})\b', t)
+    if m:
+        h = int(m.group(1)); mnt = int(m.group(2))
+        if 0 <= h < 24:
+            return f"{h:02d}:{mnt:02d}"
+
+    # If we can’t find a time, return empty string instead of leaking dates
+    return ""
+
 
 def norm_aircraft(name: Optional[str]) -> str:
     s = (name or "").lower()
