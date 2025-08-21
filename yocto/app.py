@@ -238,6 +238,7 @@ def extract_discount(p: Dict[str, Any]) -> Optional[str]:
         if m: return f"{m.group(1)}% lower"
     return None
 
+# ===== Hotels HTML (unchanged visuals) =====
 def render_hotels_html(q: str, ci_s: str, co_s: str, data: Dict[str, Any]) -> str:
     ci = parse_date(ci_s); co = parse_date(co_s)
     city_title = titlecase_city(q)
@@ -379,7 +380,6 @@ body{{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system
 
 <script src="{LEAFLET_JS}"></script>
 <script>
-// thumbnail -> hero swap
 document.querySelectorAll('.tile[data-src]').forEach(btn => {{
   btn.addEventListener('click', (e) => {{
     e.preventDefault();
@@ -389,8 +389,6 @@ document.querySelectorAll('.tile[data-src]').forEach(btn => {{
     if (hero && src) hero.src = src;
   }});
 }});
-
-// maps
 const entries = {maps_json};
 entries.forEach((it) => {{
   const el = document.getElementById(it.id);
@@ -404,7 +402,7 @@ entries.forEach((it) => {{
 </html>"""
 
 # =========================
-# FLIGHTS (new card layout per mock)
+# FLIGHTS (new layout with plate + big codes + plane art)
 # =========================
 def serpapi_flights(dep_ids: str, arr_ids: str, date_str: str, class_code: str) -> Dict[str, Any]:
     url = "https://serpapi.com/search.json"
@@ -446,10 +444,9 @@ def class_to_code(s: str) -> str:
     if t in ("premium","prem","pe"): return "2"
     return "1"
 
-# STRICT: only hh:mm (24h). Strip dates/offsets if present.
+# STRICT 24h hh:mm only
 def to_24h(s: Optional[str]) -> str:
-    if not s:
-        return ""
+    if not s: return ""
     t = " ".join(str(s).strip().split())
     m = re.search(r'(\d{1,2})(?::(\d{2}))\s*([APap][Mm])', t)
     if m:
@@ -468,42 +465,47 @@ def to_24h(s: Optional[str]) -> str:
     m = re.search(r'\b(\d{1,2}):(\d{2})\b', t)
     if m:
         h = int(m.group(1)); mnt = int(m.group(2))
-        if 0 <= h < 24:
-            return f"{h:02d}:{mnt:02d}"
+        if 0 <= h < 24: return f"{h:02d}:{mnt:02d}"
     return ""
 
-def norm_aircraft(name: Optional[str]) -> str:
+# Pretty aircraft names (conventional)
+def aircraft_pretty(name: Optional[str]) -> str:
     s = (name or "").lower()
     if not s: return ""
+    # Airbus
     if "a321" in s:
         return "A321neo" if "neo" in s else "A321"
-    for a in ("220-100","220-300","319","320","330","350"):
-        if f"a{a}" in s or f"airbus a{a}" in s or (a in s and "airbus" in s):
-            if a == "220-100": return "A221"
-            if a == "220-300": return "A223"
-            return f"A{a}".replace("-", "")
-    if "767-400" in s: return "B764"
-    if "767-300" in s: return "B763"
-    if "757-300" in s: return "B753"
-    if "757-200" in s: return "B752"
-    if "787-10"  in s: return "B78X"
-    if "787-9"   in s: return "B789"
-    if "787-8"   in s: return "B788"
+    if "a220-300" in s or ("a220" in s and "300" in s): return "A220-300"
+    if "a220-100" in s or ("a220" in s and "100" in s): return "A220-100"
+    for a in ("319","320","330","350"):
+        if f"a{a}" in s: return f"A{a}"
+    # Boeing
+    if "767-400" in s or ("767" in s and "400" in s): return "B767-400"
+    if "767-300" in s or ("767" in s and "300" in s): return "B767-300"
+    if "757-300" in s or ("757" in s and "300" in s): return "B757-300"
+    if "757-200" in s or ("757" in s and "200" in s): return "B757-200"
+    if "787-10"  in s or ("787" in s and "10" in s):  return "B787-10"
+    if "787-9"   in s or ("787" in s and "9" in s):   return "B787-9"
+    if "787-8"   in s or ("787" in s and "8" in s):   return "B787-8"
     if "737" in s:
-        if "800" in s or "max 8" in s or re.search(r"\b737-\s*8\b", s): return "B738"
-        if "900" in s or re.search(r"\b737-\s*9\b", s): return "B739"
-        if "700" in s or re.search(r"\b737-\s*7\b", s): return "B737"
+        if "900" in s or "max 9" in s: return "B737-900"
+        if "800" in s or "max 8" in s: return "B737-800"
+        if "700" in s:                 return "B737-700"
+        return "B737"
+    # CRJ / Embraer
     if "crj" in s:
-        if "900" in s: return "CRJ9"
-        if "700" in s: return "CRJ7"
-        if "200" in s: return "CRJ2"
+        if "900" in s: return "CRJ 900"
+        if "700" in s: return "CRJ 700"
+        if "200" in s: return "CRJ 200"
+        return "CRJ"
     m = re.search(r"(e|erj)[\s-]?(\d{3})", s)
     if m: return f"E{m.group(2)}"
-    s = re.sub(r"(boeing|airbus|embraer|bombardier|canadair|\bseries\b)", "", s)
-    s = re.sub(r"[^a-z0-9]", "", s)
-    return s.upper() or (name or "")
+    # fallback: strip vendor words & upcase
+    s2 = re.sub(r"(boeing|airbus|embraer|bombardier|canadair|\bseries\b)", "", s)
+    s2 = re.sub(r"[^a-z0-9\- ]", "", s2).strip().upper()
+    return s2 or (name or "")
 
-# Airline → big horizontal "plane strip" art
+# Airline → big horizontal plane art (top layer)
 AIRLINE_PLANE = {
     "american": "aa_plane.png",
     "delta":    "dl_plane.png",
@@ -516,7 +518,7 @@ def plane_strip_url(name: Optional[str]) -> Optional[str]:
     if "united"   in s: return f"{SITE_BASE}/yocto/logos/{AIRLINE_PLANE['united']}"
     return None
 
-# Airline name → IATA 2-letter (for UA45 etc.) — common carriers only
+# Airline name → IATA (for DL123, UA45, etc.)
 AIRLINE_IATA = {
     "american": "AA",
     "delta": "DL",
@@ -529,8 +531,7 @@ AIRLINE_IATA = {
 def airline_code(name: str) -> str:
     s = (name or "").lower()
     for k,v in AIRLINE_IATA.items():
-        if k in s:
-            return v
+        if k in s: return v
     return (name[:2] or "").upper()
 
 def flights_from_json(data: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -562,10 +563,9 @@ def flights_from_json(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                     "arr": (seg.get("arrival_airport") or {}).get("id") or "",
                     "dep_time": to_24h((seg.get("departure_airport") or {}).get("time")),
                     "arr_time": to_24h((seg.get("arrival_airport") or {}).get("time")),
-                    "plane": norm_aircraft(seg.get("airplane")),
+                    "plane": aircraft_pretty(seg.get("airplane")),
                     "num": seg.get("flight_number") or "",
                     "carrier": seg.get("airline") or "",
-                    "reliability": seg.get("reliability") or seg.get("on_time_percentage") or "",
                 })
             out.append({
                 "price": it.get("price"),
@@ -578,16 +578,6 @@ def flights_from_json(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             })
     return out
 
-def is_late_flag(val: Any) -> bool:
-    s = str(val or "").lower()
-    if not s: return False
-    if "late" in s or "delayed" in s: return True
-    m = re.search(r'(\d{1,3})\s*%?\s*(on-time|on time)', s)
-    if m:
-        pct = int(m.group(1))
-        return pct < 70
-    return False
-
 def render_flights_html(dep_disp: str, arr_disp: str, date_str: str, data: Dict[str, Any], class_disp: str = "first") -> str:
     items = flights_from_json(data)
     title = f"{esc(dep_disp.upper())} → {esc(arr_disp.upper())}"
@@ -598,119 +588,168 @@ def render_flights_html(dep_disp: str, arr_disp: str, date_str: str, data: Dict[
 
     cards = []
     for f in items:
+        # Header bits
         price = f.get("price")
         price_txt = f"${int(price):,}" if isinstance(price, int) else (f"${price}" if price else "—")
-        # top bar center line: JFK 15:45 → LAX 19:05
-        route_line = f"{esc(f['dep_code'])} {esc(f['dep_time'])} ➜ {esc(f['arr_code'])} {esc(f['arr_time'])}"
-        cls_txt = "First" if (class_disp or '').lower().startswith("f") else "Main"
+        big_codes = f"{esc(f['dep_code'])} ► {esc(f['arr_code'])}"
+        cls_txt   = "First Class" if (class_disp or '').lower().startswith("f") else "Main"
 
-        # LEG ROWS
+        # Build leg table rows
         leg_rows = []
         for lg in f.get("legs") or []:
             code = airline_code(lg.get("carrier",""))
             flno = f"{code}{str(lg['num']).strip()}"
-            late_warn = " <span class='late'>*LATE A LOT</span>" if is_late_flag(lg.get("reliability")) else ""
             row = f"""
-            <div class="legrow">
-              <div class="col flno">{esc(flno)}</div>
-              <div class="col route">{esc(lg['dep'])} - {esc(lg['arr'])}</div>
-              <div class="col plane">{esc(lg['plane'])}</div>
+            <div class="legline">
+              <div class="cell t">{esc(lg['dep_time'])}</div>
+              <div class="cell t">{esc(lg['arr_time'])}</div>
+              <div class="cell code">{esc(lg['dep'])}</div>
+              <div class="cell code">{esc(lg['arr'])}</div>
+              <div class="cell cls">{esc(cls_txt)}</div>
+              <div class="cell plane">{esc(lg['plane'])}</div>
             </div>
-            <div class="legtimes">{esc(lg['dep_time'])} &nbsp;&nbsp;&nbsp; {esc(lg['arr_time'])}{late_warn}</div>
             """
             leg_rows.append(row)
         legs_html = "\n".join(leg_rows)
 
-        # LAYOVERS (bold red line)
+        # Layover line(s)
         lay_html = ""
         for l in f.get("layovers") or []:
             if l.get("dur") and l.get("id"):
-                lay_html += f"<div class='layover'>{esc(l['dur'])} LAYOVER IN {esc(str(l['id']).upper())}</div>"
+                lay_html += f"<div class='lay'>Connect in {esc(str(l['id']))} <span>{esc(l['dur'])}</span></div>"
 
-        # Plane strip art at bottom (AA/DL/UA only)
+        # Plane art (top layer)
         plane_url = plane_strip_url(f.get("airline"))
-        plane_html = f"<img class='plane-art' src='{esc(plane_url)}' alt=''>" if plane_url else "<div class='plane-art plane-fallback'></div>"
+        plane_html = f"<img class='plane' src='{esc(plane_url)}' alt=''>" if plane_url else ""
 
         card = f"""
-<article class="tix">
-  <div class="bar">
-    <div class="price-chip">{esc(price_txt)}</div>
-    <div class="bar-route">{route_line}</div>
+<article class="fc">
+  <div class="plate"></div>
+  <div class="codes">{big_codes}</div>
+  <div class="pane">
+    <div class="grid">
+      {legs_html}
+      {lay_html}
+    </div>
+    <div class="price">{esc(price_txt)}</div>
   </div>
-  <div class="tix-body">
-    <div class="row info"><div class="class">{esc(cls_txt)}</div></div>
-    {legs_html}
-    {lay_html}
-    {plane_html}
-  </div>
+  {plane_html}
 </article>
 """
         cards.append(card)
 
     body = "\n".join(cards) if cards else "<p class='empty'>No flights found.</p>"
 
+    # NOTE: fonts served locally from /yocto/fonts/
     return f"""<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{title} — {subtitle}</title>
-<link href="https://fonts.googleapis.com/css2?family=Sansation:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-:root{{ --gold:#FFC107; --off:#f7f4ec; --ink:#111; }}
+@font-face {{
+  font-family: 'AntonCustom';
+  src:
+    url('{SITE_BASE}/yocto/fonts/Anton.woff2') format('woff2'),
+    url('{SITE_BASE}/yocto/fonts/Anton.ttf') format('truetype'),
+    url('{SITE_BASE}/yocto/fonts/Anton.otf') format('opentype'),
+    url('{SITE_BASE}/yocto/fonts/Anton.rtf') format('truetype'); /* harmless if not a font */
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: swap;
+}}
+@font-face {{
+  font-family: 'AcuminCond';
+  src:
+    url('{SITE_BASE}/yocto/fonts/acumin-pro-condensed.woff2') format('woff2'),
+    url('{SITE_BASE}/yocto/fonts/acumin-pro-condensed.otf') format('opentype');
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}}
+
+:root{{ --blue:#2b2f8f; --off:#F5F2ED; --ink:#000; }}
 *{{box-sizing:border-box}}
-body{{margin:0;background:#0b0b0c;color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}}
-.header{{position:sticky;top:0;background:#fff;border-bottom:1px solid #eee;padding:12px 16px;z-index:5}}
-.header h1{{margin:0;font-family:'Sansation',sans-serif;font-weight:700;letter-spacing:.2px}}
-.header .sub{{margin-top:4px;color:#555;font-family:'Sansation',sans-serif}}
+body{{margin:0;background:#93c5fd; /* sky */ color:var(--ink); font-family:'AcuminCond', system-ui, -apple-system, Arial, sans-serif}}
+.header{{position:sticky;top:0;background:#fff;border-bottom:1px solid #eee;padding:10px 16px;z-index:5}}
+.header h1{{margin:0 0 2px 0;font-family:'AcuminCond';font-weight:800;letter-spacing:.5px}}
+.header .sub{{color:#333}}
 
-.wrap{{max-width:960px;margin:0 auto;padding:16px}}
+.wrap{{max-width:980px;margin:0 auto;padding:20px 16px 60px}}
 
-.tix{{
-  background:#fff;border:1px solid #ddd;border-radius:16px;overflow:hidden;
-  margin:16px 0; box-shadow:0 10px 30px rgba(0,0,0,.08)
+.fc{{
+  position:relative;
+  height: 360px;
+  border-radius:28px;
+  overflow:hidden;
+  margin:24px 0;
 }}
-.bar{{
-  background:var(--gold); display:flex; align-items:center; gap:18px;
-  padding:12px 16px; position:relative
+.fc .plate{{
+  position:absolute; inset:0;
+  background: url('{SITE_BASE}/yocto/logos/card_bg.png') center/cover no-repeat;
 }}
-.price-chip{{
-  background:#1f3a93; color:#fff; font-weight:800; padding:6px 12px;
-  border:3px solid #000; border-radius:10px; letter-spacing:.5px
+.fc .codes{{
+  position:absolute; left:28px; right:28px; top:12px;
+  font-family:'AntonCustom', Impact, sans-serif;
+  font-weight:900; letter-spacing:2px; color:#fff; /* set to #fff for high contrast on blue plate */
+  font-size: clamp(44px, 10vw, 84px);
+  line-height: .9;
+  text-shadow: 0 2px 0 rgba(0,0,0,.25);
+  display:flex; align-items:flex-start; gap:16px;
 }}
-.bar-route{{font-weight:800; letter-spacing:.5px}}
-
-.tix-body{{
-  background:var(--off); padding:18px 18px 16px 18px; position:relative
+.fc .pane{{
+  position:absolute; left:28px; right:28px; bottom:22px;
+  background: rgba(255,255,255,.96);
+  border-radius:14px;
+  padding:12px 14px 60px 14px; /* extra bottom room for price label */
+  border:1px solid rgba(0,0,0,.06);
 }}
-.row.info .class{{font-weight:700; margin-bottom:8px}}
+.fc .grid{{ display:block }}
+.fc .legline{{
+  display:grid; grid-template-columns:60px 60px 56px 56px 1fr 110px;
+  column-gap:20px; align-items:center;
+  padding:8px 2px; border-bottom:1px solid rgba(0,0,0,.08);
+  font-family:'AcuminCond'; font-weight:700; font-size:17px;
+}}
+.fc .legline:last-of-type{{ border-bottom:none }}
+.fc .cell.t{{ font-variant-numeric: tabular-nums; }}
+.fc .cell.code{{ letter-spacing:.5px }}
+.fc .cell.cls{{ text-align:left }}
+.fc .cell.plane{{ text-align:right }}
 
-.legrow{{display:grid; grid-template-columns:110px 1fr 90px; gap:12px; align-items:center;
-         font-weight:700; margin-top:10px}}
-.legtimes{{padding-left:110px; color:#222; margin-top:4px; margin-bottom:6px}}
-.late{{color:#d00; font-weight:800; margin-left:8px}}
+.fc .lay{{
+  margin-top:8px;
+  font-family:'AcuminCond'; font-weight:800;
+}}
+.fc .lay span{{ color:#d00; margin-left:6px }}
 
-.layover{{color:#d00; font-weight:800; font-size:18px; margin:10px 0 6px 0}}
+.fc .price{{
+  position:absolute; left:14px; bottom:10px;
+  font-family:'AntonCustom'; font-size:38px; color:#fff;
+  text-shadow: 0 2px 0 rgba(0,0,0,.35);
+}}
 
-.plane-art{{display:block; width:100%; height:170px; object-fit:contain; object-position:center; margin-top:6px}}
-.plane-fallback{{background:#fff; height:120px; border:1px dashed #ccc; border-radius:8px}}
-
-.empty{{color:#666;background:#fff;padding:20px;border-radius:12px;border:1px solid #eee}}
+.fc .plane{{
+  position:absolute; right:0; left:0; top:18px; height:180px;
+  object-fit:contain; object-position:right center; z-index:5;
+  pointer-events:none; user-select:none;
+}}
 
 @media (max-width:720px){{
-  .legrow{{grid-template-columns:90px 1fr 70px}}
-  .legtimes{{padding-left:90px}}
+  .fc{{ height: 380px }}
+  .fc .legline{{ grid-template-columns:52px 52px 52px 52px 1fr 92px; column-gap:12px; font-size:16px }}
 }}
 </style>
 </head>
 <body>
 <div class="header">
-  <h1>{title}</h1>
-  <div class="sub">{subtitle}</div>
+  <h1>{esc(dep_disp.upper())} → {esc(arr_disp.upper())}</h1>
+  <div class="sub">{esc(subtitle)}</div>
 </div>
 <div class="wrap">
 {body}
-<div style="text-align:center;color:#555;font-size:12px;margin:18px 0;">
+<div style="text-align:center;color:#222;font-size:12px;margin:18px 0;">
   Published to <a href="{SITE_BASE}/yocto/fly/results/" style="color:#111">{SITE_BASE}/yocto/fly/results/</a>
 </div>
 </div>
