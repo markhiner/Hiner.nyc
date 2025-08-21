@@ -446,39 +446,31 @@ def class_to_code(s: str) -> str:
     if t in ("premium","prem","pe"): return "2"
     return "1"
 
+# STRICT: return only hh:mm (24h). Strip any date/offset noise.
 def to_24h(s: Optional[str]) -> str:
     if not s:
         return ""
-    t = " ".join(str(s).strip().split())  # collapse whitespace
-
-    # 1) hh:mm with am/pm anywhere in the string
-    m = re.search(r'(\d{1,2})(?::(\d{2}))\s*([APap][Mm])', t)
+    t = " ".join(str(s).strip().split())
+    m = re.search(r'(\d{{1,2}})(?::(\d{{2}}))\s*([APap][Mm])', t)
     if m:
         h = int(m.group(1)); mnt = int(m.group(2))
         ampm = m.group(3).lower()
         if ampm == "pm" and h != 12: h += 12
         if ampm == "am" and h == 12: h = 0
         return f"{h:02d}:{mnt:02d}"
-
-    # 2) hh am/pm (no minutes)
-    m = re.search(r'\b(\d{1,2})\s*([APap][Mm])\b', t)
+    m = re.search(r'\b(\d{{1,2}})\s*([APap][Mm])\b', t)
     if m:
         h = int(m.group(1)); mnt = 0
         ampm = m.group(2).lower()
         if ampm == "pm" and h != 12: h += 12
         if ampm == "am" and h == 12: h = 0
         return f"{h:02d}:{mnt:02d}"
-
-    # 3) 24h hh:mm anywhere in the string
-    m = re.search(r'\b(\d{1,2}):(\d{2})\b', t)
+    m = re.search(r'\b(\d{{1,2}}):(\d{{2}})\b', t)
     if m:
         h = int(m.group(1)); mnt = int(m.group(2))
         if 0 <= h < 24:
             return f"{h:02d}:{mnt:02d}"
-
-    # If we can’t find a time, return empty string instead of leaking dates
     return ""
-
 
 def norm_aircraft(name: Optional[str]) -> str:
     s = (name or "").lower()
@@ -514,21 +506,33 @@ def norm_aircraft(name: Optional[str]) -> str:
 # Airline → background image mapping (files live in /yocto/logos/)
 AIRLINE_BG = {
     "american": "aa.png",
-    " aa": "aa.png",       # safety for code tokens
+    " aa": "aa.png",
     "delta": "delta.png",
     "united": "united.png",
-    "jetblue": "JetBlue.png",  # case sensitive on GitHub Pages
+    "jetblue": "JetBlue.png",   # case sensitive on GH Pages
     " b6": "JetBlue.png",
     "spirit": "spirit.png",
     "frontier": "frontier.png",
 }
-
 def airline_bg_url(name: Optional[str]) -> Optional[str]:
     s = (name or "").lower()
     for key, fname in AIRLINE_BG.items():
         if key in s:
             return f"{SITE_BASE}/yocto/logos/{fname}"
-    return None  # fallback → white background
+    return None
+
+# Horizontal “plane strip” icons (inside /yocto/logos/)
+AIRLINE_STRIP = {
+    "american": "aa_plane.png",
+    "delta":    "dl_plane.png",
+    "united":   "ua_plane.png",
+}
+def airline_strip_icon(name: Optional[str]) -> Optional[str]:
+    s = (name or "").lower()
+    if "american" in s: return f"{SITE_BASE}/yocto/logos/{AIRLINE_STRIP['american']}"
+    if "delta"    in s: return f"{SITE_BASE}/yocto/logos/{AIRLINE_STRIP['delta']}"
+    if "united"   in s: return f"{SITE_BASE}/yocto/logos/{AIRLINE_STRIP['united']}"
+    return None
 
 def flights_from_json(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     out: List[Dict[str, Any]] = []
@@ -562,6 +566,7 @@ def flights_from_json(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                     "arr_time": to_24h((seg.get("arrival_airport") or {}).get("time")),
                     "plane": norm_aircraft(seg.get("airplane")),
                     "num": seg.get("flight_number") or "",
+                    "carrier": seg.get("airline") or "",
                 })
             out.append({
                 "price": it.get("price"),
@@ -600,6 +605,22 @@ def render_flights_html(dep_disp: str, arr_disp: str, date_str: str, data: Dict[
                     parts.append(f"layover in {esc(l['id'])}")
             lay_txt = " · ".join(parts)
 
+        # Airline strip icons (AA/DL/UA) — dedupe carriers across the trip
+        seen = set()
+        icon_imgs = []
+        carriers = [f.get("airline") or ""] + [lg.get("carrier","") for lg in (f.get("legs") or [])]
+        for nm in carriers:
+            url = airline_strip_icon(nm)
+            if url and url not in seen:
+                seen.add(url)
+                icon_imgs.append(f"<img src='{esc(url)}' class='brand-strip-icon' alt=''>")
+        strip_outer = f"<div class='strip-panel'><div class='strip-inner'>{''.join(icon_imgs)}</div></div>" if icon_imgs else ""
+
+        # BACKGROUND: airline-specific image, fallback to white
+        bg_url = airline_bg_url(f.get("airline"))
+        style_attr = f" style=\"--bg:url('{esc(bg_url)}')\"" if bg_url else ""
+
+        # Legs
         legs_html = ""
         for lg in f.get("legs") or []:
             legs_html += f"""
@@ -617,13 +638,10 @@ def render_flights_html(dep_disp: str, arr_disp: str, date_str: str, data: Dict[
             </div>
             """
 
-        # BACKGROUND: airline-specific image, fallback to white
-        bg_url = airline_bg_url(f.get("airline"))
-        style_attr = f" style=\"--bg:url('{esc(bg_url)}')\"" if bg_url else ""
-
         card = f"""
 <article class="card"{style_attr}>
   <div class="bar">{header_line}</div>
+  {strip_outer}
   <div class="body">
     <div class="info">
       <div class="cell class-cell">{esc(cls_txt)}</div>
@@ -662,10 +680,21 @@ body{{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system
   background-image: var(--bg);
   background-size: cover;
   background-position: center;
-  min-height: 420px;               /* ensures room for overlay text */
+  min-height: 520px;               /* room for top strip + body */
   box-shadow:0 10px 30px rgba(0,0,0,.12);
 }}
 .bar{{background:var(--gold);color:#111;padding:10px 14px;font-weight:700;letter-spacing:.2px}}
+
+.strip-panel{{
+  position:absolute; left:12px; right:12px; top:56px;
+  background:rgba(255,255,255,.9);
+  border:1px solid rgba(0,0,0,.06);
+  border-radius:14px;
+  padding:10px 12px;
+  backdrop-filter:saturate(120%) blur(2px);
+}}
+.strip-inner{{display:flex;gap:14px;align-items:center;justify-content:flex-start}}
+.brand-strip-icon{{height:28px;max-width:160px;object-fit:contain;display:block}}
 
 .body{{
   position:absolute; left:12px; right:12px; bottom:12px;
@@ -706,7 +735,6 @@ body{{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system
 </div>
 </body>
 </html>"""
-
 
 # =========================
 # ROUTES
