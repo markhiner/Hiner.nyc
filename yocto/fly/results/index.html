@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>HOME → NYC — Thu, Aug 21</title>
+<title>RDU → DEN — Thu, Aug 21</title>
 <link href="https://fonts.googleapis.com/css2?family=Sansation:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{ --line:#e5e7eb; --gold:#FFC107; }
@@ -23,10 +23,21 @@ body{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system,
   background-image: var(--bg);
   background-size: cover;
   background-position: center;
-  min-height: 420px;               /* ensures room for overlay text */
+  min-height: 520px;               /* room for top strip + body */
   box-shadow:0 10px 30px rgba(0,0,0,.12);
 }
 .bar{background:var(--gold);color:#111;padding:10px 14px;font-weight:700;letter-spacing:.2px}
+
+.strip-panel{
+  position:absolute; left:12px; right:12px; top:56px;
+  background:rgba(255,255,255,.9);
+  border:1px solid rgba(0,0,0,.06);
+  border-radius:14px;
+  padding:10px 12px;
+  backdrop-filter:saturate(120%) blur(2px);
+}
+.strip-inner{display:flex;gap:14px;align-items:center;justify-content:flex-start}
+.brand-strip-icon{height:28px;max-width:160px;object-fit:contain;display:block}
 
 .body{
   position:absolute; left:12px; right:12px; bottom:12px;
@@ -56,13 +67,14 @@ body{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system,
 </head>
 <body>
 <div class="header">
-  <h1>HOME → NYC</h1>
+  <h1>RDU → DEN</h1>
   <div class="sub">Thu, Aug 21</div>
 </div>
 <div class="wrap">
 
-<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/aa.png')">
-  <div class="bar">$218 RDU 14:43 - LGA 16:26</div>
+<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/united.png')">
+  <div class="bar">$699 RDU  - DEN </div>
+  <div class='strip-panel'><div class='strip-inner'><img src='https://hiner.nyc/yocto/logos/ua_plane.png' class='brand-strip-icon' alt=''></div></div>
   <div class="body">
     <div class="info">
       <div class="cell class-cell">First</div>
@@ -73,363 +85,13 @@ body{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system,
               <div class="leggrid">
                 <div class="code">RDU</div>
                 <div class="arrow">→</div>
-                <div class="code">LGA</div>
+                <div class="code">DEN</div>
 
-                <div class="time">14:43</div>
+                <div class="time"></div>
                 <div></div>
-                <div class="time">16:26</div>
+                <div class="time"></div>
               </div>
-              <div class="plane">175 AA 4545</div>
-            </div>
-            </div>
-  </div>
-</article>
-
-
-<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/aa.png')">
-  <div class="bar">$218 RDU 16:02 - LGA 17:45</div>
-  <div class="body">
-    <div class="info">
-      <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
-    </div>
-    <div class="legs">
-            <div class="leg">
-              <div class="leggrid">
-                <div class="code">RDU</div>
-                <div class="arrow">→</div>
-                <div class="code">LGA</div>
-
-                <div class="time">16:02</div>
-                <div></div>
-                <div class="time">17:45</div>
-              </div>
-              <div class="plane">175 AA 4749</div>
-            </div>
-            </div>
-  </div>
-</article>
-
-
-<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/delta.png')">
-  <div class="bar">$234 RDU 15:00 - LGA 16:47</div>
-  <div class="body">
-    <div class="info">
-      <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
-    </div>
-    <div class="legs">
-            <div class="leg">
-              <div class="leggrid">
-                <div class="code">RDU</div>
-                <div class="arrow">→</div>
-                <div class="code">LGA</div>
-
-                <div class="time">15:00</div>
-                <div></div>
-                <div class="time">16:47</div>
-              </div>
-              <div class="plane">175 DL 5759</div>
-            </div>
-            </div>
-  </div>
-</article>
-
-
-<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/aa.png')">
-  <div class="bar">$218 RDU 06:03 - JFK 07:47</div>
-  <div class="body">
-    <div class="info">
-      <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
-    </div>
-    <div class="legs">
-            <div class="leg">
-              <div class="leggrid">
-                <div class="code">RDU</div>
-                <div class="arrow">→</div>
-                <div class="code">JFK</div>
-
-                <div class="time">06:03</div>
-                <div></div>
-                <div class="time">07:47</div>
-              </div>
-              <div class="plane">175 AA 4805</div>
-            </div>
-            </div>
-  </div>
-</article>
-
-
-<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/aa.png')">
-  <div class="bar">$218 RDU 08:50 - LGA 10:28</div>
-  <div class="body">
-    <div class="info">
-      <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
-    </div>
-    <div class="legs">
-            <div class="leg">
-              <div class="leggrid">
-                <div class="code">RDU</div>
-                <div class="arrow">→</div>
-                <div class="code">LGA</div>
-
-                <div class="time">08:50</div>
-                <div></div>
-                <div class="time">10:28</div>
-              </div>
-              <div class="plane">170 AA 4774</div>
-            </div>
-            </div>
-  </div>
-</article>
-
-
-<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/aa.png')">
-  <div class="bar">$218 RDU 12:06 - JFK 13:53</div>
-  <div class="body">
-    <div class="info">
-      <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
-    </div>
-    <div class="legs">
-            <div class="leg">
-              <div class="leggrid">
-                <div class="code">RDU</div>
-                <div class="arrow">→</div>
-                <div class="code">JFK</div>
-
-                <div class="time">12:06</div>
-                <div></div>
-                <div class="time">13:53</div>
-              </div>
-              <div class="plane">175 AA 4765</div>
-            </div>
-            </div>
-  </div>
-</article>
-
-
-<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/aa.png')">
-  <div class="bar">$218 RDU 13:01 - JFK 14:49</div>
-  <div class="body">
-    <div class="info">
-      <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
-    </div>
-    <div class="legs">
-            <div class="leg">
-              <div class="leggrid">
-                <div class="code">RDU</div>
-                <div class="arrow">→</div>
-                <div class="code">JFK</div>
-
-                <div class="time">13:01</div>
-                <div></div>
-                <div class="time">14:49</div>
-              </div>
-              <div class="plane">175 AA 4690</div>
-            </div>
-            </div>
-  </div>
-</article>
-
-
-<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/aa.png')">
-  <div class="bar">$218 RDU 20:40 - JFK 22:29</div>
-  <div class="body">
-    <div class="info">
-      <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
-    </div>
-    <div class="legs">
-            <div class="leg">
-              <div class="leggrid">
-                <div class="code">RDU</div>
-                <div class="arrow">→</div>
-                <div class="code">JFK</div>
-
-                <div class="time">20:40</div>
-                <div></div>
-                <div class="time">22:29</div>
-              </div>
-              <div class="plane">175 AA 4417</div>
-            </div>
-            </div>
-  </div>
-</article>
-
-
-<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/delta.png')">
-  <div class="bar">$229 RDU 11:57 - JFK 13:52</div>
-  <div class="body">
-    <div class="info">
-      <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
-    </div>
-    <div class="legs">
-            <div class="leg">
-              <div class="leggrid">
-                <div class="code">RDU</div>
-                <div class="arrow">→</div>
-                <div class="code">JFK</div>
-
-                <div class="time">11:57</div>
-                <div></div>
-                <div class="time">13:52</div>
-              </div>
-              <div class="plane">RJ900 DL 5009</div>
-            </div>
-            </div>
-  </div>
-</article>
-
-
-<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/delta.png')">
-  <div class="bar">$229 RDU 14:07 - JFK 16:00</div>
-  <div class="body">
-    <div class="info">
-      <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
-    </div>
-    <div class="legs">
-            <div class="leg">
-              <div class="leggrid">
-                <div class="code">RDU</div>
-                <div class="arrow">→</div>
-                <div class="code">JFK</div>
-
-                <div class="time">14:07</div>
-                <div></div>
-                <div class="time">16:00</div>
-              </div>
-              <div class="plane">RJ900 DL 5042</div>
-            </div>
-            </div>
-  </div>
-</article>
-
-
-<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/delta.png')">
-  <div class="bar">$229 RDU 19:59 - JFK 22:07</div>
-  <div class="body">
-    <div class="info">
-      <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
-    </div>
-    <div class="legs">
-            <div class="leg">
-              <div class="leggrid">
-                <div class="code">RDU</div>
-                <div class="arrow">→</div>
-                <div class="code">JFK</div>
-
-                <div class="time">19:59</div>
-                <div></div>
-                <div class="time">22:07</div>
-              </div>
-              <div class="plane">RJ900 DL 5219</div>
-            </div>
-            </div>
-  </div>
-</article>
-
-
-<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/delta.png')">
-  <div class="bar">$234 RDU 08:24 - LGA 10:00</div>
-  <div class="body">
-    <div class="info">
-      <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
-    </div>
-    <div class="legs">
-            <div class="leg">
-              <div class="leggrid">
-                <div class="code">RDU</div>
-                <div class="arrow">→</div>
-                <div class="code">LGA</div>
-
-                <div class="time">08:24</div>
-                <div></div>
-                <div class="time">10:00</div>
-              </div>
-              <div class="plane">RJ900 DL 5235</div>
-            </div>
-            </div>
-  </div>
-</article>
-
-
-<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/delta.png')">
-  <div class="bar">$249 RDU 07:10 - EWR 08:52</div>
-  <div class="body">
-    <div class="info">
-      <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
-    </div>
-    <div class="legs">
-            <div class="leg">
-              <div class="leggrid">
-                <div class="code">RDU</div>
-                <div class="arrow">→</div>
-                <div class="code">EWR</div>
-
-                <div class="time">07:10</div>
-                <div></div>
-                <div class="time">08:52</div>
-              </div>
-              <div class="plane">RJ900 DL 5120</div>
-            </div>
-            </div>
-  </div>
-</article>
-
-
-<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/aa.png')">
-  <div class="bar">$275 RDU 19:47 - LGA 21:29</div>
-  <div class="body">
-    <div class="info">
-      <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
-    </div>
-    <div class="legs">
-            <div class="leg">
-              <div class="leggrid">
-                <div class="code">RDU</div>
-                <div class="arrow">→</div>
-                <div class="code">LGA</div>
-
-                <div class="time">19:47</div>
-                <div></div>
-                <div class="time">21:29</div>
-              </div>
-              <div class="plane">175 AA 4487</div>
-            </div>
-            </div>
-  </div>
-</article>
-
-
-<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/delta.png')">
-  <div class="bar">$279 RDU 07:06 - JFK 09:00</div>
-  <div class="body">
-    <div class="info">
-      <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
-    </div>
-    <div class="legs">
-            <div class="leg">
-              <div class="leggrid">
-                <div class="code">RDU</div>
-                <div class="arrow">→</div>
-                <div class="code">JFK</div>
-
-                <div class="time">07:06</div>
-                <div></div>
-                <div class="time">09:00</div>
-              </div>
-              <div class="plane">RJ900 DL 5239</div>
+              <div class="plane">737MAX9PASSENGER UA 530</div>
             </div>
             </div>
   </div>
@@ -437,24 +99,77 @@ body{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system,
 
 
 <article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/united.png')">
-  <div class="bar">$279 RDU 07:08 - EWR 08:45</div>
+  <div class="bar">$709 RDU  - DEN </div>
+  <div class='strip-panel'><div class='strip-inner'><img src='https://hiner.nyc/yocto/logos/ua_plane.png' class='brand-strip-icon' alt=''></div></div>
   <div class="body">
     <div class="info">
       <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
+      <div class="cell lay-cell">2:35 layover in ORD</div>
     </div>
     <div class="legs">
             <div class="leg">
               <div class="leggrid">
                 <div class="code">RDU</div>
                 <div class="arrow">→</div>
-                <div class="code">EWR</div>
+                <div class="code">ORD</div>
 
-                <div class="time">07:08</div>
+                <div class="time"></div>
                 <div></div>
-                <div class="time">08:45</div>
+                <div class="time"></div>
               </div>
-              <div class="plane">737MAX9PASSENGER UA 1155</div>
+              <div class="plane">737 UA 247</div>
+            </div>
+            
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">ORD</div>
+                <div class="arrow">→</div>
+                <div class="code">DEN</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">737 UA 503</div>
+            </div>
+            </div>
+  </div>
+</article>
+
+
+<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/delta.png')">
+  <div class="bar">$820 RDU  - DEN </div>
+  <div class='strip-panel'><div class='strip-inner'><img src='https://hiner.nyc/yocto/logos/dl_plane.png' class='brand-strip-icon' alt=''></div></div>
+  <div class="body">
+    <div class="info">
+      <div class="cell class-cell">First</div>
+      <div class="cell lay-cell">1:36 layover in MSP</div>
+    </div>
+    <div class="legs">
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">RDU</div>
+                <div class="arrow">→</div>
+                <div class="code">MSP</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">A320 DL 2521</div>
+            </div>
+            
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">MSP</div>
+                <div class="arrow">→</div>
+                <div class="code">DEN</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">737 DL 2931</div>
             </div>
             </div>
   </div>
@@ -462,7 +177,8 @@ body{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system,
 
 
 <article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/united.png')">
-  <div class="bar">$279 RDU 11:23 - EWR 13:00</div>
+  <div class="bar">$1,315 RDU  - DEN </div>
+  <div class='strip-panel'><div class='strip-inner'><img src='https://hiner.nyc/yocto/logos/ua_plane.png' class='brand-strip-icon' alt=''></div></div>
   <div class="body">
     <div class="info">
       <div class="cell class-cell">First</div>
@@ -473,13 +189,13 @@ body{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system,
               <div class="leggrid">
                 <div class="code">RDU</div>
                 <div class="arrow">→</div>
-                <div class="code">EWR</div>
+                <div class="code">DEN</div>
 
-                <div class="time">11:23</div>
+                <div class="time"></div>
                 <div></div>
-                <div class="time">13:00</div>
+                <div class="time"></div>
               </div>
-              <div class="plane">B738 UA 1701</div>
+              <div class="plane">737 UA 2288</div>
             </div>
             </div>
   </div>
@@ -487,11 +203,12 @@ body{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system,
 
 
 <article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/united.png')">
-  <div class="bar">$279 RDU 15:22 - EWR 17:00</div>
+  <div class="bar">$709 RDU  - DEN </div>
+  <div class='strip-panel'><div class='strip-inner'><img src='https://hiner.nyc/yocto/logos/ua_plane.png' class='brand-strip-icon' alt=''></div></div>
   <div class="body">
     <div class="info">
       <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
+      <div class="cell lay-cell">4:00 layover in EWR</div>
     </div>
     <div class="legs">
             <div class="leg">
@@ -500,36 +217,63 @@ body{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system,
                 <div class="arrow">→</div>
                 <div class="code">EWR</div>
 
-                <div class="time">15:22</div>
+                <div class="time"></div>
                 <div></div>
-                <div class="time">17:00</div>
+                <div class="time"></div>
               </div>
               <div class="plane">737 UA 2395</div>
             </div>
+            
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">EWR</div>
+                <div class="arrow">→</div>
+                <div class="code">DEN</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">737MAX9PASSENGER UA 1792</div>
+            </div>
             </div>
   </div>
 </article>
 
 
 <article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/delta.png')">
-  <div class="bar">$284 RDU 19:55 - LGA 21:45</div>
+  <div class="bar">$749 RDU  - DEN </div>
+  <div class='strip-panel'><div class='strip-inner'><img src='https://hiner.nyc/yocto/logos/dl_plane.png' class='brand-strip-icon' alt=''></div></div>
   <div class="body">
     <div class="info">
       <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
+      <div class="cell lay-cell">1:19 layover in ATL</div>
     </div>
     <div class="legs">
             <div class="leg">
               <div class="leggrid">
                 <div class="code">RDU</div>
                 <div class="arrow">→</div>
-                <div class="code">LGA</div>
+                <div class="code">ATL</div>
 
-                <div class="time">19:55</div>
+                <div class="time"></div>
                 <div></div>
-                <div class="time">21:45</div>
+                <div class="time"></div>
               </div>
-              <div class="plane">RJ900 DL 5101</div>
+              <div class="plane">737 DL 3246</div>
+            </div>
+            
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">ATL</div>
+                <div class="arrow">→</div>
+                <div class="code">DEN</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">A321 DL 956</div>
             </div>
             </div>
   </div>
@@ -537,24 +281,38 @@ body{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system,
 
 
 <article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/aa.png')">
-  <div class="bar">$302 GSO 06:01 - LGA 07:39</div>
+  <div class="bar">$886 RDU  - DEN </div>
+  <div class='strip-panel'><div class='strip-inner'><img src='https://hiner.nyc/yocto/logos/aa_plane.png' class='brand-strip-icon' alt=''></div></div>
   <div class="body">
     <div class="info">
       <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
+      <div class="cell lay-cell">10:59 layover in ORD</div>
     </div>
     <div class="legs">
             <div class="leg">
               <div class="leggrid">
-                <div class="code">GSO</div>
+                <div class="code">RDU</div>
                 <div class="arrow">→</div>
-                <div class="code">LGA</div>
+                <div class="code">ORD</div>
 
-                <div class="time">06:01</div>
+                <div class="time"></div>
                 <div></div>
-                <div class="time">07:39</div>
+                <div class="time"></div>
               </div>
-              <div class="plane">170 AA 4578</div>
+              <div class="plane">175 AA 4563</div>
+            </div>
+            
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">ORD</div>
+                <div class="arrow">→</div>
+                <div class="code">DEN</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">737 AA 2559</div>
             </div>
             </div>
   </div>
@@ -562,11 +320,51 @@ body{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system,
 
 
 <article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/united.png')">
-  <div class="bar">$319 RDU 18:25 - EWR 20:00</div>
+  <div class="bar">$889 RDU  - DEN </div>
+  <div class='strip-panel'><div class='strip-inner'><img src='https://hiner.nyc/yocto/logos/ua_plane.png' class='brand-strip-icon' alt=''></div></div>
   <div class="body">
     <div class="info">
       <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
+      <div class="cell lay-cell">1:32 layover in ORD</div>
+    </div>
+    <div class="legs">
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">RDU</div>
+                <div class="arrow">→</div>
+                <div class="code">ORD</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">737 UA 247</div>
+            </div>
+            
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">ORD</div>
+                <div class="arrow">→</div>
+                <div class="code">DEN</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">A321neo UA 2479</div>
+            </div>
+            </div>
+  </div>
+</article>
+
+
+<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/united.png')">
+  <div class="bar">$889 RDU  - DEN </div>
+  <div class='strip-panel'><div class='strip-inner'><img src='https://hiner.nyc/yocto/logos/ua_plane.png' class='brand-strip-icon' alt=''></div></div>
+  <div class="body">
+    <div class="info">
+      <div class="cell class-cell">First</div>
+      <div class="cell lay-cell">1:45 layover in EWR</div>
     </div>
     <div class="legs">
             <div class="leg">
@@ -575,186 +373,102 @@ body{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system,
                 <div class="arrow">→</div>
                 <div class="code">EWR</div>
 
-                <div class="time">18:25</div>
+                <div class="time"></div>
                 <div></div>
-                <div class="time">20:00</div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">737 UA 2395</div>
+            </div>
+            
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">EWR</div>
+                <div class="arrow">→</div>
+                <div class="code">DEN</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">A321neo UA 407</div>
+            </div>
+            </div>
+  </div>
+</article>
+
+
+<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/united.png')">
+  <div class="bar">$889 RDU  - DEN </div>
+  <div class='strip-panel'><div class='strip-inner'><img src='https://hiner.nyc/yocto/logos/ua_plane.png' class='brand-strip-icon' alt=''></div></div>
+  <div class="body">
+    <div class="info">
+      <div class="cell class-cell">First</div>
+      <div class="cell lay-cell">1:24 layover in IAH</div>
+    </div>
+    <div class="legs">
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">RDU</div>
+                <div class="arrow">→</div>
+                <div class="code">IAH</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">737 UA 2407</div>
+            </div>
+            
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">IAH</div>
+                <div class="arrow">→</div>
+                <div class="code">DEN</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">A321neo UA 536</div>
+            </div>
+            </div>
+  </div>
+</article>
+
+
+<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/united.png')">
+  <div class="bar">$889 RDU  - DEN </div>
+  <div class='strip-panel'><div class='strip-inner'><img src='https://hiner.nyc/yocto/logos/ua_plane.png' class='brand-strip-icon' alt=''></div></div>
+  <div class="body">
+    <div class="info">
+      <div class="cell class-cell">First</div>
+      <div class="cell lay-cell">1:00 layover in EWR</div>
+    </div>
+    <div class="legs">
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">RDU</div>
+                <div class="arrow">→</div>
+                <div class="code">EWR</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
               </div>
               <div class="plane">737 UA 2645</div>
             </div>
-            </div>
-  </div>
-</article>
-
-
-<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/delta.png')">
-  <div class="bar">$329 RDU 09:47 - JFK 11:29</div>
-  <div class="body">
-    <div class="info">
-      <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
-    </div>
-    <div class="legs">
+            
             <div class="leg">
               <div class="leggrid">
-                <div class="code">RDU</div>
-                <div class="arrow">→</div>
-                <div class="code">JFK</div>
-
-                <div class="time">09:47</div>
-                <div></div>
-                <div class="time">11:29</div>
-              </div>
-              <div class="plane">RJ900 DL 5294</div>
-            </div>
-            </div>
-  </div>
-</article>
-
-
-<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/delta.png')">
-  <div class="bar">$334 RDU 11:17 - LGA 12:57</div>
-  <div class="body">
-    <div class="info">
-      <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
-    </div>
-    <div class="legs">
-            <div class="leg">
-              <div class="leggrid">
-                <div class="code">RDU</div>
-                <div class="arrow">→</div>
-                <div class="code">LGA</div>
-
-                <div class="time">11:17</div>
-                <div></div>
-                <div class="time">12:57</div>
-              </div>
-              <div class="plane">RJ900 DL 5160</div>
-            </div>
-            </div>
-  </div>
-</article>
-
-
-<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/delta.png')">
-  <div class="bar">$334 RDU 13:30 - LGA 15:14</div>
-  <div class="body">
-    <div class="info">
-      <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
-    </div>
-    <div class="legs">
-            <div class="leg">
-              <div class="leggrid">
-                <div class="code">RDU</div>
-                <div class="arrow">→</div>
-                <div class="code">LGA</div>
-
-                <div class="time">13:30</div>
-                <div></div>
-                <div class="time">15:14</div>
-              </div>
-              <div class="plane">RJ900 DL 5404</div>
-            </div>
-            </div>
-  </div>
-</article>
-
-
-<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/delta.png')">
-  <div class="bar">$341 GSO 14:49 - LGA 16:30</div>
-  <div class="body">
-    <div class="info">
-      <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
-    </div>
-    <div class="legs">
-            <div class="leg">
-              <div class="leggrid">
-                <div class="code">GSO</div>
-                <div class="arrow">→</div>
-                <div class="code">LGA</div>
-
-                <div class="time">14:49</div>
-                <div></div>
-                <div class="time">16:30</div>
-              </div>
-              <div class="plane">RJ900 DL 4978</div>
-            </div>
-            </div>
-  </div>
-</article>
-
-
-<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/aa.png')">
-  <div class="bar">$456 RDU 12:32 - LGA 14:15</div>
-  <div class="body">
-    <div class="info">
-      <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
-    </div>
-    <div class="legs">
-            <div class="leg">
-              <div class="leggrid">
-                <div class="code">RDU</div>
-                <div class="arrow">→</div>
-                <div class="code">LGA</div>
-
-                <div class="time">12:32</div>
-                <div></div>
-                <div class="time">14:15</div>
-              </div>
-              <div class="plane">175 AA 4459</div>
-            </div>
-            </div>
-  </div>
-</article>
-
-
-<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/aa.png')">
-  <div class="bar">$487 GSO 17:51 - LGA 19:29</div>
-  <div class="body">
-    <div class="info">
-      <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
-    </div>
-    <div class="legs">
-            <div class="leg">
-              <div class="leggrid">
-                <div class="code">GSO</div>
-                <div class="arrow">→</div>
-                <div class="code">LGA</div>
-
-                <div class="time">17:51</div>
-                <div></div>
-                <div class="time">19:29</div>
-              </div>
-              <div class="plane">175 AA 4574</div>
-            </div>
-            </div>
-  </div>
-</article>
-
-
-<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/delta.png')">
-  <div class="bar">$514 RDU 11:45 - EWR 13:28</div>
-  <div class="body">
-    <div class="info">
-      <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
-    </div>
-    <div class="legs">
-            <div class="leg">
-              <div class="leggrid">
-                <div class="code">RDU</div>
-                <div class="arrow">→</div>
                 <div class="code">EWR</div>
+                <div class="arrow">→</div>
+                <div class="code">DEN</div>
 
-                <div class="time">11:45</div>
+                <div class="time"></div>
                 <div></div>
-                <div class="time">13:28</div>
+                <div class="time"></div>
               </div>
-              <div class="plane">RJ900 DL 5273</div>
+              <div class="plane">737MAX9PASSENGER UA 1792</div>
             </div>
             </div>
   </div>
@@ -762,24 +476,389 @@ body{margin:0;background:#0b0b0c;color:#111;font-family:system-ui,-apple-system,
 
 
 <article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/delta.png')">
-  <div class="bar">$544 GSO 10:45 - LGA 12:25</div>
+  <div class="bar">$1,010 RDU  - DEN </div>
+  <div class='strip-panel'><div class='strip-inner'><img src='https://hiner.nyc/yocto/logos/dl_plane.png' class='brand-strip-icon' alt=''></div></div>
   <div class="body">
     <div class="info">
       <div class="cell class-cell">First</div>
-      <div class="cell lay-cell"></div>
+      <div class="cell lay-cell">1:00 layover in DTW</div>
     </div>
     <div class="legs">
             <div class="leg">
               <div class="leggrid">
-                <div class="code">GSO</div>
+                <div class="code">RDU</div>
                 <div class="arrow">→</div>
-                <div class="code">LGA</div>
+                <div class="code">DTW</div>
 
-                <div class="time">10:45</div>
+                <div class="time"></div>
                 <div></div>
-                <div class="time">12:25</div>
+                <div class="time"></div>
               </div>
-              <div class="plane">175 DL 5788</div>
+              <div class="plane">A319 DL 1388</div>
+            </div>
+            
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">DTW</div>
+                <div class="arrow">→</div>
+                <div class="code">DEN</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">A321 DL 1113</div>
+            </div>
+            </div>
+  </div>
+</article>
+
+
+<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/delta.png')">
+  <div class="bar">$1,010 RDU  - DEN </div>
+  <div class='strip-panel'><div class='strip-inner'><img src='https://hiner.nyc/yocto/logos/dl_plane.png' class='brand-strip-icon' alt=''></div></div>
+  <div class="body">
+    <div class="info">
+      <div class="cell class-cell">First</div>
+      <div class="cell lay-cell">1:01 layover in MSP</div>
+    </div>
+    <div class="legs">
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">RDU</div>
+                <div class="arrow">→</div>
+                <div class="code">MSP</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">737 DL 2538</div>
+            </div>
+            
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">MSP</div>
+                <div class="arrow">→</div>
+                <div class="code">DEN</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">A320 DL 1149</div>
+            </div>
+            </div>
+  </div>
+</article>
+
+
+<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/delta.png')">
+  <div class="bar">$1,010 RDU  - DEN </div>
+  <div class='strip-panel'><div class='strip-inner'><img src='https://hiner.nyc/yocto/logos/dl_plane.png' class='brand-strip-icon' alt=''></div></div>
+  <div class="body">
+    <div class="info">
+      <div class="cell class-cell">First</div>
+      <div class="cell lay-cell">3:27 layover in ATL</div>
+    </div>
+    <div class="legs">
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">RDU</div>
+                <div class="arrow">→</div>
+                <div class="code">ATL</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">737 DL 1699</div>
+            </div>
+            
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">ATL</div>
+                <div class="arrow">→</div>
+                <div class="code">DEN</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">A321 DL 519</div>
+            </div>
+            </div>
+  </div>
+</article>
+
+
+<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/aa.png')">
+  <div class="bar">$1,086 RDU  - DEN </div>
+  <div class='strip-panel'><div class='strip-inner'><img src='https://hiner.nyc/yocto/logos/aa_plane.png' class='brand-strip-icon' alt=''></div></div>
+  <div class="body">
+    <div class="info">
+      <div class="cell class-cell">First</div>
+      <div class="cell lay-cell">2:12 layover in DFW</div>
+    </div>
+    <div class="legs">
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">RDU</div>
+                <div class="arrow">→</div>
+                <div class="code">DFW</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">737 AA 2693</div>
+            </div>
+            
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">DFW</div>
+                <div class="arrow">→</div>
+                <div class="code">DEN</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">A321 AA 2235</div>
+            </div>
+            </div>
+  </div>
+</article>
+
+
+<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/aa.png')">
+  <div class="bar">$1,260 RDU  - DEN </div>
+  <div class='strip-panel'><div class='strip-inner'><img src='https://hiner.nyc/yocto/logos/aa_plane.png' class='brand-strip-icon' alt=''></div></div>
+  <div class="body">
+    <div class="info">
+      <div class="cell class-cell">First</div>
+      <div class="cell lay-cell">1:03 layover in CLT</div>
+    </div>
+    <div class="legs">
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">RDU</div>
+                <div class="arrow">→</div>
+                <div class="code">CLT</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">A321 AA 2704</div>
+            </div>
+            
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">CLT</div>
+                <div class="arrow">→</div>
+                <div class="code">DEN</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">A321 AA 1529</div>
+            </div>
+            </div>
+  </div>
+</article>
+
+
+<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/delta.png')">
+  <div class="bar">$1,300 RDU  - DEN </div>
+  <div class='strip-panel'><div class='strip-inner'><img src='https://hiner.nyc/yocto/logos/dl_plane.png' class='brand-strip-icon' alt=''></div></div>
+  <div class="body">
+    <div class="info">
+      <div class="cell class-cell">First</div>
+      <div class="cell lay-cell">0:44 layover in ATL</div>
+    </div>
+    <div class="legs">
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">RDU</div>
+                <div class="arrow">→</div>
+                <div class="code">ATL</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">A321 DL 3241</div>
+            </div>
+            
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">ATL</div>
+                <div class="arrow">→</div>
+                <div class="code">DEN</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">A321 DL 2235</div>
+            </div>
+            </div>
+  </div>
+</article>
+
+
+<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/delta.png')">
+  <div class="bar">$1,300 RDU  - DEN </div>
+  <div class='strip-panel'><div class='strip-inner'><img src='https://hiner.nyc/yocto/logos/dl_plane.png' class='brand-strip-icon' alt=''></div></div>
+  <div class="body">
+    <div class="info">
+      <div class="cell class-cell">First</div>
+      <div class="cell lay-cell">1:21 layover in ATL</div>
+    </div>
+    <div class="legs">
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">RDU</div>
+                <div class="arrow">→</div>
+                <div class="code">ATL</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">737 DL 3242</div>
+            </div>
+            
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">ATL</div>
+                <div class="arrow">→</div>
+                <div class="code">DEN</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">A321 DL 706</div>
+            </div>
+            </div>
+  </div>
+</article>
+
+
+<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/delta.png')">
+  <div class="bar">$1,300 RDU  - DEN </div>
+  <div class='strip-panel'><div class='strip-inner'><img src='https://hiner.nyc/yocto/logos/dl_plane.png' class='brand-strip-icon' alt=''></div></div>
+  <div class="body">
+    <div class="info">
+      <div class="cell class-cell">First</div>
+      <div class="cell lay-cell">1:18 layover in DTW</div>
+    </div>
+    <div class="legs">
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">RDU</div>
+                <div class="arrow">→</div>
+                <div class="code">DTW</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">A321 DL 1427</div>
+            </div>
+            
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">DTW</div>
+                <div class="arrow">→</div>
+                <div class="code">DEN</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">A321 DL 1648</div>
+            </div>
+            </div>
+  </div>
+</article>
+
+
+<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/delta.png')">
+  <div class="bar">$1,300 RDU  - DEN </div>
+  <div class='strip-panel'><div class='strip-inner'><img src='https://hiner.nyc/yocto/logos/dl_plane.png' class='brand-strip-icon' alt=''></div></div>
+  <div class="body">
+    <div class="info">
+      <div class="cell class-cell">First</div>
+      <div class="cell lay-cell">1:07 layover in ATL</div>
+    </div>
+    <div class="legs">
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">RDU</div>
+                <div class="arrow">→</div>
+                <div class="code">ATL</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">737 DL 1699</div>
+            </div>
+            
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">ATL</div>
+                <div class="arrow">→</div>
+                <div class="code">DEN</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">A321 DL 530</div>
+            </div>
+            </div>
+  </div>
+</article>
+
+
+<article class="card" style="--bg:url('https://hiner.nyc/yocto/logos/delta.png')">
+  <div class="bar">$1,300 RDU  - DEN </div>
+  <div class='strip-panel'><div class='strip-inner'><img src='https://hiner.nyc/yocto/logos/dl_plane.png' class='brand-strip-icon' alt=''></div></div>
+  <div class="body">
+    <div class="info">
+      <div class="cell class-cell">First</div>
+      <div class="cell lay-cell">0:51 layover in ATL</div>
+    </div>
+    <div class="legs">
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">RDU</div>
+                <div class="arrow">→</div>
+                <div class="code">ATL</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">737 DL 3245</div>
+            </div>
+            
+            <div class="leg">
+              <div class="leggrid">
+                <div class="code">ATL</div>
+                <div class="arrow">→</div>
+                <div class="code">DEN</div>
+
+                <div class="time"></div>
+                <div></div>
+                <div class="time"></div>
+              </div>
+              <div class="plane">A321 DL 519</div>
             </div>
             </div>
   </div>
