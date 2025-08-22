@@ -1,27 +1,320 @@
 <!doctype html> <html lang="en"> <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, 
-initial-scale=1" />
-  <title>Hiner.nyc</title> <style>
-    html, body {
-      height: 100%; margin: 0; background: #000;
-    } /* Full-viewport stage */ .stage {
-      position: fixed; inset: 0; display: flex;
-      align-items: center;   /* center vertically 
-when letterboxed */
-      justify-content: center; background: #000;
-      overflow-y: auto;      /* allow vertical scroll 
-if the 4:3 image is taller than the viewport */
-      overflow-x: hidden;  /* never scroll sideways 
-*/
-    } img {
-      display: block;  /* remove inline-gap 
-whitespace */
-      width: 100%;  /* span full browser width */
-      height: auto;          /* preserve 4:3 aspect 
-ratio from the source image */
+  <meta charset="utf-8"/>
+  <meta name="viewport" 
+content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="apple-mobile-web-app-capable" 
+content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" 
+content="black-translucent"/>
+  <title>yocto</title>
+  <link rel="preconnect" 
+href="https://fonts.googleapis.com">
+  <link rel="preconnect" 
+href="https://fonts.gstatic.com" crossorigin>
+  <link 
+href="https://fonts.googleapis.com/css2?family=Encode+Sans+SC:wght@100;200;300;400;500;600;700&display=swap" 
+rel="stylesheet">
+  <script 
+src="https://cdn.jsdelivr.net/npm/js-sha256@0.9.0/build/sha256.min.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box} 
+    html{-webkit-text-size-adjust:100%}
+    
+body{margin:0;background:#0b0b0b;color:#eee;min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:system-ui,-apple-system,Segoe 
+UI,Roboto,Helvetica,Arial,sans-serif}
+    .card{background:#161616;border:1px solid 
+#2a2a2a;border-radius:16px;width:min(92vw,520px);padding:24px 
+calc(24px + env(safe-area-inset-right)) 24px 
+calc(24px + env(safe-area-inset-left));box-shadow:0 
+10px 30px rgba(0,0,0,.35)}
+    .hidden{display:none} button,input{font:inherit} 
+    /* keypad */
+    
+.dots{display:flex;gap:8px;justify-content:center;margin:4px 
+0 8px;min-height:18px}
+    
+.dot{width:10px;height:10px;border-radius:50%;background:#e5e7eb}
+    
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px;background:#000;padding:16px;border-radius:16px}
+    
+.key{display:flex;align-items:center;justify-content:center;height:68px;border:none;background:transparent;color:#fff;font-family:"Encode 
+Sans 
+SC",sans-serif;font-weight:100;font-size:34px;line-height:1;font-optical-sizing:auto;font-variation-settings:"wdth" 
+100;user-select:none;-webkit-tap-highlight-color:transparent;outline:none}
+    .key:active{transform:scale(.98)} 
+    .ok-icon{width:30px;height:30px;display:block}
+    .ok-icon 
+path{stroke:#fff;stroke-width:1.25;fill:none;stroke-linecap:square;stroke-linejoin:miter}
+    /* hub */
+    .hub{display:grid;grid-template-columns:1fr 
+1fr;gap:16px}
+    .hub 
+.tile{position:relative;aspect-ratio:1;border-radius:18px;border:1px 
+solid 
+#2a2a2a;background:#000;display:grid;place-items:center;overflow:hidden;cursor:pointer}
+    .hub .tile 
+img{width:80%;height:80%;object-fit:contain}
+    .hub 
+.tile.pressed{transform:scale(.97);box-shadow:0 0 0 
+6px rgba(255,255,255,.15) inset}
+    
+.tap-ring{position:absolute;inset:0;border-radius:18px;pointer-events:none;opacity:0;transition:opacity 
+.18s}
+    .tile.pressed 
+.tap-ring{opacity:1;background:rgba(255,255,255,.06)}
+    /* hotel form */ .field{margin-top:14px}
+    input,button{width:100%;padding:12px 
+14px;border-radius:10px;border:1px solid 
+#2a2a2a;background:#0f0f0f;color:#f0f0f0;font-size:17px;-webkit-appearance:none;appearance:none}
+    .field input::placeholder{color:#c9cdd2}
+    
+.shortcuts{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .chip{flex:0 0 auto;padding:10px 
+14px;border-radius:999px;border:1px solid 
+#2a2a2a;background:#0f0f0f;color:#fff;width:auto;font-family:"Encode 
+Sans 
+SC",sans-serif;font-weight:100;font-optical-sizing:auto;font-variation-settings:"wdth" 
+100;font-size:16px;line-height:1}
+    .chip:active{transform:scale(.98)}
+    
+.nights-wrap{display:grid;grid-template-columns:72px 
+1fr 72px;gap:12px;align-items:center;margin-top:12px}
+    
+.nbtn{width:72px;height:64px;font-size:28px;border-radius:12px;border:1px 
+solid 
+#2a2a2a;background:#0f0f0f;color:#f0f0f0;line-height:1}
+    .nbtn:active{transform:scale(.98)}
+    
+.nvalue{display:flex;align-items:center;justify-content:center;gap:10px;height:64px;border:1px 
+solid #2a2a2a;background:#0f0f0f;border-radius:12px}
+    .nvalue 
+input{width:72px;text-align:center;font-size:22px;height:100%;border:none;background:transparent;color:#f0f0f0;outline:none}
+    .nlabel{font-size:16px;color:#cfd3d7} 
+    input[type=number]{-moz-appearance:textfield}
+    
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+    .search-btn{font-family:"Encode Sans 
+SC",sans-serif;font-weight:100;font-optical-sizing:auto;font-variation-settings:"wdth" 
+100;font-size:20px;padding:14px 
+16px;border-radius:12px;background:#0f0f0f;border:1px 
+solid #2a2a2a;color:#fff;margin-top:14px}
+    .stars-inline{letter-spacing:2px;font-size:20px}
+  </style> </head> <body> <div class="card">
+    <!-- 1) PIN gate --> <div id="gate">
+      <div class="dots" id="dots"></div> <div 
+      class="pad">
+        <button class="key" data-k="1" 
+type="button">1</button>
+        <button class="key" data-k="2" 
+type="button">2</button>
+        <button class="key" data-k="3" 
+type="button">3</button>
+        <button class="key" data-k="4" 
+type="button">4</button>
+        <button class="key" data-k="5" 
+type="button">5</button>
+        <button class="key" data-k="6" 
+type="button">6</button>
+        <button class="key" data-k="7" 
+type="button">7</button>
+        <button class="key" data-k="8" 
+type="button">8</button>
+        <button class="key" data-k="9" 
+type="button">9</button>
+        <button class="key" data-k="X" 
+type="button">X</button>
+        <button class="key" data-k="0" 
+type="button">0</button>
+        <button class="key" data-k="OK" type="button" 
+aria-label="Submit code">
+          <svg class="ok-icon" viewBox="0 0 24 
+24"><path d="M5 12 L10 17 L19 6"></path></svg>
+        </button>
+      </div>
+    </div> <!-- 2) HUB (two big icons) --> <div 
+    id="hub" class="hidden">
+      <div class="hub">
+        <button id="to-hotels" class="tile">
+          <img alt="" 
+src="https://hiner.nyc/yocto/logos/hotels_icon.png">
+          <span class="tap-ring"></span>
+        </button> <button id="to-flights" 
+        class="tile">
+          <img alt="" 
+src="https://hiner.nyc/yocto/logos/flights_icon.png">
+          <span class="tap-ring"></span>
+        </button>
+      </div>
+    </div> <!-- 3) HOTELS FORM -->
+    <form id="form" class="hidden" method="GET" 
+action="https://YOUR-NGROK.ngrok-free.app/run" 
+autocomplete="on">
+      <input type="hidden" id="qparam" name="q" 
+value="">
+      <div class="field">
+        <input id="where" name="where" type="text" 
+placeholder="Where to?" required>
+        <div class="shortcuts" id="shortcuts">
+          <button type="button" class="chip" 
+data-val="New York City">NYC</button>
+          <button type="button" class="chip" 
+data-val="Washington, DC">DC</button>
+          <button type="button" class="chip" 
+data-val="Las Vegas">Vegas</button>
+          <button type="button" class="chip" 
+data-val="Miami">Miami</button>
+          <button type="button" class="chip" 
+data-val="Los Angeles">LA</button>
+          <button type="button" class="chip" 
+data-val="Denver">DEN</button>
+          <button type="button" class="chip" 
+data-val="__LUX__" aria-label="Luxury">
+            <span class="stars-inline"></span>
+          </button>
+        </div>
+      </div> <div class="field">
+        <input id="when" name="when" type="date" 
+required>
+      </div> <div class="nights-wrap">
+        <button type="button" class="nbtn" 
+id="nights-dec" aria-label="Decrease 
+nights"></button>
+        <div class="nvalue">
+          <input id="nights" name="nights" 
+type="number" min="1" value="1" required 
+inputmode="numeric" pattern="[0-9]*">
+          <span class="nlabel" 
+id="nlabel">night</span>
+        </div>
+        <button type="button" class="nbtn" 
+id="nights-inc" aria-label="Increase 
+nights">+</button>
+      </div>
+      <button type="submit" 
+class="search-btn">Search</button>
+    </form>
+  </div> <script>
+  const PASS_HASH = 
+"4739ee3bd29e4f415da8ba9298a087e0fdc9c61378420ba8fbbab298bd74c4df";
+  const gate = document.getElementById('gate'); const 
+  hub = document.getElementById('hub'); const form = 
+  document.getElementById('form'); const dots = 
+  document.getElementById('dots');
+  const toHotels = 
+document.getElementById('to-hotels');
+  const toFlights = 
+document.getElementById('to-flights');
+  const whereInput = 
+document.getElementById('where');
+  const qparam = document.getElementById('qparam'); 
+  const whenInput = document.getElementById('when');
+  const nightsInput = 
+document.getElementById('nights');
+  const decBtn = 
+document.getElementById('nights-dec');
+  const incBtn = 
+document.getElementById('nights-inc');
+  const nlabel = document.getElementById('nlabel'); 
+  // tiny click sound let actx; function 
+  clickSound(){
+    try{
+      const Ctx = window.AudioContext || 
+window.webkitAudioContext;
+      actx = actx || new Ctx();
+      const o = actx.createOscillator(), g = 
+actx.createGain();
+      o.type='triangle'; o.frequency.value=880; 
+      g.gain.setValueAtTime(0.10, actx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, 
+actx.currentTime+0.08);
+      o.connect(g); g.connect(actx.destination); 
+      o.start(); o.stop(actx.currentTime+0.09);
+    }catch(e){}
+  } function pressFX(el){
+    el.classList.add('pressed');
+    setTimeout(()=>el.classList.remove('pressed'), 
+130);
+    clickSound();
+  } // nights helpers function setNights(v){
+    const n = Math.max(1, parseInt(v||'1',10)); 
+    nightsInput.value = n;
+    nlabel.textContent = n === 1 ? 'night' : 
+'nights';
+  }
+  function stepNights(d){ 
+setNights((parseInt(nightsInput.value||'1',10))+d); }
+  function pressRepeat(btn, delta){
+    let t; const start=()=>{ stepNights(delta); 
+t=setTimeout(function rep(){ stepNights(delta); 
+t=setTimeout(rep,120); },350); };
+    const stop=()=>{ clearTimeout(t); t=null; };
+    btn.addEventListener('mousedown', start); 
+btn.addEventListener('touchstart', start, 
+{passive:true});
+    
+['mouseup','mouseleave','touchend','touchcancel'].forEach(ev=>btn.addEventListener(ev, 
+stop));
+  } pressRepeat(decBtn,-1); pressRepeat(incBtn,1);
+  nightsInput.addEventListener('input', ()=> 
+setNights(nightsInput.value));
+  // shortcuts incl. LA, DEN, and luxury 
+  document.querySelectorAll('.chip').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const v = btn.getAttribute('data-val') || ''; 
+      if(v === '__LUX__'){
+        qparam.value = 'luxury'; whereInput.value = 
+        ''; whereInput.dataset.displayOnly = '1';
+      }else{
+        qparam.value = ''; whereInput.value = v; 
+        delete whereInput.dataset.displayOnly;
+      } whereInput.blur();
+      if (whenInput && whenInput.showPicker) 
+whenInput.showPicker();
+    });
+  }); // auto-collapse calendar & auto-submit 
+  whenInput.addEventListener('change', ()=>{
+    whenInput.blur();
+    if (form.requestSubmit) form.requestSubmit(); 
+else form.submit();
+  }); // keypad let buf = "";
+  function renderDots(){ dots.innerHTML=""; for(let 
+i=0;i<buf.length;i++){ const 
+d=document.createElement('div'); d.className='dot'; 
+dots.appendChild(d); } }
+  function handleKey(k){
+    if(k==='X'){ buf=''; renderDots(); return; } 
+    if(k==='OK'){ tryUnlock(); return; }
+    if(/^\d$/.test(k)){ if(buf.length<32){ buf+=k; 
+renderDots(); } }
+  }
+  document.querySelectorAll('.key').forEach(el=>{ 
+el.addEventListener('click', ()=> 
+handleKey(el.getAttribute('data-k'))); });
+  document.addEventListener('keydown', (e)=>{
+    if(e.key>='0'&&e.key<='9') handleKey(e.key); else 
+    if(e.key==='Enter') handleKey('OK');
+    else if(e.key.toLowerCase()==='x') 
+handleKey('X');
+  }); function tryUnlock(){
+    const digest = sha256(buf); if(digest === 
+    PASS_HASH){
+      gate.classList.add('hidden'); 
+      hub.classList.remove('hidden'); const d = new 
+      Date(); d.setDate(d.getDate()+1); 
+      whenInput.value = d.toISOString().slice(0,10); 
+      setNights(1);
+    }else{
+      buf=""; renderDots(); alert('Wrong code');
     }
-  </style> </head> <body> <div class="stage">
-    <img src="colorbars.png" alt="">
-  </div> </body>
+  } // hub actions toHotels.addEventListener('click', 
+  ()=>{
+    pressFX(toHotels);
+    setTimeout(()=>{ hub.classList.add('hidden'); 
+form.classList.remove('hidden'); whereInput.focus(); 
+}, 120);
+  }); toFlights.addEventListener('click', ()=>{
+    pressFX(toFlights);
+    setTimeout(()=>{ location.href = "/yocto/fly/"; 
+}, 120);
+  }); </script> </body>
 </html>
