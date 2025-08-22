@@ -3,670 +3,117 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>HOME → NYC — Fri, Aug 22</title>
+<title>RDU → MIA — Sat, Aug 23, 2025</title>
 <style>
 @font-face {
   font-family: 'AntonCustom';
   src:
     url('https://hiner.nyc/yocto/fonts/Anton.woff2') format('woff2'),
     url('https://hiner.nyc/yocto/fonts/Anton.ttf') format('truetype'),
-    url('https://hiner.nyc/yocto/fonts/Anton.otf') format('opentype'),
-    url('https://hiner.nyc/yocto/fonts/Anton.rtf') format('truetype'); /* harmless if not a font */
-  font-weight: 700 900;
-  font-style: normal;
-  font-display: swap;
+    url('https://hiner.nyc/yocto/fonts/Anton.otf') format('opentype');
+  font-weight: 800 900; font-style: normal; font-display: swap;
 }
 @font-face {
   font-family: 'AcuminCond';
   src:
     url('https://hiner.nyc/yocto/fonts/acumin-pro-condensed.woff2') format('woff2'),
     url('https://hiner.nyc/yocto/fonts/acumin-pro-condensed.otf') format('opentype');
-  font-weight: 300 900;
-  font-style: normal;
-  font-display: swap;
+  font-weight: 300 900; font-style: normal; font-display: swap;
 }
 
-:root{ --blue:#2b2f8f; --off:#F5F2ED; --ink:#000; }
+html{-webkit-text-size-adjust:100%}
+:root{ --blue:#27308D; --gold:#FFC107; }
 *{box-sizing:border-box}
-body{margin:0;background:#93c5fd; /* sky */ color:var(--ink); font-family:'AcuminCond', system-ui, -apple-system, Arial, sans-serif}
-.header{position:sticky;top:0;background:#fff;border-bottom:1px solid #eee;padding:10px 16px;z-index:5}
+body{margin:0;background:#93c5fd;color:#000;font-family:'AcuminCond', system-ui, -apple-system, Arial, sans-serif}
+.header{position:sticky;top:0;background:#fff;border-bottom:1px solid #eee;
+  padding:12px calc(16px + env(safe-area-inset-right)) 12px calc(16px + env(safe-area-inset-left));z-index:5}
 .header h1{margin:0 0 2px 0;font-family:'AcuminCond';font-weight:800;letter-spacing:.5px}
 .header .sub{color:#333}
 
-.wrap{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+.wrap{max-width:980px;margin:0 auto;
+  padding:20px calc(16px + env(safe-area-inset-right)) 60px calc(16px + env(safe-area-inset-left))}
 
 .fc{
-  position:relative;
-  height: 360px;
-  border-radius:28px;
-  overflow:hidden;
-  margin:24px 0;
+  position:relative; border-radius:28px; overflow:hidden; margin:22px 0;
+  height: clamp(360px, 72vw, 480px);
+  background:#fff;
+  box-shadow:0 10px 30px rgba(0,0,0,.12);
 }
 .fc .plate{
   position:absolute; inset:0;
   background: url('https://hiner.nyc/yocto/logos/card_bg.png') center/cover no-repeat;
+  z-index:1; pointer-events:none;
 }
 .fc .codes{
-  position:absolute; left:28px; right:28px; top:12px;
+  position:absolute; left:24px; right:24px; top:16px; z-index:2;
   font-family:'AntonCustom', Impact, sans-serif;
-  font-weight:900; letter-spacing:2px; color:#fff; /* set to #fff for high contrast on blue plate */
-  font-size: clamp(44px, 10vw, 84px);
-  line-height: .9;
-  text-shadow: 0 2px 0 rgba(0,0,0,.25);
-  display:flex; align-items:flex-start; gap:16px;
+  font-weight:900; letter-spacing:2px; color:var(--blue);
+  font-size: clamp(44px, 16vw, 92px); line-height:.9;
+  display:flex; gap:14px; align-items:flex-start;
+  pointer-events:none; user-select:none;
+}
+.fc .bar{
+  position:absolute; left:0; right:0; top:0; height:34px; z-index:3;
+  background:var(--gold); color:#111; display:flex; align-items:center; justify-content:center;
+  font-family:'AcuminCond'; font-weight:800; letter-spacing:.2px;
+}
+.fc .plane{
+  position:absolute; left:0; right:0; top:64px; z-index:4;
+  height: clamp(150px, 38vw, 220px);
+  object-fit:contain; object-position:right center;
+  pointer-events:none; user-select:none;
 }
 .fc .pane{
-  position:absolute; left:28px; right:28px; bottom:22px;
+  position:absolute; left:22px; right:22px;
+  bottom: calc(28px + env(safe-area-inset-bottom));
   background: rgba(255,255,255,.96);
-  border-radius:14px;
-  padding:12px 14px 60px 14px; /* extra bottom room for price label */
+  border-radius:18px; padding:12px 14px;
   border:1px solid rgba(0,0,0,.06);
+  z-index:3; /* under plane so plane clips codes/pane */
+  backdrop-filter: saturate(120%) blur(1.5px);
 }
 .fc .grid{ display:block }
 .fc .legline{
-  display:grid; grid-template-columns:60px 60px 56px 56px 1fr 110px;
-  column-gap:20px; align-items:center;
+  display:grid;
+  grid-template-columns:64px 64px 56px 56px minmax(150px, 1fr);
+  column-gap:16px; align-items:center;
   padding:8px 2px; border-bottom:1px solid rgba(0,0,0,.08);
   font-family:'AcuminCond'; font-weight:700; font-size:17px;
+  white-space:nowrap;
 }
-.fc .legline:last-of-type{ border-bottom:none }
-.fc .cell.t{ font-variant-numeric: tabular-nums; }
-.fc .cell.code{ letter-spacing:.5px }
-.fc .cell.cls{ text-align:left }
-.fc .cell.plane{ text-align:right }
+.fc .legline:last-of-type{border-bottom:none}
+.fc .cell.t{font-variant-numeric:tabular-nums}
+.fc .cell.code{letter-spacing:.5px}
+.fc .cell.plane{text-align:right; overflow:visible}
 
-.fc .lay{
-  margin-top:8px;
-  font-family:'AcuminCond'; font-weight:800;
-}
+.fc .lay{ margin-top:8px; font-family:'AcuminCond'; font-weight:800; }
 .fc .lay span{ color:#d00; margin-left:6px }
 
 .fc .price{
-  position:absolute; left:14px; bottom:10px;
-  font-family:'AntonCustom'; font-size:38px; color:#fff;
-  text-shadow: 0 2px 0 rgba(0,0,0,.35);
-}
-
-.fc .plane{
-  position:absolute; right:0; left:0; top:18px; height:180px;
-  object-fit:contain; object-position:right center; z-index:5;
+  position:absolute; left:28px;
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  z-index:6;
+  font-family:'AntonCustom'; font-size: clamp(32px, 7vw, 44px);
+  color:#fff; text-shadow: 0 2px 0 rgba(0,0,0,.35);
   pointer-events:none; user-select:none;
 }
 
-@media (max-width:720px){
-  .fc{ height: 380px }
-  .fc .legline{ grid-template-columns:52px 52px 52px 52px 1fr 92px; column-gap:12px; font-size:16px }
+.empty{color:#666;background:#fff;padding:20px;border-radius:12px;border:1px solid #eee}
+
+@media (max-width:430px){
+  .fc .plane{ top:70px }
+  .fc .pane{ border-radius:16px }
+  .fc .legline{ column-gap:12px; font-size:16px }
 }
 </style>
 </head>
 <body>
 <div class="header">
-  <h1>HOME → NYC</h1>
-  <div class="sub">Fri, Aug 22</div>
+  <h1>RDU → MIA</h1>
+  <div class="sub">Sat, Aug 23, 2025</div>
 </div>
 <div class="wrap">
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">RDU ► JFK</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">20:40</div>
-              <div class="cell t">22:29</div>
-              <div class="cell code">RDU</div>
-              <div class="cell code">JFK</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">175</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$266</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/aa_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">RDU ► LGA</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">19:47</div>
-              <div class="cell t">21:29</div>
-              <div class="cell code">RDU</div>
-              <div class="cell code">LGA</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">175</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$275</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/aa_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">RDU ► LGA</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">15:00</div>
-              <div class="cell t">16:47</div>
-              <div class="cell code">RDU</div>
-              <div class="cell code">LGA</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">175</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$424</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/dl_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">GSO ► LGA</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">18:46</div>
-              <div class="cell t">20:02</div>
-              <div class="cell code">GSO</div>
-              <div class="cell code">DCA</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">RJ 900</div>
-            </div>
-            
-
-            <div class="legline">
-              <div class="cell t">22:15</div>
-              <div class="cell t">23:41</div>
-              <div class="cell code">DCA</div>
-              <div class="cell code">LGA</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">175</div>
-            </div>
-            
-      <div class='lay'>Connect in DCA <span>2:13</span></div>
-    </div>
-    <div class="price">$312</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/aa_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">GSO ► LGA</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">06:00</div>
-              <div class="cell t">07:37</div>
-              <div class="cell code">GSO</div>
-              <div class="cell code">LGA</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">170</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$370</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/aa_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">RDU ► EWR</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">18:25</div>
-              <div class="cell t">20:00</div>
-              <div class="cell code">RDU</div>
-              <div class="cell code">EWR</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">B737</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$424</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/ua_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">RDU ► EWR</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">07:10</div>
-              <div class="cell t">08:52</div>
-              <div class="cell code">RDU</div>
-              <div class="cell code">EWR</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">RJ 900</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$534</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/dl_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">RDU ► EWR</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">11:45</div>
-              <div class="cell t">13:28</div>
-              <div class="cell code">RDU</div>
-              <div class="cell code">EWR</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">RJ 900</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$534</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/dl_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">RDU ► JFK</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">07:06</div>
-              <div class="cell t">09:00</div>
-              <div class="cell code">RDU</div>
-              <div class="cell code">JFK</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">RJ 900</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$549</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/dl_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">RDU ► JFK</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">09:47</div>
-              <div class="cell t">11:29</div>
-              <div class="cell code">RDU</div>
-              <div class="cell code">JFK</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">RJ 900</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$549</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/dl_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">RDU ► JFK</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">11:57</div>
-              <div class="cell t">13:52</div>
-              <div class="cell code">RDU</div>
-              <div class="cell code">JFK</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">RJ 900</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$549</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/dl_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">RDU ► JFK</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">14:07</div>
-              <div class="cell t">16:00</div>
-              <div class="cell code">RDU</div>
-              <div class="cell code">JFK</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">RJ 900</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$549</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/dl_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">GSO ► EWR</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">19:00</div>
-              <div class="cell t">20:45</div>
-              <div class="cell code">GSO</div>
-              <div class="cell code">EWR</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">REGIONAL JET 550</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$608</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/ua_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">RDU ► EWR</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">11:23</div>
-              <div class="cell t">12:59</div>
-              <div class="cell code">RDU</div>
-              <div class="cell code">EWR</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">B737-800</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$609</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/ua_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">RDU ► LGA</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">08:24</div>
-              <div class="cell t">10:00</div>
-              <div class="cell code">RDU</div>
-              <div class="cell code">LGA</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">RJ 900</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$634</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/dl_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">RDU ► LGA</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">11:17</div>
-              <div class="cell t">12:57</div>
-              <div class="cell code">RDU</div>
-              <div class="cell code">LGA</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">RJ 900</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$634</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/dl_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">RDU ► LGA</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">17:59</div>
-              <div class="cell t">19:48</div>
-              <div class="cell code">RDU</div>
-              <div class="cell code">LGA</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">170</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$634</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/dl_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">RDU ► LGA</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">19:55</div>
-              <div class="cell t">21:45</div>
-              <div class="cell code">RDU</div>
-              <div class="cell code">LGA</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">RJ 900</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$634</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/dl_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">GSO ► LGA</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">06:00</div>
-              <div class="cell t">07:39</div>
-              <div class="cell code">GSO</div>
-              <div class="cell code">LGA</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">170</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$750</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/dl_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">GSO ► LGA</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">14:49</div>
-              <div class="cell t">16:30</div>
-              <div class="cell code">GSO</div>
-              <div class="cell code">LGA</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">RJ 900</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$750</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/dl_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">GSO ► LGA</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">18:59</div>
-              <div class="cell t">20:44</div>
-              <div class="cell code">GSO</div>
-              <div class="cell code">LGA</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">RJ 900</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$750</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/dl_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">RDU ► JFK</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">19:59</div>
-              <div class="cell t">22:07</div>
-              <div class="cell code">RDU</div>
-              <div class="cell code">JFK</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">RJ 900</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$755</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/dl_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">RDU ► LGA</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">06:15</div>
-              <div class="cell t">07:53</div>
-              <div class="cell code">RDU</div>
-              <div class="cell code">LGA</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">RJ 900</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$760</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/dl_plane.png' alt=''>
-</article>
-
-
-<article class="fc">
-  <div class="plate"></div>
-  <div class="codes">RDU ► JFK</div>
-  <div class="pane">
-    <div class="grid">
-      
-            <div class="legline">
-              <div class="cell t">06:03</div>
-              <div class="cell t">07:47</div>
-              <div class="cell code">RDU</div>
-              <div class="cell code">JFK</div>
-              <div class="cell cls">First Class</div>
-              <div class="cell plane">175</div>
-            </div>
-            
-      
-    </div>
-    <div class="price">$876</div>
-  </div>
-  <img class='plane' src='https://hiner.nyc/yocto/logos/aa_plane.png' alt=''>
-</article>
-
+<p class='empty'>No flights found.</p>
 <div style="text-align:center;color:#222;font-size:12px;margin:18px 0;">
   Published to <a href="https://hiner.nyc/yocto/fly/results/" style="color:#111">https://hiner.nyc/yocto/fly/results/</a>
 </div>
