@@ -23,12 +23,31 @@
       padding:24px calc(24px + env(safe-area-inset-right)) 24px calc(24px + env(safe-area-inset-left));
       box-shadow:0 10px 30px rgba(0,0,0,.35)
     }
-    input,button{
-      width:100%;padding:12px 14px;border-radius:10px;border:1px solid #2a2a2a;background:#0f0f0f;color:#f0f0f0;
-      font-size:17px;-webkit-appearance:none;appearance:none
-    }
-    button{cursor:pointer}
-    .hidden{display:none}
+      input {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid #2a2a2a;
+        background: #0f0f0f;
+        color: #f0f0f0;
+        font-size: 17px;
+        -webkit-appearance: none;
+        appearance: none;
+      }
+      button {
+        width: auto;
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid #2a2a2a;
+        background: #0f0f0f;
+        color: #f0f0f0;
+        font-size: 17px;
+        -webkit-appearance: none;
+        appearance: none;
+      }
+      .chips, .shortcuts { display:flex; flex-wrap:wrap; gap:10px; }
+      .chip { display:inline-flex; align-items:center; justify-content:center;
+              flex:0 0 auto; width:auto; min-width:64px; white-space:nowrap; }
 
     .dots{display:flex;gap:8px;justify-content:center;margin:4px 0 8px;min-height:18px}
     .dot{width:10px;height:10px;border-radius:50%;background:#e5e7eb}
