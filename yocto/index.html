@@ -1,6 +1,7 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
+<<<<<<< HEAD
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <title>yocto fly</title>
@@ -201,6 +202,80 @@
       });
       renderDots();
     })();
+=======
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yocto Travel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f0f0f0;
+      text-align: center;
+    }
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      max-width: 200px;
+      margin: 100px auto;
+    }
+    .numpad button {
+      font-size: 24px;
+      padding: 20px;
+      cursor: pointer;
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="gate" class="numpad">
+    <button onclick="press(1)">1</button>
+    <button onclick="press(2)">2</button>
+    <button onclick="press(3)">3</button>
+    <button onclick="press(4)">4</button>
+    <button onclick="press(5)">5</button>
+    <button onclick="press(6)">6</button>
+    <button onclick="press(7)">7</button>
+    <button onclick="press(8)">8</button>
+    <button onclick="press(9)">9</button>
+    <button onclick="clearCode()">C</button>
+    <button onclick="press(0)">0</button>
+    <button onclick="enterCode()">OK</button>
+  </div>
+
+  <form id="form" class="hidden" hidden method="GET" action="https://api.hiner.nyc/run" autocomplete="on">
+    <h1>Yocto Travel Search</h1>
+    <label for="q">Search:</label>
+    <input type="text" name="q" id="q" required>
+    <button type="submit">Search</button>
+  </form>
+
+  <script>
+    let enteredCode = "";
+    const correctCode = "1234"; // adjust your unlock code here
+
+    function press(num) {
+      enteredCode += num;
+    }
+
+    function clearCode() {
+      enteredCode = "";
+    }
+
+    function enterCode() {
+      if (enteredCode === correctCode) {
+        document.getElementById("gate").classList.add("hidden");
+        const form = document.getElementById("form");
+        form.classList.remove("hidden");
+        form.removeAttribute("hidden");
+      } else {
+        alert("Incorrect Code");
+        clearCode();
+      }
+    }
+>>>>>>> 2be1dd302a4bb5cf2f569cd0b8a598715b67d0cc
   </script>
 </body>
 </html>
