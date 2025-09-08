@@ -1,281 +1,153 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<<<<<<< HEAD
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-  <title>yocto fly</title>
+  <title>yocto · hotels</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Encode+Sans+SC:wght@100;200;300;400&display=swap" rel="stylesheet">
   <style>
     *,*::before,*::after{box-sizing:border-box}
     html{-webkit-text-size-adjust:100%}
-
     body{
       margin:0;background:#0b0b0b;color:#eee;min-height:100vh;
-      display:grid;place-items:center;padding:20px
+      display:flex;align-items:center;justify-content:center;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif
     }
     .card{
       background:#161616;border:1px solid #2a2a2a;border-radius:16px;
       width:min(92vw,520px);
       padding:24px calc(24px + env(safe-area-inset-right)) 24px calc(24px + env(safe-area-inset-left));
-      box-shadow:0 10px 30px rgba(0,0,0,.6)
+      box-shadow:0 10px 30px rgba(0,0,0,.35)
     }
-    h1{margin:0 0 16px 0;font-weight:400;font-family:'Encode Sans SC',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#eaeaea;letter-spacing:.5px}
-    label{display:block;margin-bottom:6px;color:#cfcfcf}
-    .field{margin-bottom:16px}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     input,button{
-      width:100%;padding:12px 14px;border-radius:10px;border:1px solid #2a2a2a;
+      width:100%;padding:12px 14px;border-radius:12px;border:1px solid #2a2a2a;
       background:#0f0f0f;color:#f0f0f0;font-size:17px;-webkit-appearance:none;appearance:none
     }
-    input::placeholder{color:#9a9a9a}
-    .chips,.shortcuts{display:flex;flex-wrap:wrap;gap:10px}
+    input::placeholder{color:#bfc5cc}
+    .field{margin-top:14px}
+
+    /* City chips: compact, wrap, never full-width */
+    .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
     .chip{
       display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
-      min-width:64px;padding:10px 12px;border-radius:999px;border:1px solid #2a2a2a;background:#0f0f0f;color:#e6e6e6
+      min-width:64px;padding:10px 12px;border-radius:999px;border:1px solid #2a2a2a;
+      background:#0f0f0f;color:#fff;text-decoration:none;
+      font-family:"Encode Sans SC",sans-serif;font-weight:100;font-optical-sizing:auto;font-variation-settings:"wdth" 100;
+      line-height:1
     }
-    .chip:active{transform:translateY(1px)}
-    .toggle{display:flex;gap:10px;margin-top:10px}
-    .tgl{flex:1;display:grid;place-items:center;padding:12px;border-radius:10px;border:1px solid #2a2a2a;background:#0f0f0f;color:#cfcfcf}
-    .tgl.active{background:#1e1e1e;color:#fff;border-color:#3a3a3a}
-    .go{margin-top:14px}
+    .chip:active{transform:scale(.98)}
+    .chip.star{min-width:auto;padding:10px 14px}
 
-    /* --- PIN gate overlay (matches existing look) --- */
-    .hidden{display:none!important}
-    #gateOverlay{position:fixed;inset:0;background:#0b0b0b;display:grid;place-items:center;z-index:9999}
-    #gate{
-      width:min(92vw,420px);background:#161616;border:1px solid #2a2a2a;border-radius:16px;
-      padding:24px;box-shadow:0 10px 30px rgba(0,0,0,.6)
+    /* Nights stepper */
+    .nwrap{display:grid;grid-template-columns:84px 1fr 84px;gap:12px;align-items:center;margin-top:14px}
+    .nbtn{height:64px;font-size:28px;border-radius:12px;border:1px solid #2a2a2a;background:#0f0f0f;color:#f0f0f0}
+    .nbtn:active{transform:scale(.98)}
+    .nval{display:flex;align-items:center;justify-content:center;gap:10px;height:64px;border:1px solid #2a2a2a;background:#0f0f0f;border-radius:12px}
+    .nval input{width:80px;text-align:center;font-size:22px;height:100%;border:none;background:transparent;color:#f0f0f0;outline:none}
+    .nlabel{font-size:16px;color:#cfd3d7}
+
+    /* Search button */
+    .go{
+      margin-top:14px;font-family:"Encode Sans SC",sans-serif;font-weight:100;font-optical-sizing:auto;font-variation-settings:"wdth" 100;
+      font-size:20px;padding:14px 16px;border-radius:12px;background:#0f0f0f;border:1px solid #2a2a2a;color:#fff
     }
-    #gate h1{
-      margin:0 0 8px 0;font-weight:400;font-family:'Encode Sans SC',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#eaeaea;letter-spacing:.5px
-    }
-    #pinDots{display:flex;gap:10px;justify-content:center;margin:12px 0 18px 0}
-    .pinDot{width:14px;height:14px;border-radius:50%;border:1px solid #3a3a3a;background:#0f0f0f}
-    .pinDot.fill{background:#e6e6e6}
-    .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    .pad button{
-      font-size:22px;padding:16px;border-radius:12px;border:1px solid #2a2a2a;background:#0f0f0f;color:#f0f0f0
-    }
-    .pad button:active{transform:translateY(1px)}
-    .pad .ok{grid-column:3}
-    .pad .clr{grid-column:1}
-    .gateHint{margin-top:12px;color:#9a9a9a;font-size:12px;text-align:center}
+    .go:active{transform:scale(.99)}
   </style>
 </head>
 <body>
-  <!-- PIN Gate Overlay -->
-  <div id="gateOverlay">
-    <div id="gate">
-      <h1>yocto</h1>
-      <div id="pinDots" aria-label="PIN progress">
-        <div class="pinDot"></div><div class="pinDot"></div><div class="pinDot"></div><div class="pinDot"></div>
-      </div>
-      <div class="pad">
-        <button type="button" data-k="1">1</button>
-        <button type="button" data-k="2">2</button>
-        <button type="button" data-k="3">3</button>
-        <button type="button" data-k="4">4</button>
-        <button type="button" data-k="5">5</button>
-        <button type="button" data-k="6">6</button>
-        <button type="button" data-k="7">7</button>
-        <button type="button" data-k="8">8</button>
-        <button type="button" data-k="9">9</button>
-        <button type="button" class="clr" data-k="C">C</button>
-        <button type="button" data-k="0">0</button>
-        <button type="button" class="ok" data-k="OK">OK</button>
-      </div>
-      <div class="gateHint">Enter code to unlock</div>
-    </div>
-  </div>
-
-  <!-- Your existing UI (unchanged) -->
   <div class="card">
-    <form id="f" method="GET" action="https://api.hiner.nyc/fly/run" autocomplete="on">
-      <div class="field">
-        <div class="row">
-          <input id="dep" name="departure" placeholder="From">
-          <input id="arr" name="arrival" placeholder="To">
-        </div>
-        <div class="chips" id="depchips">
-          <button type="button" class="chip" data-v="RDU">RDU</button>
-          <button type="button" class="chip" data-v="GSO">GSO</button>
-          <button type="button" class="chip" data-v="DCA">DCA</button>
-          <button type="button" class="chip" data-v="JFK">JFK</button>
-          <button type="button" class="chip" data-v="LGA">LGA</button>
-          <button type="button" class="chip" data-v="EWR">EWR</button>
-        </div>
-      </div>
+    <form id="form" method="GET" action="https://api.hiner.nyc/run" autocomplete="on">
+      <input type="hidden" name="q" id="q"> <!-- backend accepts q OR where -->
 
       <div class="field">
-        <label for="arr">Destination</label>
-        <div class="chips" id="arrchips">
-          <button type="button" class="chip" data-v="HOME">HOME</button>
-          <button type="button" class="chip" data-v="NYC">NYC</button>
-          <button type="button" class="chip" data-v="LGA">LGA</button>
-          <button type="button" class="chip" data-v="JFK">JFK</button>
-          <button type="button" class="chip" data-v="DCA">DCA</button>
-          <button type="button" class="chip" data-v="LAS">LAS</button>
-          <button type="button" class="chip" data-v="MIA">MIA</button>
+        <input id="where" name="where" type="text" placeholder="Where to?" autocapitalize="words" autocomplete="off">
+        <div class="chips" id="chips">
+          <button type="button" class="chip" data-display="New York City" data-q="New York City">NYC</button>
+          <button type="button" class="chip" data-display="Washington, DC" data-q="Washington, DC">DC</button>
+          <button type="button" class="chip" data-display="Las Vegas" data-q="Las Vegas">Vegas</button>
+          <button type="button" class="chip" data-display="Miami" data-q="Miami">Miami</button>
+          <button type="button" class="chip" data-display="Los Angeles" data-q="Los Angeles">LA</button>
+          <button type="button" class="chip" data-display="Denver" data-q="Denver">DEN</button>
+          <button type="button" class="chip star" id="lux"><span aria-hidden="true">★★★★★</span><span class="sr">Luxury</span></button>
         </div>
       </div>
 
       <div class="field">
-        <label for="date">Date</label>
-        <input type="date" id="date" name="date"/>
+        <input id="when" name="when" type="date" required>
       </div>
 
-      <div class="field">
-        <label>Cabin</label>
-        <input type="hidden" id="class" name="class" value="first"/>
-        <div class="toggle">
-          <button type="button" id="first" class="tgl active">First</button>
-          <button type="button" id="main" class="tgl">Main</button>
+      <div class="nwrap">
+        <button type="button" class="nbtn" id="minus" aria-label="Decrease nights">−</button>
+        <div class="nval">
+          <input id="nights" name="nights" type="number" min="1" value="1" required inputmode="numeric" pattern="[0-9]*">
+          <span class="nlabel" id="nlabel">night</span>
         </div>
+        <button type="button" class="nbtn" id="plus" aria-label="Increase nights">+</button>
       </div>
 
-      <div class="go">
-        <button type="submit">Search Flights</button>
-      </div>
+      <button type="submit" class="go">Search</button>
     </form>
   </div>
 
-  <script>
-    function hookChips(containerId, targetInput){
-      document.getElementById(containerId).querySelectorAll('.chip').forEach(function(b){
-        b.addEventListener('click', function(){
-          document.getElementById(targetInput).value = b.dataset.v;
-        });
-      });
-    }
-    hookChips('depchips','dep');
-    hookChips('arrchips','arr');
+<script>
+  const where = document.getElementById('where');
+  const when  = document.getElementById('when');
+  const nights= document.getElementById('nights');
+  const nlab  = document.getElementById('nlabel');
+  const qhid  = document.getElementById('q');
 
-    var main = document.getElementById('main'),
-        first = document.getElementById('first'),
-        cls = document.getElementById('class');
+  // default date = tomorrow
+  const d = new Date(); d.setDate(d.getDate()+1); when.value = d.toISOString().slice(0,10);
 
-    function setC(v){
-      cls.value = v;
-      if(v==='first'){ first.classList.add('active'); main.classList.remove('active'); }
-      else { main.classList.add('active'); first.classList.remove('active'); }
-    }
-    if (main && first) {
-      main.onclick = function(){ setC('main') };
-      first.onclick = function(){ setC('first') };
-    }
+  // label "night(s)"
+  function setN(v){ const n = Math.max(1, parseInt(v||'1',10)); nights.value=n; nlab.textContent = (n===1?'night':'nights'); }
+  setN(1);
 
-    var d = new Date(); d.setDate(d.getDate()+1);
-    document.getElementById('date').value = d.toISOString().slice(0,10);
-  </script>
+  // stepper with press-and-hold
+  function hold(el, delta){
+    let t; const start=()=>{ step(); t=setTimeout(function rep(){ step(); t=setTimeout(rep,120); },350); };
+    const stop =()=>{ clearTimeout(t); t=null; };
+    const step =()=> setN((parseInt(nights.value||'1',10))+delta);
+    el.addEventListener('mousedown',start); el.addEventListener('touchstart',start,{passive:true});
+    ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev=>el.addEventListener(ev,stop));
+  }
+  hold(document.getElementById('minus'),-1);
+  hold(document.getElementById('plus'), 1);
+  nights.addEventListener('input',()=>setN(nights.value));
 
-  <script>
-    // --- PIN gate logic ---
-    (function(){
-      var correct = "1123";
-      var entered = "";
-      var gate = document.getElementById('gateOverlay');
-      var dots = Array.prototype.slice.call(document.querySelectorAll('#pinDots .pinDot'));
-
-      function renderDots(){ dots.forEach(function(d,i){ d.classList.toggle('fill', i < entered.length); }); }
-      function reset(){ entered=""; renderDots(); }
-      function press(k){
-        if(k==="C"){ reset(); return; }
-        if(k==="OK"){
-          if(entered===correct){ gate.style.display='none'; }
-          else { reset(); gate.querySelector('.gateHint').textContent='Wrong code'; }
-          return;
-        }
-        if(entered.length<4 && /\d/.test(k)){ entered += k; renderDots(); }
+  // chips
+  let overrideQ = null;
+  document.getElementById('chips').querySelectorAll('.chip').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      if(btn.id==='lux'){
+        where.value = '★★★★★';
+        overrideQ = 'luxury';
+      }else{
+        const disp = btn.getAttribute('data-display')||'';
+        const qval = btn.getAttribute('data-q')||disp;
+        where.value = disp;
+        overrideQ = qval;
       }
+      where.blur();
+      if(when && when.showPicker) when.showPicker();
+    });
+  });
 
-      gate.querySelectorAll('[data-k]').forEach(function(btn){
-        btn.addEventListener('click', function(){ press(btn.getAttribute('data-k')); });
-      });
-      window.addEventListener('keydown', function(e){
-        if(gate.style.display==='none') return;
-        if(e.key>='0' && e.key<='9'){ press(e.key); }
-        if(e.key==='Enter'){ press('OK'); }
-        if(e.key==='Backspace' || e.key==='Escape'){ press('C'); }
-      });
-      renderDots();
-    })();
-=======
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Yocto Travel</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f0f0f0;
-      text-align: center;
-    }
-    .numpad {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      max-width: 200px;
-      margin: 100px auto;
-    }
-    .numpad button {
-      font-size: 24px;
-      padding: 20px;
-      cursor: pointer;
-    }
-    .hidden { display: none !important; }
-  </style>
-</head>
-<body>
-  <div id="gate" class="numpad">
-    <button onclick="press(1)">1</button>
-    <button onclick="press(2)">2</button>
-    <button onclick="press(3)">3</button>
-    <button onclick="press(4)">4</button>
-    <button onclick="press(5)">5</button>
-    <button onclick="press(6)">6</button>
-    <button onclick="press(7)">7</button>
-    <button onclick="press(8)">8</button>
-    <button onclick="press(9)">9</button>
-    <button onclick="clearCode()">C</button>
-    <button onclick="press(0)">0</button>
-    <button onclick="enterCode()">OK</button>
-  </div>
+  // auto-collapse + auto-submit on date pick
+  when.addEventListener('change',()=>{
+    when.blur();
+    if (form.requestSubmit) form.requestSubmit();
+    else form.submit();
+  });
 
-  <form id="form" class="hidden" hidden method="GET" action="https://api.hiner.nyc/run" autocomplete="on">
-    <h1>Yocto Travel Search</h1>
-    <label for="q">Search:</label>
-    <input type="text" name="q" id="q" required>
-    <button type="submit">Search</button>
-  </form>
-
-  <script>
-    let enteredCode = "";
-    const correctCode = "1234"; // adjust your unlock code here
-
-    function press(num) {
-      enteredCode += num;
-    }
-
-    function clearCode() {
-      enteredCode = "";
-    }
-
-    function enterCode() {
-      if (enteredCode === correctCode) {
-        document.getElementById("gate").classList.add("hidden");
-        const form = document.getElementById("form");
-        form.classList.remove("hidden");
-        form.removeAttribute("hidden");
-      } else {
-        alert("Incorrect Code");
-        clearCode();
-      }
-    }
->>>>>>> 2be1dd302a4bb5cf2f569cd0b8a598715b67d0cc
-  </script>
+  // on submit, set q param properly
+  const form = document.getElementById('form');
+  form.addEventListener('submit',()=>{
+    const typed = (where.value||'').trim();
+    qhid.value = overrideQ || typed;
+  });
+</script>
 </body>
 </html>
