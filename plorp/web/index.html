@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Live Sky — SVG Airline Branding (JSON-driven)</title>
+<link rel="preconnect" href="https://unpkg.com">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous" />
+<style>
+  :root{--bg:#0b0d10;--fg:#e7eef7;--muted:#8ea2b4;--card:#141820;--accent:#78c0ff}
+  html,body {height:100%;margin:0;background:var(--bg);color:var(--fg);font:15px/1.4 -apple-system,BlinkMacSystemFont,Segoe UI,Inter,Roboto,Helvetica,Arial}
+  #app {display:grid;grid-template-columns: 1fr 380px; grid-template-rows: auto 1fr; height:100%}
+  header{grid-column:1/3;padding:10px 12px;display:flex;gap:12px;align-items:center;background:#0f1216;border-bottom:1px solid #1f2630}
+  header h1{font-size:16px;margin:0 8px 0 0;font-weight:700}
+  header .pill{display:flex;gap:8px;align-items:center}
+  header input, header select{background:#0e1420;border:1px solid #253042;border-radius:10px;padding:8px 10px;color:var(--fg);min-width:120px}
+  header button{background:var(--accent);color:#03111e;border:0;border-radius:10px;padding:8px 10px;font-weight:700;cursor:pointer}
+  #map{grid-column:1/2;grid-row:2/3}
+  #side{grid-column:2/3;grid-row:2/3;border-left:1px solid #1f2630;background:var(--card);display:flex;flex-direction:column}
+  #log{padding:10px;overflow:auto;flex:1;font-family:ui-monospace,Menlo,Consolas,monospace;color:#cfe5ff}
+  .row{border-bottom:1px solid #1f2630;padding:8px 0}
+  .label{color:var(--muted);font-size:12px}
+  .value{font-weight:700}
+  .tag,.badge{display:inline-block;background:#0f1624;border:1px solid #253042;color:#b5c9de;border-radius:999px;padding:2px 8px;margin-right:6px;font-size:12px}
+  .warn{color:#ffcf7b}
+  .foot{padding:8px 10px;border-top:1px solid #1f2630;color:var(--muted);font-size:12px}
+  .leaflet-control-attribution{display:none}
+  canvas.spark{width:100%;height:56px;background:#0a0e14;border:1px solid #1c2532;border-radius:8px;margin-top:6px}
+
+  /* Airline SVGs */
+  .logoLarge { height:28px; max-width:240px; vertical-align:middle; display:inline-block; }
+  .logoChip  { height:18px; vertical-align:middle; margin-right:6px; }
+  .miniLogo {
+    position:absolute; right:-3px; bottom:-3px; width:16px; height:16px;
+    background:rgba(11,13,16,.85); border:1px solid #1f2630; border-radius:50%; padding:1px;
+    display:flex; align-items:center; justify-content:center; box-shadow:0 1px 2px rgba(0,0,0,.5);
+  }
+  .miniLogo img { width:14px; height:14px; display:block; }
+  .markerWrap { position:relative; width:24px; height:24px }
+  .card { border:1px solid #1f2630; border-radius:12px; padding:10px; background:#0e131a; margin-bottom:8px; }
+  .cardHeader { display:flex; align-items:center; gap:10px; margin-bottom:6px }
+  @media (max-width:900px){ #app {grid-template-columns: 1fr; grid-template-rows: auto 55vh 1fr} #side{grid-column:1/2;grid-row:3/4} }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>Live Sky</h1>
+    <div class="pill">
+      <button id="btnViewport">Viewport Live</button>
+      <input id="icao24" placeholder="ICAO24 (hex) or callsign">
+      <button id="btnFollow">Follow</button>
+    </div>
+    <div class="pill">
+      <input id="airport" placeholder="Airport ICAO (e.g., KGSO)">
+      <select id="apMode">
+        <option value="arrival">Arrivals</option>
+        <option value="departure">Departures</option>
+      </select>
+      <button id="btnAirport">Fetch</button>
+    </div>
+    <div class="pill">
+      <select id="refresh">
+        <option value="5000">5s</option>
+        <option value="10000" selected>10s</option>
+        <option value="15000">15s</option>
+      </select>
+    </div>
+  </header>
+  <div id="map"></div>
+  <aside id="side">
+    <div id="log"></div>
+    <div class="foot">
+      Data: OpenSky Network. Tracks endpoint is experimental. Arrivals/departures are batch-populated. Keep your view tight to conserve credits.
+    </div>
+  </aside>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+<script>
+/** Proxy base — same host → your Flask proxy (5050). */
+const API_BASE = `http://${window.location.hostname}:5050`;
+
+/** Airline asset layout (EXACT): */
+const AIRLINE_JSON_URL = 'airlines/airlines.json';
+const ICON_DIR  = 'airlines/icons/';   // color icons, wordless, SVG
+const LOGO_DIR  = 'airlines/logos/';   // color logos, full word, SVG
+const ZOOM_FOR_MINI_ICON = 8;
+
+let airlineByICAO = new Map(); // "UAL" -> {name,iata,icao,color,iconFile,logoFile,iconUrl,logoUrl}
+let airlineByIATA = new Map();
+
+/** Robust getter for filenames from JSON regardless of field naming */
+function getIconFilename(it){
+  // try the most likely names first
+  return it.icon_color || it.iconColour || it.icon_colored || it.icon || it.iconColor
+      || it?.branding?.variations?.color?.icon
+      || it?.files?.icon_color || it?.files?.icon
+      || null;
+}
+function getLogoFilename(it){
+  return it.logo_color || it.logoColour || it.logo_colored || it.logo || it.logoColor || it.logo_large
+      || it?.branding?.variations?.color?.logo
+      || it?.files?.logo_color || it?.files?.logo
+      || null;
+}
+
+/** Ensure we only ever display existing assets; hide <img> on total failure */
+function imgEl(url, cls, alt=''){
+  if(!url) return ''; // nothing to render
+  const esc = s => String(s).replace(/"/g,'&quot;');
+  // if load fails (404), hide the element
+  return `<img class="${cls}" src="${esc(url)}" alt="${esc(alt)}"
+    onerror="this.style.display='none'">`;
+}
+
+/** Load airline metadata from JSON (no guessing filenames) */
+async function loadAirlines(){
+  try{
+    const res = await fetch(AIRLINE_JSON_URL, {cache:'no-cache'});
+    if(!res.ok) throw new Error(`airlines.json ${res.status}`);
+    const j = await res.json();
+    const arr = Array.isArray(j) ? j : (j.data || []);
+    let withIcon=0, withLogo=0, total=0;
+
+    for(const it of arr){
+      const icao = String(it.icao ?? it.icao_code ?? it.icaoCode ?? '').toUpperCase().trim();
+      const iata = String(it.iata ?? it.iata_code ?? it.iataCode ?? '').toUpperCase().trim();
+      if(!icao && !iata) continue;
+
+      const name = it.name || icao || iata;
+      const color = it?.branding?.primary_color || null;
+
+      const iconFile = getIconFilename(it);
+      const logoFile = getLogoFilename(it);
+
+      const iconUrl = iconFile ? (ICON_DIR + iconFile.replace(/^\.?\//,'')) : null;
+      const logoUrl = logoFile ? (LOGO_DIR + logoFile.replace(/^\.?\//,'')) : null;
+
+      const rec = { name, iata: iata||null, icao: icao||null, color: color||null, iconFile, logoFile, iconUrl, logoUrl };
+      if(icao) airlineByICAO.set(icao, rec);
+      if(iata) airlineByIATA.set(iata, rec);
+
+      if(iconUrl) withIcon++;
+      if(logoUrl) withLogo++;
+      total++;
+    }
+    logLine(`Airlines loaded: ${total} • icons: ${withIcon} • logos: ${withLogo}`);
+  }catch(e){
+    logLine(`<span class="warn">Airlines JSON load failed: ${e.message}</span>`);
+  }
+}
+
+/** Leaflet + UI */
+const map = L.map('map', { zoomControl: true, preferCanvas: true }).setView([38.9, -77.04], 7);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:12}).addTo(map);
+let currentZoom = map.getZoom();
+const markers = new Map(); // icao24 -> {marker, trail, lastSeen, airline}
+
+/** Logging */
+function logLine(html){
+  const el = document.getElementById('log');
+  const row = document.createElement('div');
+  row.className = 'row';
+  row.innerHTML = html;
+  el.prepend(row);
+  while(el.childNodes.length > 150) el.removeChild(el.lastChild);
+}
+
+/** callsign → ICAO prefix (AAL123 → AAL) */
+function icaoFromCallsign(callsign){
+  if(!callsign) return null;
+  const cs = callsign.trim().toUpperCase();
+  const m = cs.match(/^([A-Z]{2,3})\s*\d/); if(m) return m[1];
+  const m2= cs.match(/^([A-Z]{2,3})\s/);    if(m2) return m2[1];
+  return null;
+}
+
+/** Marker icon: plane glyph + optional mini airline ICON when zoomed in */
+function planeIcon(heading=0, miniIconUrl=null){
+  const showMini = (miniIconUrl && currentZoom >= ZOOM_FOR_MINI_ICON);
+  const mini = showMini ? `<span class="miniLogo"><img src="${miniIconUrl}" alt="" onerror="this.parentNode.style.display='none'"></span>` : '';
+  const html = `
+    <div class="markerWrap">
+      <svg width="24" height="24" viewBox="0 0 24 24" style="transform:rotate(${heading}deg)">
+        <path d="M2 13l8.5-2 .5-8 3 0 .5 8L23 13v2l-8.5-1-2 5h-3l-2-5L2 15z" fill="#78c0ff" opacity="0.95"/>
+      </svg>
+      ${mini}
+    </div>`;
+  return L.divIcon({className:'', html, iconSize:[24,24], iconAnchor:[12,12]});
+}
+
+/** Sparkline */
+function drawSparkline(canvas, points){
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width = canvas.clientWidth * devicePixelRatio;
+  const h = canvas.height = canvas.clientHeight * devicePixelRatio;
+  ctx.clearRect(0,0,w,h);
+  if(!points || points.length < 2) return;
+  const lats = points.map(p=>p[0]).filter(v=>v!=null);
+  const lons = points.map(p=>p[1]).filter(v=>v!=null);
+  if(!lats.length || !lons.length) return;
+  const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+  const minLon = Math.min(...lons), maxLon = Math.max(...lons);
+  const pad = 6*devicePixelRatio;
+  ctx.lineWidth = 2*devicePixelRatio;
+  ctx.strokeStyle = '#78c0ff';
+  ctx.beginPath();
+  points.forEach((p,i)=>{
+    const x = pad + ((p[1]-minLon)/Math.max(1e-6,(maxLon-minLon))) * (w-2*pad);
+    const y = (h-pad) - ((p[0]-minLat)/Math.max(1e-6,(maxLat-minLat))) * (h-2*pad);
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+}
+
+/** Insert/update aircraft marker with branding-aware popup */
+function upsertAircraft(s){
+  const [
+    icao24, callsign, origin_country, time_position, last_contact,
+    lon, lat, baro_alt, on_ground, velocity, true_track, vert_rate,
+    sensors, geo_alt, squawk, spi, position_source, category
+  ] = s;
+  if(lat == null || lon == null) return;
+
+  const id = icao24 || (callsign ? callsign.trim() : Math.random().toString(36).slice(2));
+  const prefix = icaoFromCallsign(callsign||'');
+  // Prefer ICAO mapping; if absent, try IATA as last resort
+  const airline = (prefix && (airlineByICAO.get(prefix) || airlineByIATA.get(prefix))) || null;
+
+  let rec = markers.get(id);
+  const speedKts = velocity ? (velocity * 1.94384) : null;
+  const altFt = (geo_alt ?? baro_alt) ? ((geo_alt ?? baro_alt) * 3.28084) : null;
+  const vrFpm = vert_rate ? (vert_rate * 196.850394) : null;
+
+  if(!rec){
+    const marker = L.marker([lat,lon], { icon: planeIcon(true_track||0, airline?.iconUrl || null) }).addTo(map);
+    rec = { marker, trail: [], airline };
+    markers.set(id, rec);
+  } else {
+    rec.marker.setLatLng([lat,lon]);
+    rec.marker.setIcon( planeIcon(true_track||0, airline?.iconUrl || null) );
+    rec.airline = airline;
+  }
+
+  const catName = (n)=>{
+    const cats = {2:'Light',3:'Small',4:'Large',5:'B757 HVL',6:'Heavy',7:'High-Perf',8:'Rotor',9:'Glider',10:'LTA',11:'Skydiver',12:'Ultralight',14:'UAV',15:'Space',16:'Emerg Veh',17:'Service Veh'};
+    return cats[n] || String(n ?? '');
+  };
+
+  const brandColor = airline?.color || '#253042';
+  const logoBig = airline?.logoUrl ? imgEl(airline.logoUrl, 'logoLarge', airline?.name||'') : '';
+  const iconChip = airline?.iconUrl ? imgEl(airline.iconUrl, 'logoChip', '') : '';
+
+  const csDisp = (callsign||'').trim() || icao24;
+  const top = `
+    <div class="card" style="border-color:${brandColor}">
+      <div class="cardHeader">
+        ${logoBig}
+        <div>
+          <div><strong>${csDisp}</strong> <span class="badge">${on_ground?'On Ground':'Flight'}</span> <span class="badge">Cat ${catName(category)}</span></div>
+          <div class="label">${airline ? airline.name + (airline.iata? ` · ${airline.iata}/${airline.icao}` : (airline.icao? ` · ${airline.icao}`:'')) : (prefix? prefix : '')}</div>
+        </div>
+      </div>
+      <div class="row" style="border:0;padding:0;margin:0 0 6px 0">
+        ${iconChip}<span class="label">Country</span> <span class="value">${origin_country||''}</span>
+        &nbsp; · &nbsp;<span class="label">Alt</span> <span class="value">${altFt? altFt.toFixed(0)+' ft':''}</span>
+        &nbsp; · &nbsp;<span class="label">GS / VS</span> <span class="value">${speedKts? speedKts.toFixed(0)+' kt':''} / ${vrFpm? vrFpm.toFixed(0)+' fpm':''}</span>
+        &nbsp; · &nbsp;<span class="label">Track</span> <span class="value">${true_track!=null? true_track.toFixed(0)+'°':''}</span>
+        &nbsp; · &nbsp;<span class="label">Squawk</span> <span class="value">${squawk||''}</span>
+      </div>
+      <canvas class="spark"></canvas>
+    </div>
+  `;
+
+  rec.marker.bindPopup(top);
+
+  if(!rec.trail.length || (rec.trail.at(-1)[0] !== lat || rec.trail.at(-1)[1] !== lon)){
+    rec.trail.push([lat,lon]);
+    if(rec.trail.length > 100) rec.trail.shift();
+  }
+  rec.marker.off('popupopen').on('popupopen', (e)=>{
+    const canvas = e.popup.getElement().querySelector('canvas.spark');
+    if(canvas) drawSparkline(canvas, rec.trail);
+  });
+
+  rec.lastSeen = Date.now();
+}
+
+/** Cull markers not updated in 60s */
+function pruneStale(){
+  const now = Date.now();
+  for(const [id,rec] of markers.entries()){
+    if(now - (rec.lastSeen||0) > 60000){
+      if(rec.marker) map.removeLayer(rec.marker);
+      markers.delete(id);
+    }
+  }
+}
+
+let liveTimer = null;
+function refreshMs(){ return +document.getElementById('refresh').value; }
+
+async function fetchViewport(){
+  const b = map.getBounds();
+  const q = new URLSearchParams({
+    lamin: b.getSouth().toFixed(4),
+    lamax: b.getNorth().toFixed(4),
+    lomin: b.getWest().toFixed(4),
+    lomax: b.getEast().toFixed(4),
+    extended: '1'
+  });
+  const url = `${API_BASE}/api/states?${q.toString()}`;
+  const r = await fetch(url);
+  if(!r.ok){ logLine(`<span class="warn">Viewport fetch failed ${r.status}</span>`); return; }
+  const j = await r.json();
+  (j.states||[]).forEach(upsertAircraft);
+  pruneStale();
+  logLine(`Viewport update: ${j.states? j.states.length:0} vectors @ ${new Date((j.time||0)*1000).toLocaleTimeString()}`);
+}
+
+/** Follow */
+async function followTarget(input){
+  const raw = (input||'').trim();
+  if(!raw){ logLine(`<span class="warn">Provide ICAO24 or callsign</span>`); return; }
+  let params = new URLSearchParams({ extended: '1' });
+  if(/^[0-9a-f]{6}$/i.test(raw)){ params.set('icao24', raw.toLowerCase()); }
+
+  const url = `${API_BASE}/api/states?${params.toString()}`;
+  const r = await fetch(url);
+  if(!r.ok){ logLine(`<span class="warn">Follow fetch failed ${r.status}</span>`); return; }
+  const j = await r.json();
+  let hits = (j.states||[]);
+  if(!/^[0-9a-f]{6}$/i.test(raw)){
+    hits = hits.filter(s => (s[1]||'').trim().toUpperCase() === raw.toUpperCase());
+  }
+  if(!hits.length){ logLine(`<span>No match for ${raw}</span>`); return; }
+  hits.forEach(upsertAircraft);
+  const s = hits[0];
+  if(s[6]!=null && s[5]!=null) map.setView([s[6], s[5]], Math.max(map.getZoom(), 8));
+  logLine(`Following ${(s[1]||'').trim() || s[0]} — ${hits.length} vector(s)`);
+  try{
+    const icao = s[0];
+    const tr = await fetch(`${API_BASE}/api/tracks?icao24=${icao}&time=0`);
+    if(tr.ok){
+      const tj = await tr.json();
+      const coords = (tj.path||[]).map(p => [p[1], p[2]]).filter(p => p[0]!=null && p[1]!=null);
+      if(coords.length){
+        const poly = L.polyline(coords, {opacity:0.6, weight:2});
+        poly.addTo(map);
+        setTimeout(()=>map.removeLayer(poly), 60000);
+        logLine(`Track points: ${coords.length}`);
+      }
+    }
+  } catch {}
+}
+
+/** Airport arrivals/departures (chips use JSON-provided icon file) */
+async function airportQuery(icao, mode){
+  const log = document.getElementById('log');
+  const banner = (msg, warn=false)=>{
+    const row = document.createElement('div'); row.className='row';
+    row.innerHTML = `<strong${warn?' class="warn"':''}>${msg}</strong>`; log.prepend(row);
+  };
+
+  if(!icao || !/^[A-Z0-9]{3,4}$/.test(icao.toUpperCase())){
+    banner('Enter a valid ICAO (e.g., KGSO, KLGA).', true); return;
+  }
+  banner(`${mode.toUpperCase()} • ${icao} • querying…`);
+
+  const now = Math.floor(Date.now()/1000);
+  const begin = now - 48*3600;
+  const end = now - 1;
+
+  try{
+    const url = `${API_BASE}/api/flights/${mode}?airport=${encodeURIComponent(icao)}&begin=${begin}&end=${end}`;
+    const r = await fetch(url);
+    if(r.status === 404){ banner(`${mode.toUpperCase()} ${icao}: none available (batching).`, true); return; }
+    if(!r.ok){ banner(`${mode.toUpperCase()} ${icao} failed ${r.status}`, true); return; }
+    const arr = await r.json();
+    if(!Array.isArray(arr) || arr.length === 0){ banner(`${mode.toUpperCase()} ${icao}: no records in last 48h.`, true); return; }
+
+    const html = arr.slice(0, 25).map(f => {
+      const cs = (f.callsign||'').trim();
+      const dep = f.estDepartureAirport || '?';
+      const arrp = f.estArrivalAirport || '?';
+      const sdep = f.firstSeen ? new Date(f.firstSeen*1000).toLocaleString() : '';
+      const sarr = f.lastSeen ? new Date(f.lastSeen*1000).toLocaleString() : '';
+      const pref = icaoFromCallsign(cs);
+      const al = pref && (airlineByICAO.get(pref) || airlineByIATA.get(pref));
+      const chip = al?.iconUrl ? imgEl(al.iconUrl, 'logoChip', '') : '';
+      return `<div class="row"><strong>${chip}${cs || f.icao24}</strong> ${dep} → ${arrp}<br><span class="label">Window</span> <span class="value">${sdep} → ${sarr}</span></div>`;
+    }).join('');
+    log.prepend((()=>{ const d=document.createElement('div'); d.innerHTML = `<div class="row"><span class="tag">${mode.toUpperCase()}</span> ${icao} · showing ${Math.min(25, arr.length)} of ${arr.length}</div>` + html; return d; })());
+  } catch (e){
+    banner(`Network error: ${e.message}`, true);
+  }
+}
+
+/** Zoom-driven mini-icon refresh */
+map.on('zoomend', ()=>{
+  currentZoom = map.getZoom();
+  for(const [id, rec] of markers.entries()){
+    // preserve heading by reading current svg rotation
+    let rot = 0;
+    try{
+      const el = rec.marker.getElement();
+      const svg = el ? el.querySelector('svg') : null;
+      if(svg && svg.style && svg.style.transform){
+        const m = svg.style.transform.match(/rotate\(([-\d.]+)deg\)/);
+        if(m) rot = parseFloat(m[1]) || 0;
+      }
+    } catch {}
+    rec.marker.setIcon( planeIcon(rot, rec.airline?.iconUrl || null) );
+  }
+});
+
+/** UI wires */
+document.getElementById('btnViewport').onclick = ()=>{
+  if(liveTimer) clearInterval(liveTimer);
+  fetchViewport();
+  liveTimer = setInterval(fetchViewport, refreshMs());
+};
+document.getElementById('btnFollow').onclick = ()=>{
+  if(liveTimer) clearInterval(liveTimer);
+  followTarget(document.getElementById('icao24').value);
+  liveTimer = setInterval(()=>followTarget(document.getElementById('icao24').value), refreshMs()*2);
+};
+document.getElementById('btnAirport').onclick = ()=>{
+  if(liveTimer) clearInterval(liveTimer);
+  const icao = document.getElementById('airport').value.trim().toUpperCase();
+  const mode = document.getElementById('apMode').value;
+  airportQuery(icao, mode);
+};
+document.getElementById('refresh').onchange = (e)=>{
+  if(liveTimer){ clearInterval(liveTimer); liveTimer = setInterval(fetchViewport, refreshMs()); }
+};
+
+/** Boot */
+(async function boot(){
+  await loadAirlines();       // use JSON-provided filenames
+  fetchViewport();
+  liveTimer = setInterval(fetchViewport, refreshMs());
+})();
+</script>
+</body>
+</html>
