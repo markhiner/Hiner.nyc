@@ -24,7 +24,7 @@
     label{display:block;margin-bottom:6px;color:#cfcfcf}
     .field{margin-bottom:16px}
     .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    input,button{
+    input,button,select{
       width:100%;padding:12px 14px;border-radius:10px;border:1px solid #2a2a2a;
       background:#0f0f0f;color:#f0f0f0;font-size:17px;-webkit-appearance:none;appearance:none
     }
@@ -39,8 +39,9 @@
     .tgl{flex:1;display:grid;place-items:center;padding:12px;border-radius:10px;border:1px solid #2a2a2a;background:#0f0f0f;color:#cfcfcf}
     .tgl.active{background:#1e1e1e;color:#fff;border-color:#3a3a3a}
     .go{margin-top:14px}
-    /* --- PIN gate overlay --- */
     .hidden{display:none!important}
+
+    /* --- PIN gate overlay --- */
     #gateOverlay{position:fixed;inset:0;background:#0b0b0b;display:grid;place-items:center;z-index:9999}
     #gate{
       width:min(92vw,420px);background:#161616;border:1px solid #2a2a2a;border-radius:16px;
@@ -86,8 +87,17 @@
 </div>
 
 <!-- Main UI -->
-<div class="card">
-  <form id="f" method="GET" action="https://api.hiner.nyc/fly/run" autocomplete="on">
+<div class="card" id="appCard" aria-hidden="true">
+  <h1>yocto</h1>
+
+  <!-- Mode toggle -->
+  <div class="toggle" role="tablist" aria-label="Search type">
+    <button type="button" id="modeFlights" class="tgl active" role="tab" aria-selected="true">Flights</button>
+    <button type="button" id="modeHotels" class="tgl" role="tab" aria-selected="false">Hotels</button>
+  </div>
+
+  <!-- Flights form -->
+  <form id="flightForm" method="GET" action="https://api.hiner.nyc/fly/run" autocomplete="on">
     <div class="field">
       <div class="row">
         <input id="dep" name="departure" placeholder="From">
@@ -131,15 +141,61 @@
     </div>
 
     <div class="go">
-      <button type="submit">Search Flights</button>
+      <button type="submit" id="flightSubmit">Search Flights</button>
+    </div>
+  </form>
+
+  <!-- Hotels form -->
+  <form id="hotelForm" class="hidden" method="GET" action="https://api.hiner.nyc/hotels/run" autocomplete="on">
+    <div class="field">
+      <label for="city">Destination city</label>
+      <input id="city" name="city" placeholder="City or airport (e.g., NYC)">
+      <div class="chips" id="citychips">
+        <button type="button" class="chip" data-v="NYC">NYC</button>
+        <button type="button" class="chip" data-v="LAS">LAS</button>
+        <button type="button" class="chip" data-v="MIA">MIA</button>
+        <button type="button" class="chip" data-v="DCA">DCA</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="row">
+        <div>
+          <label for="checkin">Check-in</label>
+          <input type="date" id="checkin" name="checkin">
+        </div>
+        <div>
+          <label for="checkout">Check-out</label>
+          <input type="date" id="checkout" name="checkout">
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="row">
+        <div>
+          <label for="rooms">Rooms</label>
+          <input type="number" id="rooms" name="rooms" min="1" value="1">
+        </div>
+        <div>
+          <label for="guests">Guests</label>
+          <input type="number" id="guests" name="guests" min="1" value="1">
+        </div>
+      </div>
+    </div>
+
+    <div class="go">
+      <button type="submit" id="hotelSubmit">Search Hotels</button>
     </div>
   </form>
 </div>
 
 <script>
-  // Chip helpers
+  // --- small helpers
   function hookChips(containerId, targetInput){
-    document.getElementById(containerId).querySelectorAll('.chip').forEach(function(b){
+    var c = document.getElementById(containerId);
+    if(!c) return;
+    c.querySelectorAll('.chip').forEach(function(b){
       b.addEventListener('click', function(){
         document.getElementById(targetInput).value = b.dataset.v;
       });
@@ -147,38 +203,87 @@
   }
   hookChips('depchips','dep');
   hookChips('arrchips','arr');
+  hookChips('citychips','city');
 
-  var main = document.getElementById('main'),
-      first = document.getElementById('first'),
-      cls = document.getElementById('class');
+  // Cabin toggle (flights)
+  (function(){
+    var main = document.getElementById('main'),
+        first = document.getElementById('first'),
+        cls = document.getElementById('class');
+    function setC(v){
+      cls.value = v;
+      if(v==='first'){ first.classList.add('active'); main.classList.remove('active'); }
+      else { main.classList.add('active'); first.classList.remove('active'); }
+    }
+    if (main && first) {
+      main.onclick = function(){ setC('main') };
+      first.onclick = function(){ setC('first') };
+    }
+  })();
 
-  function setC(v){
-    cls.value = v;
-    if(v==='first'){ first.classList.add('active'); main.classList.remove('active'); }
-    else { main.classList.add('active'); first.classList.remove('active'); }
-  }
-  if (main && first) {
-    main.onclick = function(){ setC('main') };
-    first.onclick = function(){ setC('first') };
-  }
+  // Default dates
+  (function(){
+    // flight date = tomorrow
+    var fd = document.getElementById('date');
+    if (fd){ var d = new Date(); d.setDate(d.getDate()+1); fd.value = d.toISOString().slice(0,10); }
+    // hotel dates = check-in tomorrow, check-out +2
+    var ci = document.getElementById('checkin'), co = document.getElementById('checkout');
+    if (ci && co){
+      var t1 = new Date(); t1.setDate(t1.getDate()+1);
+      var t2 = new Date(); t2.setDate(t2.getDate()+3);
+      ci.value = t1.toISOString().slice(0,10);
+      co.value = t2.toISOString().slice(0,10);
+    }
+  })();
 
-  var d = new Date(); d.setDate(d.getDate()+1);
-  document.getElementById('date').value = d.toISOString().slice(0,10);
+  // Mode toggle
+  (function(){
+    var flightsBtn = document.getElementById('modeFlights');
+    var hotelsBtn  = document.getElementById('modeHotels');
+    var flightForm = document.getElementById('flightForm');
+    var hotelForm  = document.getElementById('hotelForm');
+
+    function setMode(mode){
+      var isFlights = (mode === 'flights');
+      flightsBtn.classList.toggle('active', isFlights);
+      flightsBtn.setAttribute('aria-selected', String(isFlights));
+      hotelsBtn.classList.toggle('active', !isFlights);
+      hotelsBtn.setAttribute('aria-selected', String(!isFlights));
+      flightForm.classList.toggle('hidden', !isFlights);
+      hotelForm.classList.toggle('hidden', isFlights);
+      document.title = isFlights ? 'yocto fly' : 'yocto stay';
+    }
+    flightsBtn.addEventListener('click', function(){ setMode('flights'); });
+    hotelsBtn.addEventListener('click', function(){ setMode('hotels'); });
+    setMode('flights'); // default
+  })();
 
   // --- PIN gate logic ---
   (function(){
     var correct = "1123";
     var entered = "";
     var gate = document.getElementById('gateOverlay');
+    var app  = document.getElementById('appCard');
     var dots = Array.prototype.slice.call(document.querySelectorAll('#pinDots .pinDot'));
 
+    function setUnlocked(){
+      gate.classList.add('hidden');
+      app.removeAttribute('aria-hidden');
+      localStorage.setItem('yocto_unlocked','1');
+    }
+    if (localStorage.getItem('yocto_unlocked') === '1') { setUnlocked(); return; }
+
     function renderDots(){ dots.forEach(function(d,i){ d.classList.toggle('fill', i < entered.length); }); }
-    function reset(){ entered=""; renderDots(); }
+    function reset(msg){
+      entered = ""; renderDots();
+      if (msg) gate.querySelector('.gateHint').textContent = msg;
+      else gate.querySelector('.gateHint').textContent = 'Enter code to unlock';
+    }
     function press(k){
       if(k==="C"){ reset(); return; }
       if(k==="OK"){
-        if(entered===correct){ gate.style.display='none'; }
-        else { reset(); gate.querySelector('.gateHint').textContent='Wrong code'; }
+        if(entered===correct){ setUnlocked(); }
+        else { reset('Wrong code'); }
         return;
       }
       if(entered.length<4 && /\d/.test(k)){ entered += k; renderDots(); }
@@ -188,7 +293,7 @@
       btn.addEventListener('click', function(){ press(btn.getAttribute('data-k')); });
     });
     window.addEventListener('keydown', function(e){
-      if(gate.style.display==='none') return;
+      if(gate.classList.contains('hidden')) return;
       if(e.key>='0' && e.key<='9'){ press(e.key); }
       if(e.key==='Enter'){ press('OK'); }
       if(e.key==='Backspace' || e.key==='Escape'){ press('C'); }
