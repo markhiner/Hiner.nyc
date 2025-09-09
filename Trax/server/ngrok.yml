@@ -1,0 +1,6 @@
+version: 3
+tunnels:
+  trax:
+    addr: 5055
+    proto: http
+    domain: api.hiner.nyc

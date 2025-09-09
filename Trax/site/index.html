@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>TRAX — Live Flight Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Leaflet CSS (use CDN or host locally in assets/vendor/leaflet/) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
+  <style>
+    html, body {height:100%; margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;}
+    #app {height:100%; position:relative;}
+    #map {height:100%; width:100%; display:none;}
+    /* Keypad overlay */
+    .gate {
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+      background: #0b0b0f; color:#fff;
+    }
+    .pad {
+      width: 320px; background:#11131a; border-radius:20px; padding:20px; box-shadow: 0 10px 30px rgba(0,0,0,.5);
+    }
+    .pad h1 {margin:0 0 10px; font-size:20px; font-weight:700;}
+    .display {
+      height:48px; border-radius:10px; background:#0d0f16; display:flex; align-items:center; justify-content:space-between; padding:0 12px; margin-bottom:14px; border:1px solid #1f2433;
+    }
+    .display input {
+      background:transparent; border:0; outline:0; font-size:20px; letter-spacing:8px; color:#fff; width:100%;
+      caret-color: transparent; text-align:center;
+    }
+    .grid {
+      display:grid; grid-template-columns:repeat(3,1fr); gap:10px;
+    }
+    .btn {
+      height:56px; border-radius:12px; background:#1a1f2d; color:#fff; font-size:18px; font-weight:600; border:1px solid #27304a; cursor:pointer;
+    }
+    .btn:hover {filter:brightness(1.1);}
+    .btn.alt {background:#0d0f16;}
+    .warn {color:#ff7070; min-height:20px; margin:8px 0 0; font-size:12px;}
+    /* Card (plane details) */
+    .card {
+      position:absolute; right:16px; top:16px; width:320px; background:#fff; color:#111; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.25); display:none; overflow:hidden;
+    }
+    .card .bar {height:6px; background:#555;}
+    .card .content {padding:14px;}
+    .card .logo {width:100%; height:64px; object-fit:contain; background:#f6f7f9; border-radius:10px;}
+    .row {margin:8px 0; font-size:14px;}
+    .row b {display:inline-block; min-width:110px;}
+    /* Markers (fallback) */
+    .dot {
+      width:10px; height:10px; border-radius:50%; background:#222; border:2px solid #fff;
+    }
+    .badge {
+      position:absolute; top:12px; left:12px; background:#0d0f16; color:#aeb4c2; padding:6px 10px; border-radius:999px; font-size:12px; border:1px solid #1f2433;
+      z-index:500;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="gate" id="gate">
+    <div class="pad">
+      <h1>Enter 4-digit code</h1>
+      <div class="display">
+        <input id="pin" inputmode="numeric" maxlength="4" minlength="4" autocomplete="one-time-code" aria-label="PIN">
+      </div>
+      <div class="grid" id="keys"></div>
+      <div class="warn" id="warn"></div>
+    </div>
+  </div>
+
+  <div class="badge" id="status">Disconnected</div>
+  <div id="map"></div>
+
+  <div class="card" id="card">
+    <div class="bar" id="cardBar"></div>
+    <div class="content">
+      <img id="cardLogo" class="logo" alt="airline logo" />
+      <div class="row"><b>Airline</b><span id="cardAirline">—</span></div>
+      <div class="row"><b>Callsign</b><span id="cardCallsign">—</span></div>
+      <div class="row"><b>Altitude</b><span id="cardAlt">—</span></div>
+      <div class="row"><b>Ground</b><span id="cardGnd">—</span></div>
+      <div class="row"><b>Squawk</b><span id="cardSquawk">—</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
+
+<script>
+(function(){
+  const PIN = "4242";                               // must match server TRAX_ALLOWED_PIN
+  const API = "https://api.hiner.nyc/api";          // your ngrok reserved domain
+  const POLL_MS = 5000;
+  const ICON_ZOOM_THRESHOLD = 8;
+
+  const gate = document.getElementById('gate');
+  const pinInput = document.getElementById('pin');
+  const keys = document.getElementById('keys');
+  const warn = document.getElementById('warn');
+  const status = document.getElementById('status');
+
+  const card = document.getElementById('card');
+  const cardBar = document.getElementById('cardBar');
+  const cardLogo = document.getElementById('cardLogo');
+  const cardAirline = document.getElementById('cardAirline');
+  const cardCallsign = document.getElementById('cardCallsign');
+  const cardAlt = document.getElementById('cardAlt');
+  const cardGnd = document.getElementById('cardGnd');
+  const cardSquawk = document.getElementById('cardSquawk');
+
+  // Build keypad
+  const nums = ['1','2','3','4','5','6','7','8','9','←','0','OK'];
+  nums.forEach(n => {
+    const b = document.createElement('button');
+    b.className = 'btn' + ((n==='←'||n==='OK') ? ' alt' : '');
+    b.textContent = n;
+    b.onclick = () => {
+      if(n === '←') { pinInput.value = pinInput.value.slice(0,-1); return; }
+      if(n === 'OK') { checkPin(); return; }
+      if(pinInput.value.length < 4) pinInput.value += n;
+    };
+    keys.appendChild(b);
+  });
+  function checkPin(){
+    if(pinInput.value === PIN){
+      gate.style.display = 'none';
+      document.getElementById('map').style.display = 'block';
+      initMap();
+    } else {
+      warn.textContent = 'Nope.';
+      pinInput.value = '';
+    }
+  }
+
+  // Leaflet map
+  let map, markersLayer, timer = null, lastZoom = 0, useIcons = false;
+  const planeMarkers = new Map(); // key: icao24 -> L.marker
+
+  function initMap(){
+    map = L.map('map').setView([39.8283,-98.5795], 4); // CONUS
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      maxZoom: 19, attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    markersLayer = L.layerGroup().addTo(map);
+    lastZoom = map.getZoom();
+    useIcons = lastZoom >= ICON_ZOOM_THRESHOLD;
+
+    map.on('zoomend', () => {
+      const z = map.getZoom();
+      const wantIcons = z >= ICON_ZOOM_THRESHOLD;
+      if (wantIcons !== useIcons){
+        useIcons = wantIcons;
+        // re-render markers with new icon mode
+        planeMarkers.forEach((m, icao24) => {
+          const data = m.__data;
+          m.setIcon(buildIcon(data.airline, useIcons));
+        });
+      }
+    });
+
+    poll();
+    timer = setInterval(poll, POLL_MS);
+  }
+
+  function currentBBox(){
+    const b = map.getBounds();
+    const sw = b.getSouthWest();
+    const ne = b.getNorthEast();
+    return `${sw.lat.toFixed(4)},${sw.lng.toFixed(4)},${ne.lat.toFixed(4)},${ne.lng.toFixed(4)}`;
+  }
+
+  async function poll(){
+    status.textContent = 'Updating…';
+    try {
+      const url = `${API}/states?bbox=${encodeURIComponent(currentBBox())}`;
+      const r = await fetch(url, {headers: {"X-TRAX-PIN": PIN}});
+      if(!r.ok) throw new Error(`HTTP ${r.status}`);
+      const data = await r.json();
+      updateMarkers(data.states || []);
+      status.textContent = `Live • ${data.count} aircraft`;
+    } catch (e) {
+      status.textContent = 'Disconnected';
+      console.error(e);
+    }
+  }
+
+  function buildIcon(airline, wantIcon){
+    if (wantIcon && airline && airline.icon_url){
+      return L.icon({
+        iconUrl: airline.icon_url,
+        iconSize: [24,24],
+        iconAnchor: [12,12],
+        popupAnchor: [0,-12],
+        className: 'airline-icon'
+      });
+    }
+    // fallback dot
+    const svg = encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+      <circle cx="8" cy="8" r="5" fill="#111" stroke="#fff" stroke-width="2"/>
+    </svg>`);
+    return L.icon({
+      iconUrl: `data:image/svg+xml,${svg}`,
+      iconSize: [16,16],
+      iconAnchor: [8,8]
+    });
+  }
+
+  function showCard(s){
+    const al = s.airline || {};
+    const col = (al.primary_color || '#555').trim();
+    cardBar.style.background = col;
+    cardAirline.textContent = al.name || 'Unknown';
+    cardCallsign.textContent = s.callsign || '—';
+    cardAlt.textContent = s.geo_altitude != null ? `${Math.round(s.geo_altitude)} m` :
+                          (s.baro_altitude != null ? `${Math.round(s.baro_altitude)} m` : '—');
+    cardGnd.textContent = s.on_ground ? 'Yes' : 'No';
+    cardSquawk.textContent = s.squawk || '—';
+
+    if (al.logo_url){
+      cardLogo.src = al.logo_url;
+      cardLogo.style.display = 'block';
+    } else {
+      cardLogo.removeAttribute('src');
+      cardLogo.style.display = 'none';
+    }
+    card.style.display = 'block';
+  }
+
+  function updateMarkers(states){
+    const present = new Set();
+    states.forEach(s => {
+      const id = s.icao24;
+      present.add(id);
+      let m = planeMarkers.get(id);
+      if (!m){
+        m = L.marker([s.lat, s.lon], {icon: buildIcon(s.airline, useIcons)});
+        m.__data = s;
+        m.on('click', () => showCard(m.__data));
+        m.addTo(markersLayer);
+        planeMarkers.set(id, m);
+      } else {
+        m.setLatLng([s.lat, s.lon]);
+        m.__data = s;
+        m.setIcon(buildIcon(s.airline, useIcons));
+      }
+    });
+    // remove stale
+    Array.from(planeMarkers.keys()).forEach(id => {
+      if (!present.has(id)){
+        const m = planeMarkers.get(id);
+        markersLayer.removeLayer(m);
+        planeMarkers.delete(id);
+      }
+    });
+  }
+
+})();
+</script>
+</body>
+</html>
