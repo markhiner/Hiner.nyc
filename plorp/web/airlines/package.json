@@ -1,0 +1,29 @@
+{
+  "name": "soaring-symbols",
+  "version": "1.0.0",
+  "description": "A Curated Collection of Airline Logos & Icons in SVG",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/anhthang/soaring-symbols.git"
+  },
+  "keywords": [
+    "airline",
+    "logo",
+    "icon"
+  ],
+  "author": "Anh Thang Bui",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/anhthang/soaring-symbols/issues"
+  },
+  "homepage": "https://github.com/anhthang/soaring-symbols#readme",
+  "devDependencies": {
+    "lodash.sortby": "^4.7.0",
+    "slugify": "^1.6.6"
+  },
+  "packageManager": "yarn@4.3.1"
+}
